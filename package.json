@@ -1,0 +1,24 @@
+{
+  "name": "axiom-sdk",
+  "version": "0.1.0",
+  "description": "This is the beginning of a new SDK for smart contract development using Axiom.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.15.10",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.2"
+  },
+  "dependencies": {
+    "ethers": "^6.2.2",
+    "graphql": "^16.6.0",
+    "graphql-request": "^5.2.0"
+  }
+}
