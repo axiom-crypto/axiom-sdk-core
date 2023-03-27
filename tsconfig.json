@@ -4,8 +4,6 @@
     "module": "commonjs",
     "lib": ["esnext"],
     "strict": true,
-    "rootDir": ".",
-    "outDir": "dist",
     "sourceMap": true,
     "esModuleInterop": true,
     "moduleResolution": "node16"

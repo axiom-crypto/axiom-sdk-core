@@ -2,7 +2,6 @@
   "name": "axiom-sdk",
   "version": "0.1.0",
   "description": "This is the beginning of a new SDK for smart contract development using Axiom.",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node src/index.ts"
