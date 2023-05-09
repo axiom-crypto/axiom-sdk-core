@@ -1,8 +1,10 @@
 {
-  "name": "axiom-sdk",
+  "name": "@axiom-crypto/core",
   "version": "0.1.0",
-  "description": "This is the beginning of a new SDK for smart contract development using Axiom.",
+  "description": "The SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "scripts": {
+    "build": "rm -rf ./dist/* && tsc && cp ./package.json ./dist/.",
+    "publish": "",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node src/index.ts"
   },
@@ -16,6 +18,7 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
+    "axios": "^1.4.0",
     "ethers": "^6.2.2",
     "graphql": "^16.6.0",
     "graphql-request": "^5.2.0"

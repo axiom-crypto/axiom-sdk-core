@@ -1,11 +1,24 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "commonjs",
+    "module": "esnext",
     "lib": ["esnext"],
     "strict": true,
     "sourceMap": true,
     "esModuleInterop": true,
-    "moduleResolution": "node16"
-  }
+    "moduleResolution": "node",
+    "outDir": "dist"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "dist/**/*", 
+    "node_modules/**/*"
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
 }
