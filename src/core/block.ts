@@ -11,9 +11,9 @@ export class Block {
     this.version = config.version as string;
   }
 
-  async generateBlockHashWitness(blockNumber: number): Promise<BlockHashWitness | null> {
+  async getBlockHashWitness(blockNumber: number): Promise<BlockHashWitness | null> {
     const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
-    const endpoint = Constants[this.version].Endpoints.GenerateBlockHashWitness;
+    const endpoint = Constants[this.version].Endpoints.GetBlockHashWitness;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.post(uri, {
       blockNumber,

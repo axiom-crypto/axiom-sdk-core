@@ -6,5 +6,7 @@ export class Prover {
 
   constructor(readonly config: AxiomConfig) {
     this.version = config.version as string;
+
+    // WIP
   }
 }

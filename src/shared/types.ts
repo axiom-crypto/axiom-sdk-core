@@ -1,14 +1,33 @@
 export interface AxiomConfig {
+  /**
+   * Axiom API key (required)
+   */
   apiKey: string;
 
+  /**
+   * Full provider URI (https:// or wss://) from service such as Infura 
+   * or Alchemy (required)
+   */
   providerUri: string;
 
+  /**
+   * The chain ID to use
+   * (default: 1 (mainnet)))
+   */
   chainId?: number;
   
+  /**
+   * Axiom contract version number that we're targeting
+   * (default: latest version)
+   */
   version?: string;
   
   // privateKey?: `0x${string}` | undefined;
   
+  /**
+   * Default timeout in milliseconds for Axiom API calls
+   * (default: 10000)
+   */
   timeoutMs?: number;
 }
 

@@ -7,9 +7,9 @@ export const Versions = [
 export type VersionsType = typeof Versions[number];
 
 const endpoints = {
-  generateBlockHashWitness: "/generate_block_hash_witness",
+  getBlockHashWitness: "/get_block_hash_witness",
   getBlockMerkleProof: "/get_block_merkle_proof",
-  getBlockParams: "./get_block_params",
+  getBlockParams: "/get_block_params",
   getBlockRlpHeader: "/get_block_rlp_header",
 }
 
@@ -20,11 +20,11 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       AxiomStoragePf: "",
     },
     Urls: {
-      ApiBaseUrl: "https://axiom-api-endpoints.vercel.app/api/v0", // "https://api.axiom.xyz/api/v0",
+      ApiBaseUrl: "https://api.axiom.xyz/v0",
       ProverBaseUrl: "https://prover.axiom.xyz",
     },
     Endpoints: {
-      GenerateBlockHashWitness: endpoints.generateBlockHashWitness,
+      GetBlockHashWitness: endpoints.getBlockHashWitness,
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
@@ -36,11 +36,11 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       AxiomStoragePf: "",
     },
     Urls: {
-      ApiBaseUrl: "https://axiom-api-endpoints.vercel.app/api/v0",
+      ApiBaseUrl: "https://api.axiom.xyz/v0",
       ProverBaseUrl: "https://prover.axiom.xyz",
     },
     Endpoints: {
-      GenerateBlockHashWitness: endpoints.generateBlockHashWitness,
+      GetBlockHashWitness: endpoints.getBlockHashWitness,
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
@@ -52,11 +52,11 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       AxiomStoragePf: "",
     },
     Urls: {
-      ApiBaseUrl: "https://api.axiom.xyz/api/v1",
+      ApiBaseUrl: "https://api.axiom.xyz/v1",
       ProverBaseUrl: "https://prover.axiom.xyz",
     },
     Endpoints: {
-      GenerateBlockHashWitness: endpoints.generateBlockHashWitness,
+      GetBlockHashWitness: endpoints.getBlockHashWitness,
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
