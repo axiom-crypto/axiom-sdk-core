@@ -26,4 +26,39 @@ export class Block {
     }
     return null;
   }
+
+  async getBlockMerkleProof(blockNumber: number): Promise<string[] | null> {
+    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
+    const endpoint = Constants[this.version].Endpoints.GetBlockMerkleProof;
+    const uri = `${baseUrl}${endpoint}`;
+    const result = await axios.post(uri, {
+      blockNumber,
+      providerUri: this.providerUri,
+    });
+    if (result?.status === HttpStatusCode.Ok) {
+      if (result?.data?.data?.merkleProof !== undefined) {
+        return result.data.data.merkleProof;
+      }
+    }
+    return null;
+  }
+
+  async getBlockRlpHeader(blockNumber: number): Promise<string | null> {
+    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
+    const endpoint = Constants[this.version].Endpoints.GetBlockRlpHeader;
+    const uri = `${baseUrl}${endpoint}`;
+    const result = await axios.post(uri, {
+      blockNumber,
+      providerUri: this.providerUri,
+    });
+    if (result?.status === HttpStatusCode.Ok) {
+      if (result?.data?.data !== undefined) {
+        return result.data.data;
+      }
+    }
+    return null;
+  }
+
+  async getBlockParams(blockNumber: number): Promise<any | null> {
+  } 
 }

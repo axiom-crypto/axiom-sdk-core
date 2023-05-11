@@ -10,12 +10,13 @@ const endpoints = {
   generateBlockHashWitness: "/generate_block_hash_witness",
   getBlockMerkleProof: "/get_block_merkle_proof",
   getBlockParams: "./get_block_params",
+  getBlockRlpHeader: "/get_block_rlp_header",
 }
 
 export const Constants: {[V in VersionsType]: any} = Object.freeze({
   v0: {
     Addresses: {
-      Axiom: "",
+      Axiom: "0x2251c204749e18a0f9A7a90Cff1b554F8d492b3c",
       AxiomStoragePf: "",
     },
     Urls: {
@@ -26,6 +27,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GenerateBlockHashWitness: endpoints.generateBlockHashWitness,
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
+      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
     },
   },
   v0_2: {
@@ -41,6 +43,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GenerateBlockHashWitness: endpoints.generateBlockHashWitness,
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
+      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
     },
   },
   v1: {
@@ -56,6 +59,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GenerateBlockHashWitness: endpoints.generateBlockHashWitness,
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
+      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
     },
   },
 });

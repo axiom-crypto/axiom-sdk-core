@@ -55,10 +55,12 @@ export class Config {
     if (version === undefined) {
       return Versions[Versions.length - 1];
     }
-    
+
     if (!version.toLowerCase().startsWith("v")) {
       version = `v${version}`;
-    } 
+    }
+    version = version.replaceAll(".", "_");
+    
     if (Versions.includes(version)) {
       return version;
     }
