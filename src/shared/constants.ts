@@ -21,7 +21,6 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v0",
-      ProverBaseUrl: "https://prover.axiom.xyz",
     },
     Endpoints: {
       GetBlockHashWitness: endpoints.getBlockHashWitness,
@@ -37,7 +36,6 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v0",
-      ProverBaseUrl: "https://prover.axiom.xyz",
     },
     Endpoints: {
       GetBlockHashWitness: endpoints.getBlockHashWitness,
@@ -53,7 +51,6 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v1",
-      ProverBaseUrl: "https://prover.axiom.xyz",
     },
     Endpoints: {
       GetBlockHashWitness: endpoints.getBlockHashWitness,

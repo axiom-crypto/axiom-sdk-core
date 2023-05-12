@@ -7,6 +7,7 @@ export class Prover {
   constructor(readonly config: AxiomConfig) {
     this.version = config.version as string;
 
-    // WIP
+    // WIP: This section will include items that will be used for API calls 
+    // that will eventually get routed to the prover.
   }
 }

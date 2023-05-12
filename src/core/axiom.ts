@@ -14,9 +14,8 @@ export class Axiom {
 
   constructor(config: AxiomConfig) {
     this.config = new Config(config);
-    
+
     this.block = new Block(this.config);
     this.prover = new Prover(this.config);
   }
 }
-
