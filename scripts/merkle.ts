@@ -1,6 +1,6 @@
 import { assert } from "console";
 
-const { ethers, solidityPackedKeccak256 } = require("ethers");
+import { ethers, solidityPackedKeccak256 } from "ethers";
 const { gql, GraphQLClient } = require("graphql-request");
 
 const client = new GraphQLClient(
@@ -11,6 +11,7 @@ const client = new GraphQLClient(
     },
   }
 );
+
 
 export function buildMerkleTree(leaves: string[], depth: number) {
   const tree: string[][] = [];
