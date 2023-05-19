@@ -24,6 +24,9 @@ devDependencies:
   '@types/node':
     specifier: ^18.15.10
     version: 18.15.10
+  dotenv:
+    specifier: ^16.0.3
+    version: 16.0.3
   jest:
     specifier: ^29.5.0
     version: 29.5.0(@types/node@18.15.10)(ts-node@10.9.1)
@@ -1273,6 +1276,11 @@ packages:
   /diff@4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
+    dev: true
+
+  /dotenv@16.0.3:
+    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
     dev: true
 
   /electron-to-chromium@1.4.401:

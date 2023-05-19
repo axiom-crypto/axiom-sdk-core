@@ -1,5 +1,5 @@
 import { ethers, keccak256 } from "ethers";
-import { Query } from "../shared/types";
+import { QueryRow } from "../shared/types";
 import { getBlockResponse, getFullAccountResponse, getFullStorageResponse, getKeccakMerkleRoot } from "./response";
 import { encodeQuery, encodeQueryData } from "./encoder";
 import { Config } from "../shared/config";
@@ -7,7 +7,7 @@ import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
 import { Versions } from "../shared/constants";
 
 export class QueryBuilder {
-  private queries: Query[] = [];
+  private queries: QueryRow[] = [];
   private readonly config: Config;
   private readonly provider: ethers.JsonRpcProvider;
 
@@ -22,9 +22,9 @@ export class QueryBuilder {
     this.provider = new ethers.JsonRpcProvider(this.config.providerUri);
   }
 
-  /// Appends a `Query` to the current `QueryBuilder` instance. If the `QueryBuilder` 
+  /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder` 
   /// has reached its maximum size, then an error will be thrown.
-  append(query: Query): void {
+  append(query: QueryRow): void {
     if (this.queries.length >= this.maxSize) {
       throw new Error(`QueryBuilder has reached its maximum size of ${this.maxSize}. Either reduce the number of queries or pass in a larger size to QueryBuilder.`);
     }
@@ -36,18 +36,18 @@ export class QueryBuilder {
     this.queries.push(query);
   }
 
-  /// Gets the current number of `Query`s appended to the instance of `QueryBuilder`.
+  /// Gets the current number of `QueryRow`s appended to the instance of `QueryBuilder`.
   getCurrentSize(): number {
     return this.queries.length;
   }
 
-  /// Gets the maximum number of `Query`s that can be appended to the instance of 
-  /// `QueryBuilder`.
+  /// Gets the maximum number of `QueryRow`s that the current instance of `QueryBuilder` 
+  /// supports
   getMaxSize(): number {
     return this.maxSize;
   }
 
-  /// Gets the current `Query` values as a formatted string.
+  /// Gets the current `QueryRow` values as a formatted string.
   asFormattedString(): string {
     let str = "";
     for (let i = 0; i < this.queries.length; i++) {

@@ -63,7 +63,7 @@ export interface BlockHashWitness {
 /// The Query interface is used to build a query to the Axiom API. It is read in order 
 /// from first variable to last, and if any variable is null, we interpret all subsequent
 /// variables in the interface as null when we process the Query. 
-export interface Query {
+export interface QueryRow {
   blockNumber: number;
   address: `0x${string}` | null;
   slot: ethers.BigNumberish | null;
