@@ -1,5 +1,5 @@
 import { ethers, keccak256 } from "ethers";
-import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
+import { MerkleTree } from "merkletreejs";
 
 // block_response.keccak = keccak(blockHash . uint32(blockNumber))
 export function getBlockResponse(
@@ -7,7 +7,7 @@ export function getBlockResponse(
   blockNumber: number
 ): string {
   const abiCoder = new ethers.AbiCoder();
-  const encodedBlockResponse = abiCoder.encode(
+  const encodedBlockResponse = ethers.solidityPacked(
     ["bytes32", "uint32"], 
     [blockHash, blockNumber]
   );
@@ -24,12 +24,13 @@ export function getFullAccountResponse(
   codeHash: string,
 ): string {
   const abiCoder = new ethers.AbiCoder();
-  const encodedAccountResponse = abiCoder.encode(
+  // ethers.solidityPacked()
+  const encodedAccountResponse = ethers.solidityPacked(
     ["uint64", "uint96", "bytes32", "bytes32"],
     [nonce, balance, storageRoot, codeHash]
   );
   const keccakAccountResponse = keccak256(encodedAccountResponse);
-  const encodedFullAccountResponse = abiCoder.encode(
+  const encodedFullAccountResponse = ethers.solidityPacked(
     ["uint32", "address", "bytes32"],
     [blockNumber, address, keccakAccountResponse]
   );
@@ -40,11 +41,11 @@ export function getFullAccountResponse(
 export function getFullStorageResponse(
   blockNumber: number,
   address: string,
-  slot: number,
+  slot: ethers.BigNumberish,
   value: number,
 ): string {
   const abiCoder = new ethers.AbiCoder();
-  const encodedStorageResponse = abiCoder.encode(
+  const encodedStorageResponse = ethers.solidityPacked(
     ["uint32", "address", "uint256", "uint256"],
     [blockNumber, address, slot, value]
   );
@@ -57,41 +58,15 @@ export function getQueryResponse(
   storageResponseRoot: string,
 ): string {
   const abiCoder = new ethers.AbiCoder();
-  const encodedQueryResponse = abiCoder.encode(
+  const encodedQueryResponse = ethers.solidityPacked(
     ["bytes32", "bytes32", "bytes32"],
     [blockResponseRoot, accountResponseRoot, storageResponseRoot]
   );
   return keccak256(encodedQueryResponse);
 }
 
-export function encodeQuery(
-  length: number,
-  blockNumber: number,
-  address: string,
-  slot: number,
-): string {
-  const abiCoder = new ethers.AbiCoder();
-  const encodedQuery = abiCoder.encode(
-    ["uint32", "uint32", "address", "uint256"],
-    [length, blockNumber, address, slot]
-  );
-  return encodedQuery;
-}
-
-export function encodeQueryData(
-  versionIdx: number,
-  length: number,
-  encodedQueries: string[],
-): string {
-  const abiCoder = new ethers.AbiCoder();
-  const encodedQueryData = abiCoder.encode(
-    ["uint8", "uint32", "bytes[]"],
-    [versionIdx, length, encodedQueries]
-  );
-  return encodedQueryData;
-}
-
 export function getKeccakMerkleRoot(leaves: string[][]): string {
-  const tree = StandardMerkleTree.of(leaves, ["bytes32"]);
-  return tree.root;
+  const parsedLeaves = leaves.map((leaf) => leaf[0]);
+  const tree = new MerkleTree(parsedLeaves, keccak256);
+  return tree.getHexRoot();
 }

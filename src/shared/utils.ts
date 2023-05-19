@@ -32,3 +32,13 @@ export async function getAccountData(blockNumber: number, address: `0x${string}`
   );
   return accountData;
 } 
+
+export function concatHexStrings(...args: string[]) {
+  return `0x${args.map((s) => {
+    if (s.substring(0, 2) === '0x') {
+      return s.substring(2, s.length)
+    } else {
+      return s;
+    }
+  }).join('')}`;
+}

@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 export interface AxiomConfig {
   /**
    * Axiom API key (required)
@@ -58,10 +60,13 @@ export interface BlockHashWitness {
   merkleProof: string[],
 }
 
+/// The Query interface is used to build a query to the Axiom API. It is read in order 
+/// from first variable to last, and if any variable is null, we interpret all subsequent
+/// variables in the interface as null when we process the Query. 
 export interface Query {
-  blockNumber: number | undefined;
-  address: `0x${string}` | undefined;
-  slot: number | undefined;
+  blockNumber: number;
+  address: `0x${string}` | null;
+  slot: ethers.BigNumberish | null;
 }
 
 export const BlockHashWitnessABI = "(uint32 blockNumber, bytes32 claimedBlockHash, bytes32 prevHash, uint32 numFinal, bytes32[10] merkleProof)";
