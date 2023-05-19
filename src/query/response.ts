@@ -6,7 +6,6 @@ export function getBlockResponse(
   blockHash: string, 
   blockNumber: number
 ): string {
-  const abiCoder = new ethers.AbiCoder();
   const encodedBlockResponse = ethers.solidityPacked(
     ["bytes32", "uint32"], 
     [blockHash, blockNumber]
@@ -14,7 +13,8 @@ export function getBlockResponse(
   return keccak256(encodedBlockResponse);
 }
 
-// full_account_response.keccak = keccak(blockNumber . address . keccak(uint64(nonce) . uint96(balance) . storageRoot . codeHash))
+// full_account_response.keccak = keccak(blockNumber . address . keccak(uint64(nonce) 
+// . uint96(balance) . storageRoot . codeHash))
 export function getFullAccountResponse(
   blockNumber: number, 
   address: string, 
@@ -23,8 +23,6 @@ export function getFullAccountResponse(
   storageRoot: string, 
   codeHash: string,
 ): string {
-  const abiCoder = new ethers.AbiCoder();
-  // ethers.solidityPacked()
   const encodedAccountResponse = ethers.solidityPacked(
     ["uint64", "uint96", "bytes32", "bytes32"],
     [nonce, balance, storageRoot, codeHash]
@@ -44,7 +42,6 @@ export function getFullStorageResponse(
   slot: ethers.BigNumberish,
   value: number,
 ): string {
-  const abiCoder = new ethers.AbiCoder();
   const encodedStorageResponse = ethers.solidityPacked(
     ["uint32", "address", "uint256", "uint256"],
     [blockNumber, address, slot, value]
@@ -52,21 +49,7 @@ export function getFullStorageResponse(
   return keccak256(encodedStorageResponse);
 }
 
-export function getQueryResponse(
-  blockResponseRoot: string,
-  accountResponseRoot: string,
-  storageResponseRoot: string,
-): string {
-  const abiCoder = new ethers.AbiCoder();
-  const encodedQueryResponse = ethers.solidityPacked(
-    ["bytes32", "bytes32", "bytes32"],
-    [blockResponseRoot, accountResponseRoot, storageResponseRoot]
-  );
-  return keccak256(encodedQueryResponse);
-}
-
-export function getKeccakMerkleRoot(leaves: string[][]): string {
-  const parsedLeaves = leaves.map((leaf) => leaf[0]);
-  const tree = new MerkleTree(parsedLeaves, keccak256);
+export function getKeccakMerkleRoot(leaves: string[]): string {
+  const tree = new MerkleTree(leaves, keccak256);
   return tree.getHexRoot();
 }

@@ -1,9 +1,9 @@
 import { ethers, keccak256 } from "ethers";
-import { AxiomConfig, Query } from "../shared/types";
-import { getBlockResponse, getFullAccountResponse, getFullStorageResponse, getKeccakMerkleRoot, getQueryResponse } from "./response";
+import { Query } from "../shared/types";
+import { getBlockResponse, getFullAccountResponse, getFullStorageResponse, getKeccakMerkleRoot } from "./response";
 import { encodeQuery, encodeQueryData } from "./encoder";
 import { Config } from "../shared/config";
-import { concatHexStrings, getAccountData, getFullBlock, zeroBytes } from "../shared/utils";
+import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
 import { Versions } from "../shared/constants";
 
 export class QueryBuilder {
@@ -22,6 +22,8 @@ export class QueryBuilder {
     this.provider = new ethers.JsonRpcProvider(this.config.providerUri);
   }
 
+  /// Appends a `Query` to the current `QueryBuilder` instance. If the `QueryBuilder` 
+  /// has reached its maximum size, then an error will be thrown.
   append(query: Query): void {
     if (this.queries.length >= this.maxSize) {
       throw new Error(`QueryBuilder has reached its maximum size of ${this.maxSize}. Either reduce the number of queries or pass in a larger size to QueryBuilder.`);
@@ -34,15 +36,19 @@ export class QueryBuilder {
     this.queries.push(query);
   }
 
+  /// Gets the current number of `Query`s appended to the instance of `QueryBuilder`.
   getCurrentSize(): number {
     return this.queries.length;
   }
 
+  /// Gets the maximum number of `Query`s that can be appended to the instance of 
+  /// `QueryBuilder`.
   getMaxSize(): number {
     return this.maxSize;
   }
 
-  print(): string {
+  /// Gets the current `Query` values as a formatted string.
+  asFormattedString(): string {
     let str = "";
     for (let i = 0; i < this.queries.length; i++) {
       const query = this.queries[i];
@@ -51,7 +57,11 @@ export class QueryBuilder {
     return str;
   }
 
+  /// Builds the query response and query data to be sent to the Axiom contract.
   async build(): Promise<{queryResponse: string, queryData: string}> {
+    if (this.queries.length === 0) {
+      throw new Error("Cannot build query response and query data with no queries");
+    }
     const queryResponse = await this.buildQueryResponse();
     const queryData = this.buildQueryData();
 
@@ -62,11 +72,12 @@ export class QueryBuilder {
   }
 
   private async buildQueryResponse(): Promise<string> {
+    // Collapse blockNumber, account, and slot into hash table keys to reduce total 
+    // number of JSON-RPC calls
     let blockNumberToBlock: {[key: string]: ethers.Block | null} = {};
     let blockNumberAccountToAccount: {[key: string]: any | null} = {};
     let blockNumberAccountStorageToValue: {[key: string]: any | null} = {};
 
-    // Collapse blockNumber, account, and slot into hash table keys to reduce total number of JSON-RPC calls
     for (let i = 0; i < this.queries.length; i++) {
       const blockNumber = this.queries[i].blockNumber;
       blockNumberToBlock[`${blockNumber}`] = null;
@@ -81,9 +92,6 @@ export class QueryBuilder {
         blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] = null;
       }
     }
-    // console.log(blockNumberToBlock);
-    // console.log(blockNumberAccountToAccount);
-    // console.log(blockNumberAccountStorageToValue);
 
     // Get all of the block hashes
     for (const blockNumberStr of Object.keys(blockNumberToBlock)) {
@@ -114,13 +122,11 @@ export class QueryBuilder {
     }
 
     // Calculate each of the column responses and append them to each column
-    let blockResponseColumn: any[][] = [];
-    let accountResponseColumn: any[][] = [];
-    let storageResponseColumn: any[][] = [];
+    let blockResponseColumn: string[] = [];
+    let accountResponseColumn: string[] = [];
+    let storageResponseColumn: string[] = [];
 
     for (let i = 0; i < this.queries.length; i++) {
-      console.log("Row:", i);
-      let slv = "";
       const blockNumber = this.queries[i].blockNumber;
       if (blockNumber === null) {
         throw new Error(`Block number cannot be '0' for queries within this set of rows. Row: ${i}`);
@@ -138,12 +144,12 @@ export class QueryBuilder {
 
       // Calculate the keccakBlockResponse
       const blockResponse = getBlockResponse(blockHash, blockNumber);
-      blockResponseColumn.push([blockResponse]);
+      blockResponseColumn.push(blockResponse);
 
       const address = this.queries[i].address;
       if (address === null) {
-        accountResponseColumn.push([zeroBytes(32)]);
-        storageResponseColumn.push([zeroBytes(32)]);
+        accountResponseColumn.push(zeroBytes(32));
+        storageResponseColumn.push(zeroBytes(32));
       } else {
         const accountData = blockNumberAccountToAccount[`${blockNumber},${address}`];
         const nonce = accountData?.nonce;
@@ -156,55 +162,33 @@ export class QueryBuilder {
 
         // Calculate keccakFullAccountResponse
         const fullAccountResponse = getFullAccountResponse(blockNumber, address, nonce, balance, storageHash, codeHash);
-        accountResponseColumn.push([fullAccountResponse]);
+        accountResponseColumn.push(fullAccountResponse);
 
         const slot = this.queries[i].slot;
         if (slot === null) {
-          storageResponseColumn.push([zeroBytes(32)]);
+          storageResponseColumn.push(zeroBytes(32));
         } else {
           const value = blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`];
-          slv = value;
 
           // Calculate keccakFullStorageResponse
           const fullStorageResponse = getFullStorageResponse(blockNumber, address, slot, value);
-          storageResponseColumn.push([fullStorageResponse]);
+          storageResponseColumn.push(fullStorageResponse);
         }
       }
-      console.log("Block Hash", blockHash);
-      console.log("Block Number", blockNumber);
-      console.log("Slot:", this.queries[i].slot);
-      console.log("Value:", slv);
-      console.log("Block Response:", blockResponseColumn[i][0]);
-      console.log("Account Response:", accountResponseColumn[i][0]);
-      console.log("Storage Response:", storageResponseColumn[i][0]);
-      console.log("---");
     }
 
     // Fill in the remaining unused rows in the columns with zeros
     const numUnused = this.maxSize - this.queries.length;
-    blockResponseColumn = blockResponseColumn.concat(Array(numUnused).fill([zeroBytes(32)]));
-    accountResponseColumn = accountResponseColumn.concat(Array(numUnused).fill([zeroBytes(32)]));
-    storageResponseColumn = storageResponseColumn.concat(Array(numUnused).fill([zeroBytes(32)]));
-    console.log("BlockResponseColumn");
-    console.log("---");
-    console.log(blockResponseColumn);
-    console.log("AccountResponseColumn");
-    console.log("---");
-    console.log(accountResponseColumn);
-    console.log("StorageResponseColumn");
-    console.log("---");
-    console.log(storageResponseColumn);
+    blockResponseColumn = blockResponseColumn.concat(Array(numUnused).fill(zeroBytes(32)));
+    accountResponseColumn = accountResponseColumn.concat(Array(numUnused).fill(zeroBytes(32)));
+    storageResponseColumn = storageResponseColumn.concat(Array(numUnused).fill(zeroBytes(32)));
 
     // Calculate the merkle root for each column
     const blockResponseRoot = getKeccakMerkleRoot(blockResponseColumn);
     const accountResponseRoot = getKeccakMerkleRoot(accountResponseColumn);
     const storageResponseRoot = getKeccakMerkleRoot(storageResponseColumn);
-    console.log("keccakBlockResponse:", blockResponseRoot);
-    console.log("keccakAccountResponse:", accountResponseRoot);
-    console.log("keccakStorageResponse:", storageResponseRoot);
 
     // Calculate the queryResponse
-    // const queryResponse = getQueryResponse(blockResponseRoot, accountResponseRoot, storageResponseRoot);
     const queryResponse = keccak256(concatHexStrings(blockResponseRoot, accountResponseRoot, storageResponseRoot));
     return queryResponse
   }
