@@ -15,19 +15,19 @@ export class Config {
   /**
    * The Chain ID to use for the Axiom SDK
    */
-  readonly chainId?: number;
+  readonly chainId: number;
   
   /**
    * Axiom contract version number to use
    */
-  readonly version?: string;
+  readonly version: string;
   
   // readonly privateKey?: `0x${string}` | undefined;
   
   /**
    * Default timeout for Axiom API calls
    */
-  readonly timeoutMs?: number;
+  readonly timeoutMs: number;
 
   constructor(config: AxiomConfig) {
     this.apiKey = config.apiKey;
@@ -60,7 +60,7 @@ export class Config {
       version = `v${version}`;
     }
     version = version.replaceAll(".", "_");
-    
+
     if (Versions.includes(version)) {
       return version;
     }

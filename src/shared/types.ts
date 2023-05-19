@@ -58,4 +58,10 @@ export interface BlockHashWitness {
   merkleProof: string[],
 }
 
+export interface Query {
+  blockNumber: number | undefined;
+  address: `0x${string}` | undefined;
+  slot: number | undefined;
+}
+
 export const BlockHashWitnessABI = "(uint32 blockNumber, bytes32 claimedBlockHash, bytes32 prevHash, uint32 numFinal, bytes32[10] merkleProof)";
