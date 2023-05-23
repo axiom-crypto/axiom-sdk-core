@@ -48,6 +48,7 @@ export class QueryBuilder {
     return this.queries.length;
   }
 
+  /// Gets the number of `QueryRow`s that can still be appended
   getRemainingSize(): number {
     return this.maxSize - this.queries.length;
   }
