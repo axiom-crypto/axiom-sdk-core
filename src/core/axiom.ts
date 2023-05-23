@@ -2,6 +2,7 @@ import { Config } from '../shared/config';
 import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
 import { Prover } from './prover';
+import { QueryBuilder } from '../query/queryBuilder';
 
 export class Axiom {
   /**
@@ -17,5 +18,9 @@ export class Axiom {
 
     this.block = new Block(this.config);
     this.prover = new Prover(this.config);
+  }
+
+  newQueryBuilder(maxSize: number): QueryBuilder {
+    return new QueryBuilder(maxSize, this.config);
   }
 }
