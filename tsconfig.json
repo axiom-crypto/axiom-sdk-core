@@ -6,7 +6,7 @@
     "strict": true,
     "sourceMap": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "outDir": "dist"
   },
   "include": [
@@ -14,6 +14,7 @@
   ],
   "exclude": [
     "dist/**/*", 
+    "scripts/**/*",
     "node_modules/**/*"
   ],
   "ts-node": {

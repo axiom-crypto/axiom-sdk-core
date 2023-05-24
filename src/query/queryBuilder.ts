@@ -33,6 +33,13 @@ export class QueryBuilder {
       throw new Error("If `slot` is specified, then `address` must not be null");
     }
 
+    // Ensure valid address
+    if (query.address !== null) {
+      if (query.address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
+        throw new Error(`Invalid address format for: ${query.address}`);
+      }
+    }
+
     this.queries.push(query);
   }
 
@@ -41,20 +48,27 @@ export class QueryBuilder {
     return this.queries.length;
   }
 
+  /// Gets the number of `QueryRow`s that can still be appended
+  getRemainingSize(): number {
+    return this.maxSize - this.queries.length;
+  }
+
   /// Gets the maximum number of `QueryRow`s that the current instance of `QueryBuilder` 
   /// supports
   getMaxSize(): number {
     return this.maxSize;
   }
 
-  /// Gets the current `QueryRow` values as a formatted string.
+  /// Gets the current `QueryRow` values as a formatted string in the order that they 
+  /// were appended
   asFormattedString(): string {
-    let str = "";
-    for (let i = 0; i < this.queries.length; i++) {
-      const query = this.queries[i];
-      str += `Query ${i}: BlockNumber: ${query.blockNumber}, Address: ${query.address}, Slot: ${query.slot}\n`;
-    }
-    return str;
+    return this.formatQueries(this.queries);
+  }
+
+  /// Sorts the queries first before formatting the output string
+  asSortedFormattedString(): string {
+    const sortedQueries = this.sortQueries();
+    return this.formatQueries(sortedQueries);
   }
 
   /// Builds the query response and query data to be sent to the Axiom contract.
@@ -62,8 +76,9 @@ export class QueryBuilder {
     if (this.queries.length === 0) {
       throw new Error("Cannot build query response and query data with no queries");
     }
-    const queryResponse = await this.buildQueryResponse();
-    const queryData = this.buildQueryData();
+    const sortedQueries = this.sortQueries();
+    const queryResponse = await this.buildQueryResponse(sortedQueries);
+    const queryData = this.buildQueryData(sortedQueries);
 
     return {
       queryResponse,
@@ -71,23 +86,69 @@ export class QueryBuilder {
     }
   }
 
-  private async buildQueryResponse(): Promise<string> {
+  /// Sorts queries in order of blockNumber, address, and slot
+  private sortQueries(): QueryRow[] {
+    const sortBlockNumber = (a: number, b: number) => {
+      return a - b;
+    }
+
+    const sortAddress = (a: `0x${string}` | null, b: `0x${string}` | null) => {
+      if (a === null && b === null) {
+        return 0;
+      } else if (a === null) {
+        return -1;
+      } else if (b === null) {
+        return 1;
+      }
+      return parseInt(a, 16) - parseInt(b, 16);
+    }
+
+    const sortSlot = (a: ethers.BigNumberish | null, b: ethers.BigNumberish | null) => {
+      if (a === null && b === null) {
+        return 0;
+      } else if (a === null) {
+        return -1;
+      } else if (b === null) {
+        return 1;
+      }
+      return parseInt(a.toString(), 16) - parseInt(b.toString(), 16);
+    }
+
+    return this.queries.sort((a, b) => {
+      return sortBlockNumber(a.blockNumber, b.blockNumber) 
+      || sortAddress(a.address, b.address)
+      || sortSlot(a.slot, b.slot);
+    });
+  }
+
+  /// Formats queries into a pretty-printable string
+  private formatQueries(queries: QueryRow[]): string {
+    let str = "";
+    for (let i = 0; i < queries.length; i++) {
+      const query = queries[i];
+      str += `Query: ${i}, BlockNumber: ${query.blockNumber}, Address: ${query.address}, Slot: ${query.slot}\n`;
+    }
+    return str;
+  }
+
+  /// Builds a queryResponse from the sorted queries
+  private async buildQueryResponse(sortedQueries: QueryRow[]): Promise<string> {
     // Collapse blockNumber, account, and slot into hash table keys to reduce total 
     // number of JSON-RPC calls
     let blockNumberToBlock: {[key: string]: ethers.Block | null} = {};
     let blockNumberAccountToAccount: {[key: string]: any | null} = {};
     let blockNumberAccountStorageToValue: {[key: string]: any | null} = {};
 
-    for (let i = 0; i < this.queries.length; i++) {
-      const blockNumber = this.queries[i].blockNumber;
+    for (let i = 0; i < sortedQueries.length; i++) {
+      const blockNumber = sortedQueries[i].blockNumber;
       blockNumberToBlock[`${blockNumber}`] = null;
 
-      const address = this.queries[i].address;
+      const address = sortedQueries[i].address;
       if (address !== null) {
         blockNumberAccountToAccount[`${blockNumber},${address}`] = null;
       }
 
-      const slot = this.queries[i].slot;
+      const slot = sortedQueries[i].slot;
       if (address !== null && slot !== null) {
         blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] = null;
       }
@@ -126,8 +187,8 @@ export class QueryBuilder {
     let accountResponseColumn: string[] = [];
     let storageResponseColumn: string[] = [];
 
-    for (let i = 0; i < this.queries.length; i++) {
-      const blockNumber = this.queries[i].blockNumber;
+    for (let i = 0; i < sortedQueries.length; i++) {
+      const blockNumber = sortedQueries[i].blockNumber;
       if (blockNumber === null) {
         throw new Error(`Block number cannot be '0' for queries within this set of rows. Row: ${i}`);
       }
@@ -146,7 +207,7 @@ export class QueryBuilder {
       const blockResponse = getBlockResponse(blockHash, blockNumber);
       blockResponseColumn.push(blockResponse);
 
-      const address = this.queries[i].address;
+      const address = sortedQueries[i].address;
       if (address === null) {
         accountResponseColumn.push(zeroBytes(32));
         storageResponseColumn.push(zeroBytes(32));
@@ -164,7 +225,7 @@ export class QueryBuilder {
         const fullAccountResponse = getFullAccountResponse(blockNumber, address, nonce, balance, storageHash, codeHash);
         accountResponseColumn.push(fullAccountResponse);
 
-        const slot = this.queries[i].slot;
+        const slot = sortedQueries[i].slot;
         if (slot === null) {
           storageResponseColumn.push(zeroBytes(32));
         } else {
@@ -178,7 +239,7 @@ export class QueryBuilder {
     }
 
     // Fill in the remaining unused rows in the columns with zeros
-    const numUnused = this.maxSize - this.queries.length;
+    const numUnused = this.maxSize - sortedQueries.length;
     blockResponseColumn = blockResponseColumn.concat(Array(numUnused).fill(zeroBytes(32)));
     accountResponseColumn = accountResponseColumn.concat(Array(numUnused).fill(zeroBytes(32)));
     storageResponseColumn = storageResponseColumn.concat(Array(numUnused).fill(zeroBytes(32)));
@@ -193,9 +254,10 @@ export class QueryBuilder {
     return queryResponse
   }
 
-  private buildQueryData(): string {
+  /// Builds an RLP-encoded queryData blob from the sorted queries
+  private buildQueryData(sortedQueries: QueryRow[]): string {
     // Extra data that we'll encode with the query data 
-    const numQueries = this.queries.length;
+    const numQueries = sortedQueries.length;
     const versionIdx = Versions.indexOf(this.config.version);
 
     const encodedQueries = [];
@@ -203,7 +265,7 @@ export class QueryBuilder {
       let length = 0;
 
       // Check for block number
-      const blockNumber = this.queries[i].blockNumber;
+      const blockNumber = sortedQueries[i].blockNumber;
       if (blockNumber === null) {
         const encodedQuery = encodeQuery(length, 0, "0", 0);
         encodedQueries.push(encodedQuery);
@@ -212,7 +274,7 @@ export class QueryBuilder {
       
       // Query has block number; check for address
       length++;
-      const address = this.queries[i].address;
+      const address = sortedQueries[i].address;
       if (address === null) {
         const encodedQuery = encodeQuery(length, blockNumber, "0", 0);
         encodedQueries.push(encodedQuery);
@@ -221,7 +283,7 @@ export class QueryBuilder {
 
       // Query has block number and address; check for slot
       length++;
-      const slot = this.queries[i].slot;
+      const slot = sortedQueries[i].slot;
       if (slot === null) {
         const encodedQuery = encodeQuery(length, blockNumber, address, 0);
         encodedQueries.push(encodedQuery);
