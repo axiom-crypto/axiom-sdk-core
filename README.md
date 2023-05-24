@@ -10,14 +10,22 @@ We choose to use Typescript for this SDK since it is what developers will need t
 
 ## Commands
 
+Build SDK with the command:
+
+```bash
+pnpm build
+```
+
+## Scripts
+
 Inputs (aside from ZK proof calldata) for `IAxiomV1Verifier.updateHistorical` can be generated with
 
 ```bash
-npx ts-node sdk/src/index.ts historical <startBlockNumber>
+pnpm ts-node scripts/console.ts historical <startBlockNumber>
 ```
 
 Inputs for `IAxiomV1Verifier.mmrVerifyBlockHash` can be generated with
 
 ```bash
-npx ts-node sdk/src/index.ts mmrProof <blockNumber> <numBlocksInMMR>
+pnpm ts-node scripts/console.ts mmrProof <blockNumber> <numBlocksInMMR>
 ```
