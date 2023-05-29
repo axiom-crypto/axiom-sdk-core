@@ -12,7 +12,6 @@ const client = new GraphQLClient(
   }
 );
 
-
 export function buildMerkleTree(leaves: string[], depth: number) {
   const tree: string[][] = [];
   tree.push(leaves);
@@ -86,9 +85,10 @@ export async function getBlockMerkleProofMax1024(
     blockHash: tree[0]![blockNumber % 1024]!,
   };
 }
-
 // gets `roots` and `endHashProofs` input param for IAxiomV1.updateHistorical
-export async function getHistoricalProofs(startBlockNumber: number) {
+export async function getHistoricalProofs(
+  startBlockNumber: number
+): Promise<{ roots: string[]; endHashProofs: string[][] }> {
   if (startBlockNumber % 1024 !== 0)
     throw new Error("startBlockNumber must be a multiple of 1024");
   const blockHashes = await queryBlockHashRange(
@@ -128,8 +128,10 @@ export async function queryBlockHash1024RootRange(
           numFinal: { _eq: 1024 }
         }
         order_by: { startBlockNumber: asc }
+        distinct_on: startBlockNumber
       ) {
         root
+        startBlockNumber
       }
     }
   `;
@@ -141,6 +143,14 @@ export async function queryBlockHash1024RootRange(
     result.demo_axiom_update_events.length !==
     (stopBlockNumber - startBlockNumber) / 1024
   ) {
+    for (let i = 0; i < result.demo_axiom_update_events.length; i++) {
+      if (
+        result.demo_axiom_update_events[i].startBlockNumber !=
+        startBlockNumber + i * 1024
+      ) {
+        throw new Error(`${startBlockNumber + i * 1024} not found`);
+      }
+    }
     throw new Error("Query for block hashes failed");
   }
   return result.demo_axiom_update_events.map((x: any) => x.root);
@@ -182,6 +192,7 @@ export async function getBlockMmrProof(
     rootId -= 2 ** peakId;
     peakId -= 1;
   }
+  console.log(peakId);
   assert(root === mountains[peakId]![0]![rootId], "Root mismatch in mmr");
   merkleProof = merkleProof.concat(getMerkleProof(mountains[peakId]!, rootId));
 
