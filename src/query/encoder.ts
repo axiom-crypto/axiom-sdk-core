@@ -6,12 +6,11 @@ export function encodeQuery(
   address: string,
   slot: ethers.BigNumberish,
 ): string {
-  const abiCoder = new ethers.AbiCoder();
   const queryTypes = ["uint32", "uint32", "address", "uint256"];
   const queryData = [length, blockNumber, address, slot];
 
   // Only encode the first `length + 1` elements
-  const encodedQuery = abiCoder.encode(
+  const encodedQuery = ethers.solidityPacked (
     queryTypes.slice(0, length + 1),
     queryData.slice(0, length + 1)
   );
@@ -23,8 +22,7 @@ export function encodeQueryData(
   length: number,
   encodedQueries: string[],
 ): string {
-  const abiCoder = new ethers.AbiCoder();
-  const encodedQueryData = abiCoder.encode(
+  const encodedQueryData = ethers.solidityPacked(
     ["uint8", "uint32", "bytes[]"],
     [versionIdx, length, encodedQueries]
   );
