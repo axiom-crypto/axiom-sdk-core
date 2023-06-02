@@ -59,7 +59,7 @@ export class Config {
     if (!version.toLowerCase().startsWith("v")) {
       version = `v${version}`;
     }
-    version = version.replaceAll(".", "_");
+    version = version.replace(/\./g, "_") as string;
 
     if (Versions.includes(version)) {
       return version;
