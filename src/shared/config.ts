@@ -1,5 +1,7 @@
-import { Versions } from "./constants";
+import { ethers } from "ethers";
+import { Constants, Versions } from "./constants";
 import { AxiomConfig } from "./types";
+import { getAbiForVersion } from "../core/lib/abi";
 
 export class Config {
   /**
@@ -29,12 +31,30 @@ export class Config {
    */
   readonly timeoutMs: number;
 
+  /**
+   * Provider to use
+   */
+  readonly provider: ethers.Provider;
+
+  /**
+   * Signer to use (if privateKey provided)
+   */
+  readonly signer: ethers.Wallet | null;
+
+  /**
+   * Deployed Axiom Contract to use
+   */
+  readonly contract: ethers.Contract;
+
   constructor(config: AxiomConfig) {
     this.apiKey = config.apiKey;
     this.providerUri = this.parseProviderUri(config.providerUri);
     this.chainId = config.chainId || 1;
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs || 10000;
+    this.provider = new ethers.JsonRpcProvider(this.providerUri);
+    this.signer = config.privateKey !== undefined ? new ethers.Wallet(config.privateKey, this.provider) : null;
+    this.contract = new ethers.Contract(Constants[this.version].Addresses.Axiom, getAbiForVersion(this.version), !this.signer ? this.provider : this.signer);
   }
 
   parseProviderUri(providerUri: string): string {

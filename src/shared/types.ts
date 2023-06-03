@@ -31,6 +31,11 @@ export interface AxiomConfig {
    * (default: 10000)
    */
   timeoutMs?: number;
+
+  /**
+   * Optional private key used for signing transactions
+   */
+  privateKey?: string;
 }
 
 export interface BlockHashWitness {

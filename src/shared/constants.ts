@@ -60,3 +60,8 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
     },
   },
 });
+
+export const ContractEvents = Object.freeze({
+  QueryInitiatedOnchain: "QueryInitiatedOnchain",
+  QueryFulfilled: "QueryFulfilled",
+})

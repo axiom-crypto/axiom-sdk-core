@@ -1,8 +1,9 @@
 import { Config } from '../shared/config';
 import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
-import { Prover } from './prover';
 import { QueryBuilder } from '../query/queryBuilder';
+import { listen } from './listener';
+import { sendQuery } from './transaction';
 
 export class Axiom {
   /**
@@ -11,13 +12,21 @@ export class Axiom {
   readonly config: Config;
 
   readonly block: Block;
-  readonly prover: Prover;
+  readonly listen: (events: string[], callback: (data: any) => void) => void;
+  readonly sendQuery: (queryResponse: string, refundee: string, query: string, callback: () => void) => void;
 
-  constructor(config: AxiomConfig) {
+  constructor(config: Config) {
     this.config = new Config(config);
 
     this.block = new Block(this.config);
-    this.prover = new Prover(this.config);
+
+    this.listen = (events: string[], callback: (data: any) => void) => {
+      listen(config, events, callback);
+    }
+
+    this.sendQuery = (queryResponse: string, refundee: string, query: string, callback: () => void) => {
+      sendQuery(config, queryResponse, refundee, query, callback);
+    }
   }
 
   newQueryBuilder(maxSize: number): QueryBuilder {
