@@ -24,7 +24,7 @@ export class QueryBuilder {
 
   /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder` 
   /// has reached its maximum size, then an error will be thrown.
-  append(query: QueryRow): void {
+  async append(query: QueryRow) {
     if (this.queries.length >= this.maxSize) {
       throw new Error(`QueryBuilder has reached its maximum size of ${this.maxSize}. Either reduce the number of queries or pass in a larger size to QueryBuilder.`);
     }
@@ -40,6 +40,16 @@ export class QueryBuilder {
       }
     }
 
+    if (!query.value) {
+      if (query.address !== null && query.slot !== null) {
+        // Note that this may fail silently if the archive node is not able to get the value at the slot
+        query.value = await this.provider.getStorage(query.address, query.slot, query.blockNumber);
+      } else {
+        query.value = null;
+      }
+    }
+
+    console.log(query);
     this.queries.push(query);
   }
 
@@ -149,8 +159,8 @@ export class QueryBuilder {
       }
 
       const slot = sortedQueries[i].slot;
-      if (address !== null && slot !== null) {
-        blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] = null;
+      if (address !== null && slot !== null && sortedQueries[i].value !== undefined) {
+        blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] = sortedQueries[i].value;
       }
     }
 
@@ -174,13 +184,13 @@ export class QueryBuilder {
     }
 
     // Get all of the storage slot data
-    for (const blockNumberAccountStorageStr of Object.keys(blockNumberAccountStorageToValue)) {
-      const [blockNumberStr, address, slotStr] = blockNumberAccountStorageStr.split(",");
-      const blockNumber = parseInt(blockNumberStr);
-      const slot = slotStr;
-      const storageData = await this.provider.getStorage(address, slot, blockNumber);
-      blockNumberAccountStorageToValue[blockNumberAccountStorageStr] = storageData;
-    }
+    // for (const blockNumberAccountStorageStr of Object.keys(blockNumberAccountStorageToValue)) {
+    //   const [blockNumberStr, address, slotStr] = blockNumberAccountStorageStr.split(",");
+    //   const blockNumber = parseInt(blockNumberStr);
+    //   const slot = slotStr;
+    //   const storageData = await this.provider.getStorage(address, slot, blockNumber);
+    //   blockNumberAccountStorageToValue[blockNumberAccountStorageStr] = storageData;
+    // }
 
     // Calculate each of the column responses and append them to each column
     let blockResponseColumn: string[] = [];
@@ -267,7 +277,7 @@ export class QueryBuilder {
       // Check for block number
       const blockNumber = sortedQueries[i].blockNumber;
       if (blockNumber === null) {
-        const encodedQuery = encodeQuery(length, 0, "0", 0);
+        const encodedQuery = encodeQuery(length, 0, "0", 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       } 
@@ -276,7 +286,7 @@ export class QueryBuilder {
       length++;
       const address = sortedQueries[i].address;
       if (address === null) {
-        const encodedQuery = encodeQuery(length, blockNumber, "0", 0);
+        const encodedQuery = encodeQuery(length, blockNumber, "0", 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       } 
@@ -284,15 +294,16 @@ export class QueryBuilder {
       // Query has block number and address; check for slot
       length++;
       const slot = sortedQueries[i].slot;
-      if (slot === null) {
-        const encodedQuery = encodeQuery(length, blockNumber, address, 0);
+      const value = sortedQueries[i].value;
+      if (slot === null || value === null || value === undefined) {
+        const encodedQuery = encodeQuery(length, blockNumber, address, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       } 
 
       // Query has all of the fields
-      length++;
-      const encodedQuery = encodeQuery(length, blockNumber, address, slot);
+      length += 2;
+      const encodedQuery = encodeQuery(length, blockNumber, address, slot, value);
       encodedQueries.push(encodedQuery);
     }
 

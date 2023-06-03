@@ -5,9 +5,10 @@ export function encodeQuery(
   blockNumber: number,
   address: string,
   slot: ethers.BigNumberish,
+  value: ethers.BigNumberish,
 ): string {
-  const queryTypes = ["uint8", "uint32", "address", "uint256"];
-  const queryData = [length, blockNumber, address, slot];
+  const queryTypes = ["uint8", "uint32", "address", "uint256", "uint256"];
+  const queryData = [length, blockNumber, address, slot, value];
 
   // Only encode the first `length + 1` elements
   const encodedQuery = ethers.solidityPacked (
