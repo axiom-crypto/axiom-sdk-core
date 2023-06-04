@@ -4,6 +4,7 @@ import { Block } from './block';
 import { QueryBuilder } from '../query/queryBuilder';
 import { listen } from './listener';
 import { sendQuery } from './transaction';
+import { decodePackedQuery } from '../query/decoder';
 
 export class Axiom {
   /**
@@ -12,8 +13,13 @@ export class Axiom {
   readonly config: Config;
 
   readonly block: Block;
+
+  /**
+   * Exported functions
+   */
   readonly listen: (events: string[], callback: (data: any) => void) => void;
   readonly sendQuery: (queryResponse: string, refundee: string, query: string, callback: () => void) => void;
+  readonly decodePackedQuery: (packedQuery: string) => string;
 
   constructor(config: Config) {
     this.config = new Config(config);
@@ -27,6 +33,8 @@ export class Axiom {
     this.sendQuery = (queryResponse: string, refundee: string, query: string, callback: () => void) => {
       sendQuery(config, queryResponse, refundee, query, callback);
     }
+
+    this.decodePackedQuery = decodePackedQuery;
   }
 
   newQueryBuilder(maxSize: number): QueryBuilder {
