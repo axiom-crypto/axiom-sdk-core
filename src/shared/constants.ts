@@ -11,6 +11,7 @@ const endpoints = {
   getBlockMerkleProof: "/get_block_merkle_proof",
   getBlockParams: "/get_block_params",
   getBlockRlpHeader: "/get_block_rlp_header",
+  getBlockMmrProof: "/get_block_mmr_proof",
 }
 
 export const Constants: {[V in VersionsType]: any} = Object.freeze({
@@ -42,6 +43,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
+      GetBlockMmrProof: endpoints.getBlockMmrProof,
     },
   },
   v1: {
@@ -57,6 +59,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GetBlockMerkleProof: endpoints.getBlockMerkleProof,
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
+      GetBlockMmrProof: endpoints.getBlockMmrProof,
     },
   },
 });
