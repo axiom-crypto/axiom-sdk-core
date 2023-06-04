@@ -85,5 +85,24 @@ export class Block {
       }
     }
     return null;
-  } 
+  }
+
+  async getBlockMmrProof(blockNumber: number): Promise<any | null> {
+    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
+    const endpoint = Constants[this.version].Endpoints.GetBlockMmrProof;
+    const uri = `${baseUrl}${endpoint}`;
+    const result = await axios.get(uri, { 
+      params: { blockNumber },
+      headers: { 
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.providerUri,
+      } 
+    });
+    if (result?.status === HttpStatusCode.Ok) {
+      if (result?.data?.data !== undefined) {
+        return result.data.data;
+      }
+    }
+    return null;
+  }
 }
