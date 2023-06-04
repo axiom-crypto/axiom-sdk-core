@@ -260,7 +260,7 @@ export class QueryBuilder {
     const numQueries = sortedQueries.length;
     const versionIdx = Versions.indexOf(this.config.version);
 
-    const encodedQueries: string[] = [];
+    const encodedQueries = [];
     for (let i = 0; i < numQueries; i++) {
       let length = 0;
 
