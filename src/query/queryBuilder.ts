@@ -49,7 +49,6 @@ export class QueryBuilder {
       }
     }
 
-    console.log(query);
     this.queries.push(query);
   }
 
@@ -136,7 +135,7 @@ export class QueryBuilder {
     let str = "";
     for (let i = 0; i < queries.length; i++) {
       const query = queries[i];
-      str += `Query: ${i}, BlockNumber: ${query.blockNumber}, Address: ${query.address}, Slot: ${query.slot}\n`;
+      str += `query: ${i}, blockNumber: ${query.blockNumber}, address: ${query.address}, slot: ${query.slot}, value: ${query.value}\n`;
     }
     return str;
   }
@@ -182,15 +181,6 @@ export class QueryBuilder {
       const account = await getAccountData(blockNumber, address as `0x${string}`, this.provider);
       blockNumberAccountToAccount[blockNumberAccountStr] = account;
     }
-
-    // Get all of the storage slot data
-    // for (const blockNumberAccountStorageStr of Object.keys(blockNumberAccountStorageToValue)) {
-    //   const [blockNumberStr, address, slotStr] = blockNumberAccountStorageStr.split(",");
-    //   const blockNumber = parseInt(blockNumberStr);
-    //   const slot = slotStr;
-    //   const storageData = await this.provider.getStorage(address, slot, blockNumber);
-    //   blockNumberAccountStorageToValue[blockNumberAccountStorageStr] = storageData;
-    // }
 
     // Calculate each of the column responses and append them to each column
     let blockResponseColumn: string[] = [];
@@ -270,7 +260,7 @@ export class QueryBuilder {
     const numQueries = sortedQueries.length;
     const versionIdx = Versions.indexOf(this.config.version);
 
-    const encodedQueries = [];
+    const encodedQueries: string[] = [];
     for (let i = 0; i < numQueries; i++) {
       let length = 0;
 

@@ -17,6 +17,7 @@
     "pretty": false,
     "strict": true,
     "sourceMap": true,
+    "skipLibCheck": true,
     "outDir": "dist",
   },
   "include": [
@@ -30,7 +31,7 @@
   ],
   "ts-node": {
     "compilerOptions": {
-      "module": "ES6"
+      "module": "es6"
     }
   },
 }

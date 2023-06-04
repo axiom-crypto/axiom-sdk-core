@@ -21,17 +21,17 @@ export class Axiom {
   readonly sendQuery: (queryResponse: string, refundee: string, query: string, callback: () => void) => void;
   readonly decodePackedQuery: (packedQuery: string) => string;
 
-  constructor(config: Config) {
+  constructor(config: AxiomConfig) {
     this.config = new Config(config);
 
     this.block = new Block(this.config);
 
     this.listen = (events: string[], callback: (data: any) => void) => {
-      listen(config, events, callback);
+      listen(this.config, events, callback);
     }
 
     this.sendQuery = (queryResponse: string, refundee: string, query: string, callback: () => void) => {
-      sendQuery(config, queryResponse, refundee, query, callback);
+      sendQuery(this.config, queryResponse, refundee, query, callback);
     }
 
     this.decodePackedQuery = decodePackedQuery;

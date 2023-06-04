@@ -58,7 +58,7 @@ export class Config {
   }
 
   parseProviderUri(providerUri: string): string {
-    if (providerUri === undefined) {
+    if (providerUri === undefined || providerUri === "") {
       throw new Error("providerUri is required in AxiomConfig");
     }
 
