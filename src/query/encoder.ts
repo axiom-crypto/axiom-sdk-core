@@ -29,3 +29,15 @@ export function encodeQueryData(
   );
   return encodedQueryData;
 }
+
+export function encodeRowHash(
+  blockNumber: number, 
+  address: string, 
+  slot: string
+) {
+  const packed = ethers.solidityPacked(
+    ["uint32", "address", "uint256"], 
+    [blockNumber, address, slot]
+  );
+  return ethers.keccak256(packed);
+}
