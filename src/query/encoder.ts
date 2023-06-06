@@ -31,14 +31,24 @@ export function encodeQueryData(
 }
 
 export function encodeRowHash(
-  length: number,
   blockNumber: number, 
-  address: string, 
-  slot: string
+  address: string | undefined, 
+  slot: number | undefined,
 ) {
+  let length = 3;
+  const addressValue = address ?? "0";
+  const slotValue = slot ?? 0;
+  if (slot === undefined) {
+    length = 2;
+  }
+  if (address === undefined) {
+    length = 1;
+  }
+
   const packed = ethers.solidityPacked(
     ["uint8", "uint32", "address", "uint256"], 
-    [length, blockNumber, address, slot]
+    [length, blockNumber, addressValue, slotValue]
   );
+
   return ethers.keccak256(packed);
 }
