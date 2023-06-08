@@ -25,7 +25,7 @@ export class Axiom {
     this.decodePackedQuery = decodePackedQuery;
   }
 
-  newQueryBuilder(maxSize: number): QueryBuilder {
-    return new QueryBuilder(maxSize, this.config);
+  newQueryBuilder(): QueryBuilder {
+    return new QueryBuilder(this.config);
   }
 }

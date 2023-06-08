@@ -19,13 +19,15 @@ const ax = new Axiom(config);
 
 ## Building a query
 
-The Axiom SDK includes a tool for building a query. Create a new query by passing a power of two value to the newQueryBuilder function:
+The Axiom SDK includes a tool for building a query. Create a new query by calling the newQueryBuilder function, which creates a new QueryBuilder object:
 
 ```
-const qb = ax.newQueryBuilder(32);
+const qb = ax.newQueryBuilder();
 ```
 
-Append queries with a blockNumber (required), address (optional), and slot number (optional). See the appendix section below for more information on how to figure out what variable goes in what slot.
+Append queries with a blockNumber (required), address (optional), and slot number (optional). The maximum number queries that can be appended to a QueryBuilder object is currently fixed at 64. If you need more queries, split the request up into multiple QueryBuilder objects.
+
+See the appendix section below for more information on how to figure out what variable goes in what slot.
 
 ```
 await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0});

@@ -4,18 +4,19 @@ import { getBlockResponse, getFullAccountResponse, getFullStorageResponse, getKe
 import { encodeQuery, encodeQueryData } from "./encoder";
 import { Config } from "../shared/config";
 import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
-import { Versions } from "../shared/constants";
+import { Constants, Versions } from "../shared/constants";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
   private readonly config: Config;
   private readonly provider: ethers.JsonRpcProvider;
+  private readonly maxSize: number;
 
   constructor(
-    private readonly maxSize: number,
     config: Config,
   ) {
-    if ((maxSize & (maxSize - 1)) !== 0) {
+    this.maxSize = Constants[config.version].Values.MaxQuerySize;
+    if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
     this.config = new Config(config);
@@ -124,6 +125,7 @@ export class QueryBuilder {
     }
 
     return this.queries.sort((a, b) => {
+      // Sorts by blockNumber, then address, then slot
       return sortBlockNumber(a.blockNumber, b.blockNumber) 
       || sortAddress(a.address, b.address)
       || sortSlot(a.slot, b.slot);
