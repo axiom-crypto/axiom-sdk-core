@@ -33,10 +33,10 @@ await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05
 await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 5});
 ```
 
-Call the QueryBuilder's build function to generate the queryResponse and queryData calldata for the Axiom contract function:
+Call the QueryBuilder's build function to generate the queryResponse and query calldata for the Axiom contract function:
 
 ```
-const {queryResponse, queryData} = await qb.build();
+const {queryResponse, query} = await qb.build();
 ```
 
 ## Submitting a query
@@ -48,7 +48,7 @@ const provider = new ethers.JsonRpcProvider(<your provider uri (such as from Alc
 const wallet = new ethers.Wallet(<the private key for the address>, provider);
 const axiomContract = new ethers.Contract(<AxiomV1 contract address>, getAbiForVersion("v1"), wallet);
 
-const txResult = await axiomContract.sendQuery(queryResponse, <address to send refund in case the transaction doesn't work>, queryData, {value: ethers.parseEther("0.1")});
+const txResult = await axiomContract.sendQuery(queryResponse, <address to send refund in case the transaction doesn't work>, query, {value: ethers.parseEther("0.1")});
 const txReceipt = await txResult.wait();
 ```
 

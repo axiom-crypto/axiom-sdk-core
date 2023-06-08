@@ -81,17 +81,17 @@ export class QueryBuilder {
   }
 
   /// Builds the query response and query data to be sent to the Axiom contract.
-  async build(): Promise<{queryResponse: string, queryData: string}> {
+  async build(): Promise<{queryResponse: string, query: string}> {
     if (this.queries.length === 0) {
       throw new Error("Cannot build query response and query data with no queries");
     }
     const sortedQueries = this.sortQueries();
     const queryResponse = await this.buildQueryResponse(sortedQueries);
-    const queryData = this.buildQueryData(sortedQueries);
+    const query = this.buildQueryData(sortedQueries);
 
     return {
       queryResponse,
-      queryData,
+      query,
     }
   }
 

@@ -4,7 +4,7 @@ export function decodePackedQuery(query: string): any | null {
   const queryVersion = query.slice(2, 4);
   const queryRows = parseInt(query.slice(4, 12), 16);
   const encodedQueries = query.slice(12);
-  console.log("decodePackedQuery", queryVersion, queryRows, encodedQueries);
+  
   if (queryVersion === "01") {
     return decodePackedQueryV1(encodedQueries, queryRows);
   }
@@ -46,7 +46,7 @@ function decodePackedQueryV1(encodedQueries: string, rows: number): any {
       continue;
     }
     const slot = `0x${encodedQueries.slice(offset, offset + 64)}`;
-    offset += 64;;
+    offset += 64;
 
     const value = `0x${encodedQueries.slice(offset, offset + 64)}`;
     offset += 64;
