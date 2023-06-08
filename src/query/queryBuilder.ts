@@ -4,18 +4,19 @@ import { getBlockResponse, getFullAccountResponse, getFullStorageResponse, getKe
 import { encodeQuery, encodeQueryData } from "./encoder";
 import { Config } from "../shared/config";
 import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
-import { Versions } from "../shared/constants";
+import { Constants, Versions } from "../shared/constants";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
   private readonly config: Config;
   private readonly provider: ethers.JsonRpcProvider;
+  private readonly maxSize: number;
 
   constructor(
-    private readonly maxSize: number,
     config: Config,
   ) {
-    if ((maxSize & (maxSize - 1)) !== 0) {
+    this.maxSize = Constants[config.version].Values.MaxQuerySize;
+    if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
     this.config = new Config(config);
@@ -24,7 +25,7 @@ export class QueryBuilder {
 
   /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder` 
   /// has reached its maximum size, then an error will be thrown.
-  append(query: QueryRow): void {
+  async append(query: QueryRow) {
     if (this.queries.length >= this.maxSize) {
       throw new Error(`QueryBuilder has reached its maximum size of ${this.maxSize}. Either reduce the number of queries or pass in a larger size to QueryBuilder.`);
     }
@@ -37,6 +38,15 @@ export class QueryBuilder {
     if (query.address !== null) {
       if (query.address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
         throw new Error(`Invalid address format for: ${query.address}`);
+      }
+    }
+
+    if (!query.value) {
+      if (query.address !== null && query.slot !== null) {
+        // Note that this may fail silently if the archive node is not able to get the value at the slot
+        query.value = await this.provider.getStorage(query.address, query.slot, query.blockNumber);
+      } else {
+        query.value = null;
       }
     }
 
@@ -72,17 +82,17 @@ export class QueryBuilder {
   }
 
   /// Builds the query response and query data to be sent to the Axiom contract.
-  async build(): Promise<{queryResponse: string, queryData: string}> {
+  async build(): Promise<{queryResponse: string, query: string}> {
     if (this.queries.length === 0) {
       throw new Error("Cannot build query response and query data with no queries");
     }
     const sortedQueries = this.sortQueries();
     const queryResponse = await this.buildQueryResponse(sortedQueries);
-    const queryData = this.buildQueryData(sortedQueries);
+    const query = this.buildQueryData(sortedQueries);
 
     return {
       queryResponse,
-      queryData,
+      query,
     }
   }
 
@@ -115,6 +125,7 @@ export class QueryBuilder {
     }
 
     return this.queries.sort((a, b) => {
+      // Sorts by blockNumber, then address, then slot
       return sortBlockNumber(a.blockNumber, b.blockNumber) 
       || sortAddress(a.address, b.address)
       || sortSlot(a.slot, b.slot);
@@ -126,7 +137,7 @@ export class QueryBuilder {
     let str = "";
     for (let i = 0; i < queries.length; i++) {
       const query = queries[i];
-      str += `Query: ${i}, BlockNumber: ${query.blockNumber}, Address: ${query.address}, Slot: ${query.slot}\n`;
+      str += `query: ${i}, blockNumber: ${query.blockNumber}, address: ${query.address}, slot: ${query.slot}, value: ${query.value}\n`;
     }
     return str;
   }
@@ -149,8 +160,8 @@ export class QueryBuilder {
       }
 
       const slot = sortedQueries[i].slot;
-      if (address !== null && slot !== null) {
-        blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] = null;
+      if (address !== null && slot !== null && sortedQueries[i].value !== undefined) {
+        blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] = sortedQueries[i].value;
       }
     }
 
@@ -171,15 +182,6 @@ export class QueryBuilder {
       const blockNumber = parseInt(blockNumberStr);
       const account = await getAccountData(blockNumber, address as `0x${string}`, this.provider);
       blockNumberAccountToAccount[blockNumberAccountStr] = account;
-    }
-
-    // Get all of the storage slot data
-    for (const blockNumberAccountStorageStr of Object.keys(blockNumberAccountStorageToValue)) {
-      const [blockNumberStr, address, slotStr] = blockNumberAccountStorageStr.split(",");
-      const blockNumber = parseInt(blockNumberStr);
-      const slot = slotStr;
-      const storageData = await this.provider.getStorage(address, slot, blockNumber);
-      blockNumberAccountStorageToValue[blockNumberAccountStorageStr] = storageData;
     }
 
     // Calculate each of the column responses and append them to each column
@@ -267,7 +269,7 @@ export class QueryBuilder {
       // Check for block number
       const blockNumber = sortedQueries[i].blockNumber;
       if (blockNumber === null) {
-        const encodedQuery = encodeQuery(length, 0, "0", 0);
+        const encodedQuery = encodeQuery(length, 0, "0", 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       } 
@@ -276,7 +278,7 @@ export class QueryBuilder {
       length++;
       const address = sortedQueries[i].address;
       if (address === null) {
-        const encodedQuery = encodeQuery(length, blockNumber, "0", 0);
+        const encodedQuery = encodeQuery(length, blockNumber, "0", 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       } 
@@ -284,15 +286,16 @@ export class QueryBuilder {
       // Query has block number and address; check for slot
       length++;
       const slot = sortedQueries[i].slot;
-      if (slot === null) {
-        const encodedQuery = encodeQuery(length, blockNumber, address, 0);
+      const value = sortedQueries[i].value;
+      if (slot === null || value === null || value === undefined) {
+        const encodedQuery = encodeQuery(length, blockNumber, address, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       } 
 
       // Query has all of the fields
-      length++;
-      const encodedQuery = encodeQuery(length, blockNumber, address, slot);
+      length += 2;
+      const encodedQuery = encodeQuery(length, blockNumber, address, slot, value);
       encodedQueries.push(encodedQuery);
     }
 

@@ -6,6 +6,7 @@
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "importHelpers": true,
     "lib": [
       "es2020",
@@ -16,10 +17,12 @@
     "pretty": false,
     "strict": true,
     "sourceMap": true,
+    "skipLibCheck": true,
     "outDir": "dist",
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.json"
   ],
   "exclude": [
     "dist/**/*", 
@@ -29,7 +32,7 @@
   ],
   "ts-node": {
     "compilerOptions": {
-      "module": "ES6"
+      "module": "es6"
     }
   },
 }

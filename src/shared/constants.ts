@@ -29,6 +29,9 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
     },
+    Values: {
+      MaxQuerySize: 64,
+    },
   },
   v0_2: {
     Addresses: {
@@ -44,6 +47,9 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
       GetBlockMmrProof: endpoints.getBlockMmrProof,
+    },
+    Values: {
+      MaxQuerySize: 64,
     },
   },
   v1: {
@@ -61,5 +67,13 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
       GetBlockMmrProof: endpoints.getBlockMmrProof,
     },
+    Values: {
+      MaxQuerySize: 64,
+    },
   },
 });
+
+export const ContractEvents = Object.freeze({
+  QueryInitiatedOnchain: "QueryInitiatedOnchain",
+  QueryFulfilled: "QueryFulfilled",
+})

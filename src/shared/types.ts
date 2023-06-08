@@ -31,6 +31,11 @@ export interface AxiomConfig {
    * (default: 10000)
    */
   timeoutMs?: number;
+
+  /**
+   * Optional private key used for signing transactions
+   */
+  privateKey?: string;
 }
 
 export interface BlockHashWitness {
@@ -67,6 +72,9 @@ export interface QueryRow {
   blockNumber: number;
   address: `0x${string}` | null;
   slot: ethers.BigNumberish | null;
+  
+  // append will query the provider for this value and fill it in or write null if slot is not null and this value is filled in.
+  value?: ethers.BigNumberish | null; 
 }
 
 export const BlockHashWitnessABI = "(uint32 blockNumber, bytes32 claimedBlockHash, bytes32 prevHash, uint32 numFinal, bytes32[10] merkleProof)";

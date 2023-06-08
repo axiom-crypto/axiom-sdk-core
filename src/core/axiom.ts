@@ -1,8 +1,8 @@
 import { Config } from '../shared/config';
 import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
-import { Prover } from './prover';
 import { QueryBuilder } from '../query/queryBuilder';
+import { decodePackedQuery } from '../query/decoder';
 
 export class Axiom {
   /**
@@ -11,16 +11,21 @@ export class Axiom {
   readonly config: Config;
 
   readonly block: Block;
-  readonly prover: Prover;
+
+  /**
+   * Exported functions
+   */
+  readonly decodePackedQuery: (packedQuery: string) => string;
 
   constructor(config: AxiomConfig) {
     this.config = new Config(config);
 
     this.block = new Block(this.config);
-    this.prover = new Prover(this.config);
+
+    this.decodePackedQuery = decodePackedQuery;
   }
 
-  newQueryBuilder(maxSize: number): QueryBuilder {
-    return new QueryBuilder(maxSize, this.config);
+  newQueryBuilder(): QueryBuilder {
+    return new QueryBuilder(this.config);
   }
 }
