@@ -22,9 +22,11 @@ export class Block {
         "x-provider-uri": this.providerUri,
       } 
     });
+    console.log("result bhw");
+    console.log(result);
     if (result?.status === HttpStatusCode.Ok) {
-      if (result?.data?.data?.blockHashWitness !== undefined) {
-        return result.data.data.blockHashWitness;
+      if (result?.data?.blockHashWitness !== undefined) {
+        return result.data.blockHashWitness;
       }
     }
     return null;
@@ -42,8 +44,8 @@ export class Block {
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
-      if (result?.data?.data?.merkleProof !== undefined) {
-        return result.data.data.merkleProof;
+      if (result?.data?.merkleProof !== undefined) {
+        return result.data.merkleProof;
       }
     }
     return null;
@@ -60,9 +62,11 @@ export class Block {
         "x-provider-uri": this.providerUri,
       } 
     });
+    console.log("result rlp");
+    console.log(result);
     if (result?.status === HttpStatusCode.Ok) {
-      if (result?.data?.data !== undefined) {
-        return result.data.data;
+      if (result?.data !== undefined) {
+        return result.data;
       }
     }
     return null;
@@ -80,8 +84,8 @@ export class Block {
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
-      if (result?.data?.data !== undefined) {
-        return result.data.data;
+      if (result?.data !== undefined) {
+        return result.data;
       }
     }
     return null;
@@ -99,8 +103,8 @@ export class Block {
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
-      if (result?.data?.data !== undefined) {
-        return result.data.data;
+      if (result?.data !== undefined) {
+        return result.data;
       }
     }
     return null;

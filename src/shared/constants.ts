@@ -21,7 +21,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       AxiomStoragePf: "",
     },
     Urls: {
-      ApiBaseUrl: "https://api.axiom.xyz/v0",
+      ApiBaseUrl: "http://localhost:3000/v0", // "https://api.axiom.xyz/v0",
     },
     Endpoints: {
       GetBlockHashWitness: endpoints.getBlockHashWitness,
@@ -39,7 +39,7 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       AxiomStoragePf: "",
     },
     Urls: {
-      ApiBaseUrl: "https://api.axiom.xyz/v0_2",
+      ApiBaseUrl: "http://localhost:3000/v0_2", // "https://api.axiom.xyz/v0_2",
     },
     Endpoints: {
       GetBlockHashWitness: endpoints.getBlockHashWitness,

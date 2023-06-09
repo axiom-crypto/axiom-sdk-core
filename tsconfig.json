@@ -27,6 +27,7 @@
   "exclude": [
     "dist/**/*", 
     "scripts/**/*",
+    "src/debug/**/*",
     "node_modules/**/*",
     "test/**/*",
   ],
