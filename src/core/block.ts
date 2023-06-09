@@ -22,8 +22,6 @@ export class Block {
         "x-provider-uri": this.providerUri,
       } 
     });
-    console.log("result bhw");
-    console.log(result);
     if (result?.status === HttpStatusCode.Ok) {
       if (result?.data?.blockHashWitness !== undefined) {
         return result.data.blockHashWitness;
@@ -62,8 +60,6 @@ export class Block {
         "x-provider-uri": this.providerUri,
       } 
     });
-    console.log("result rlp");
-    console.log(result);
     if (result?.status === HttpStatusCode.Ok) {
       if (result?.data !== undefined) {
         return result.data;
