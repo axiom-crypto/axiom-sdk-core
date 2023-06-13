@@ -73,6 +73,14 @@ let versionData = {
   },
 }
 
+export const updateConstants = (updateObject: any) => {
+  if (process.env.ENV === "prod") {
+    console.log("Error: Cannot write constants in prod environment");
+    return;
+  }
+  versionData = {versionData, ...updateObject};
+}
+
 export const Constants: {[V in VersionsType]: any} = process.env.ENV === "prod" 
   ? Object.freeze(versionData) 
   : versionData;

@@ -3,6 +3,7 @@ import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
 import { QueryBuilder } from '../query/queryBuilder';
 import { decodePackedQuery } from '../query/decoder';
+import { updateConstants } from '../shared/constants';
 
 export class Axiom {
   /**
@@ -16,6 +17,7 @@ export class Axiom {
    * Exported functions
    */
   readonly decodePackedQuery: (packedQuery: string) => string;
+  readonly updateConstants: (updateObject: any) => void;
 
   constructor(config: AxiomConfig) {
     this.config = new Config(config);
@@ -23,6 +25,7 @@ export class Axiom {
     this.block = new Block(this.config);
 
     this.decodePackedQuery = decodePackedQuery;
+    this.updateConstants = updateConstants;
   }
 
   newQueryBuilder(): QueryBuilder {
