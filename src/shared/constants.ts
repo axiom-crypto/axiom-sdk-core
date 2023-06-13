@@ -14,7 +14,7 @@ const endpoints = {
   getBlockMmrProof: "/get_block_mmr_proof",
 }
 
-export const Constants: {[V in VersionsType]: any} = Object.freeze({
+let versionData = {
   v0: {
     Addresses: {
       Axiom: "0x2251c204749e18a0f9A7a90Cff1b554F8d492b3c",
@@ -71,7 +71,11 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       MaxQuerySize: 64,
     },
   },
-});
+}
+
+export const Constants: {[V in VersionsType]: any} = process.env.ENV === "prod" 
+  ? Object.freeze(versionData) 
+  : versionData;
 
 export const ContractEvents = Object.freeze({
   QueryInitiatedOnchain: "QueryInitiatedOnchain",
