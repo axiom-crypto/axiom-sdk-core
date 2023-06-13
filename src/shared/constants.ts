@@ -73,10 +73,13 @@ let versionData: any = {
   },
 }
 
-// Quick and dirty function to update SINGLE constant. Update one at a time
-// otherwise the function will only update the first key for each level.
+// Quick and dirty function to update SINGLE constant. Function must be called multiple times 
+// to update multiple constants. The update object must be a single level deep, otherwise the 
+// function will only update the first key for each level.
 //
-// Example: updateConstants({v0: {Addresses: {Axiom: "0x1234"}}})
+// Example: 
+// const ax.updateConstants({v1:{Addresses:{Axiom:"0x1234"}}});
+// const ax.updateConstants({v1:{Addresses:{AxiomStoragePf:"0x5678"}}});
 export const updateConstants = (updateObject: any) => {
   if (process.env.ENV === "prod") {
     console.log("Error: Cannot write constants in prod environment");
