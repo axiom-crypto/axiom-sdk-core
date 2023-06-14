@@ -14,7 +14,7 @@ const endpoints = {
   getBlockMmrProof: "/get_block_mmr_proof",
 }
 
-export const Constants: {[V in VersionsType]: any} = Object.freeze({
+let versionData: any = {
   v0: {
     Addresses: {
       Axiom: "0x2251c204749e18a0f9A7a90Cff1b554F8d492b3c",
@@ -71,7 +71,44 @@ export const Constants: {[V in VersionsType]: any} = Object.freeze({
       MaxQuerySize: 64,
     },
   },
-});
+}
+
+// Quick and dirty function to update SINGLE constant. Function must be called multiple times 
+// to update multiple constants. The update object must be a single level deep, otherwise the 
+// function will only update the first key for each level.
+//
+// Example: 
+// const ax.updateConstants({v1:{Addresses:{Axiom:"0x1234"}}});
+// const ax.updateConstants({v1:{Addresses:{AxiomStoragePf:"0x5678"}}});
+export const updateConstants = (updateObject: any) => {
+  if (process.env.ENV === "prod") {
+    console.log("Error: Cannot write constants in prod environment");
+    return;
+  }
+
+  // Parse the update object
+  let versionMem = versionData;
+  let updateMem = {...updateObject};
+  let lastKey: string;
+  for (let i = 0; i < 10; i++) {
+    lastKey = Object.keys(updateMem)[0];
+    if (typeof updateMem[lastKey] !== "object") {
+      versionMem[lastKey] = updateMem[lastKey];
+      break;
+    }
+    
+    if (versionMem[lastKey] === undefined) {
+      console.log("Invalid path");
+      break;
+    }
+    updateMem = updateMem[lastKey];
+    versionMem = versionMem[lastKey];
+  }
+}
+
+export const Constants: {[V in VersionsType]: any} = process.env.ENV === "prod" 
+  ? Object.freeze(versionData) 
+  : versionData;
 
 export const ContractEvents = Object.freeze({
   QueryInitiatedOnchain: "QueryInitiatedOnchain",
