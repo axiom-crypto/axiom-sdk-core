@@ -18,14 +18,14 @@ export class Config {
    * The Chain ID to use for the Axiom SDK
    */
   readonly chainId: number;
-  
+
   /**
    * Axiom contract version number to use
    */
   readonly version: string;
-  
+
   // readonly privateKey?: `0x${string}` | undefined;
-  
+
   /**
    * Default timeout for Axiom API calls
    */
@@ -53,8 +53,15 @@ export class Config {
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs || 10000;
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
-    this.signer = config.privateKey !== undefined ? new ethers.Wallet(config.privateKey, this.provider) : null;
-    this.contract = new ethers.Contract(Constants[this.version].Addresses.Axiom, getAbiForVersion(this.version), !this.signer ? this.provider : this.signer);
+    this.signer =
+      config.privateKey !== undefined
+        ? new ethers.Wallet(config.privateKey, this.provider)
+        : null;
+    this.contract = new ethers.Contract(
+      Constants[this.version].Addresses.Axiom,
+      getAbiForVersion(this.version),
+      !this.signer ? this.provider : this.signer
+    );
   }
 
   parseProviderUri(providerUri: string): string {
@@ -62,12 +69,17 @@ export class Config {
       throw new Error("providerUri is required in AxiomConfig");
     }
 
-    if (providerUri.startsWith("https://")) {
-      return providerUri;    
+    if (
+      providerUri.startsWith("http://") ||
+      providerUri.startsWith("https://")
+    ) {
+      return providerUri;
     } else if (providerUri.startsWith("wss://")) {
       throw new Error("Websockets is not yet supported");
     } else {
-      throw new Error("Invalid provider URI: URI must start with https:// or wss://");
+      throw new Error(
+        "Invalid provider URI: URI must start with https:// or wss://"
+      );
     }
   }
 
@@ -84,6 +96,8 @@ export class Config {
     if (Versions.includes(version)) {
       return version;
     }
-    throw new Error("Invalid version number. Valid versions are: " + Versions.join(", "));
+    throw new Error(
+      "Invalid version number. Valid versions are: " + Versions.join(", ")
+    );
   }
 }

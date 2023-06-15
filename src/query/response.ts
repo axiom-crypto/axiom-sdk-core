@@ -1,27 +1,27 @@
-import { ethers, keccak256 } from "ethers";
+import { BigNumberish, ethers, keccak256 } from "ethers";
 import { MerkleTree } from "merkletreejs";
 
 // block_response.keccak = keccak(blockHash . uint32(blockNumber))
 export function getBlockResponse(
-  blockHash: string, 
+  blockHash: string,
   blockNumber: number
 ): string {
   const encodedBlockResponse = ethers.solidityPacked(
-    ["bytes32", "uint32"], 
+    ["bytes32", "uint32"],
     [blockHash, blockNumber]
   );
   return keccak256(encodedBlockResponse);
 }
 
-// full_account_response.keccak = keccak(blockNumber . address . keccak(uint64(nonce) 
+// full_account_response.keccak = keccak(blockNumber . address . keccak(uint64(nonce)
 // . uint96(balance) . storageRoot . codeHash))
 export function getFullAccountResponse(
-  blockNumber: number, 
-  address: string, 
-  nonce: string, 
-  balance: number, 
-  storageRoot: string, 
-  codeHash: string,
+  blockNumber: number,
+  address: string,
+  nonce: BigNumberish,
+  balance: BigNumberish,
+  storageRoot: string,
+  codeHash: string
 ): string {
   const encodedAccountResponse = ethers.solidityPacked(
     ["uint64", "uint96", "bytes32", "bytes32"],
@@ -39,8 +39,8 @@ export function getFullAccountResponse(
 export function getFullStorageResponse(
   blockNumber: number,
   address: string,
-  slot: ethers.BigNumberish,
-  value: number,
+  slot: BigNumberish,
+  value: BigNumberish
 ): string {
   const encodedStorageResponse = ethers.solidityPacked(
     ["uint32", "address", "uint256", "uint256"],

@@ -1,10 +1,6 @@
-export const Versions = [
-  "v0",
-  "v0_2",
-  "v1",
-];
+export const Versions = ["v0", "v0_2", "v1", "v1_mock"];
 
-export type VersionsType = typeof Versions[number];
+export type VersionsType = (typeof Versions)[number];
 
 const endpoints = {
   getBlockHashWitness: "/get_block_hash_witness",
@@ -12,7 +8,12 @@ const endpoints = {
   getBlockParams: "/get_block_params",
   getBlockRlpHeader: "/get_block_rlp_header",
   getBlockMmrProof: "/get_block_mmr_proof",
-}
+  getAllQueries: "/get_all_queries",
+  getDataForQuery: "/get_data_for_query",
+  getQueryCount: "/get_query_count",
+  getQueryData: "/get_query_data",
+  getQuery: "/get_query",
+};
 
 let versionData: any = {
   v0: {
@@ -71,13 +72,38 @@ let versionData: any = {
       MaxQuerySize: 64,
     },
   },
-}
+  v1_mock: {
+    Addresses: {
+      Axiom: "0x8eb3a522cab99ed365e450dad696357de8ab7e9d",
+      AxiomQuery: "0x82842F7a41f695320CC255B34F18769D68dD8aDF",
+    },
+    Urls: {
+      ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
+      ApiQueryUrl: "https://axiom-api-staging.vercel.app/query",
+    },
+    Endpoints: {
+      GetBlockHashWitness: endpoints.getBlockHashWitness,
+      GetBlockMerkleProof: endpoints.getBlockMerkleProof,
+      GetBlockParams: endpoints.getBlockParams,
+      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
+      GetBlockMmrProof: endpoints.getBlockMmrProof,
+      GetAllQueries: endpoints.getAllQueries,
+      GetDataForQuery: endpoints.getDataForQuery,
+      GetQueryCount: endpoints.getQueryCount,
+      GetQueryData: endpoints.getQueryData,
+      GetQuery: endpoints.getQuery,
+    },
+    Values: {
+      MaxQuerySize: 64,
+    },
+  },
+};
 
-// Quick and dirty function to update SINGLE constant. Function must be called multiple times 
-// to update multiple constants. The update object must be a single level deep, otherwise the 
+// Quick and dirty function to update SINGLE constant. Function must be called multiple times
+// to update multiple constants. The update object must be a single level deep, otherwise the
 // function will only update the first key for each level.
 //
-// Example: 
+// Example:
 // const ax.updateConstants({v1:{Addresses:{Axiom:"0x1234"}}});
 // const ax.updateConstants({v1:{Addresses:{AxiomStoragePf:"0x5678"}}});
 export const updateConstants = (updateObject: any) => {
@@ -88,7 +114,7 @@ export const updateConstants = (updateObject: any) => {
 
   // Parse the update object
   let versionMem = versionData;
-  let updateMem = {...updateObject};
+  let updateMem = { ...updateObject };
   let lastKey: string;
   for (let i = 0; i < 10; i++) {
     lastKey = Object.keys(updateMem)[0];
@@ -96,7 +122,7 @@ export const updateConstants = (updateObject: any) => {
       versionMem[lastKey] = updateMem[lastKey];
       break;
     }
-    
+
     if (versionMem[lastKey] === undefined) {
       console.log("Invalid path");
       break;
@@ -104,13 +130,12 @@ export const updateConstants = (updateObject: any) => {
     updateMem = updateMem[lastKey];
     versionMem = versionMem[lastKey];
   }
-}
+};
 
-export const Constants: {[V in VersionsType]: any} = process.env.ENV === "prod" 
-  ? Object.freeze(versionData) 
-  : versionData;
+export const Constants: { [V in VersionsType]: any } =
+  process.env.ENV === "prod" ? Object.freeze(versionData) : versionData;
 
 export const ContractEvents = Object.freeze({
   QueryInitiatedOnchain: "QueryInitiatedOnchain",
   QueryFulfilled: "QueryFulfilled",
-})
+});
