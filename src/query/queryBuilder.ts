@@ -402,7 +402,7 @@ export class QueryBuilder {
     const endpoint = Constants[this.config.version].Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, {
-      params: { queryHash, chaindId: this.config.chainId, contractAddress },
+      params: { queryHash, chainId: this.config.chainId, contractAddress },
       headers: {
         "x-axiom-api-key": this.config.apiKey,
         "x-provider-uri": this.config.providerUri,
