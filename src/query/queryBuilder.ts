@@ -420,7 +420,12 @@ export class QueryBuilder {
     queryHash: string,
     contractAddress?: string
   ): Promise<ResponseTree> {
-    const data = await this.getDataForQuery(queryHash, contractAddress);
+    let address =
+      contractAddress ?? Constants[this.config.version].Addresses.AxiomQuery;
+    if (!address) {
+      address = undefined;
+    }
+    const data = await this.getDataForQuery(queryHash, address);
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
     }
