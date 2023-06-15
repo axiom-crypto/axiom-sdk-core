@@ -1,4 +1,5 @@
-import { ethers } from "ethers";
+import { AddressLike, BigNumberish, ethers } from "ethers";
+import MerkleTree from "merkletreejs";
 
 export interface AxiomConfig {
   /**
@@ -100,4 +101,39 @@ export interface QueryData {
   requestedAt?: number;
   fulfilledAt?: number;
   status?: string;
+}
+
+export interface ResponseTree {
+  blockTree: MerkleTree;
+  accountTree: MerkleTree;
+  storageTree: MerkleTree;
+  rowHashMap: Map<string, number>;
+  data: QueryData[];
+}
+
+export interface SolidityBlockResponse {
+  blockNumber: number;
+  blockHash: string;
+  leafIdx: number;
+  proof: string[];
+}
+
+export interface SolidityAccountResponse {
+  blockNumber: number;
+  addr: string;
+  nonce: BigNumberish;
+  balance: BigNumberish;
+  storageRoot: string;
+  codeHash: string;
+  leafIdx: number;
+  proof: string[];
+}
+
+export interface SolidityStorageResponse {
+  blockNumber: number;
+  addr: string;
+  slot: BigNumberish;
+  value: BigNumberish;
+  leafIdx: number;
+  proof: string[];
 }

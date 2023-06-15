@@ -1,12 +1,19 @@
-import { ZeroHash, ethers, keccak256 } from "ethers";
-import { QueryData, QueryRow } from "../shared/types";
+import { AddressLike, BigNumberish, ZeroHash, ethers, keccak256 } from "ethers";
+import {
+  QueryData,
+  QueryRow,
+  ResponseTree,
+  SolidityAccountResponse,
+  SolidityBlockResponse,
+  SolidityStorageResponse,
+} from "../shared/types";
 import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse,
   getKeccakMerkleRoot,
 } from "./response";
-import { encodeQuery, encodeQueryData } from "./encoder";
+import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
 import { Config } from "../shared/config";
 import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
 import { Constants, Versions } from "../shared/constants";
@@ -412,12 +419,7 @@ export class QueryBuilder {
   async getResponseTreeForQuery(
     queryHash: string,
     contractAddress?: string
-  ): Promise<{
-    blockTree: MerkleTree;
-    accountTree: MerkleTree;
-    storageTree: MerkleTree;
-    rowHashMap: Map<string, number>;
-  }> {
+  ): Promise<ResponseTree> {
     const data = await this.getDataForQuery(queryHash, contractAddress);
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
@@ -511,6 +513,90 @@ export class QueryBuilder {
       accountTree,
       storageTree,
       rowHashMap,
+      data,
+    };
+  }
+
+  getValidationWitness(
+    responseTree: ResponseTree,
+    blockNumber: number,
+    address?: string,
+    slot?: BigNumberish
+  ):
+    | {
+        blockResponse: SolidityBlockResponse;
+        accountResponse?: SolidityAccountResponse;
+        storageResponse?: SolidityStorageResponse;
+      }
+    | undefined {
+    const rowHash = encodeRowHash(blockNumber, address, slot);
+    const leafIdx = responseTree.rowHashMap.get(rowHash);
+    if (leafIdx === undefined) {
+      console.log(`Could not find this query in the responseTree`);
+      return undefined;
+    }
+    const rowData = responseTree.data[leafIdx];
+    const blockTree = responseTree.blockTree;
+    const blockProof = blockTree.getHexProof(
+      blockTree.getLeaf(leafIdx),
+      leafIdx
+    );
+    const blockResponse = {
+      blockNumber,
+      blockHash: rowData.blockHash,
+      leafIdx,
+      proof: blockProof,
+    };
+    let accountResponse: SolidityAccountResponse | undefined;
+    let storageResponse: SolidityStorageResponse | undefined;
+    if (address) {
+      const accountTree = responseTree.accountTree;
+      const accountProof = accountTree.getHexProof(
+        accountTree.getLeaf(leafIdx),
+        leafIdx
+      );
+      if (
+        !rowData.nonce ||
+        !rowData.balance ||
+        !rowData.storageHash ||
+        !rowData.codeHash
+      ) {
+        return undefined;
+      }
+      accountResponse = {
+        blockNumber,
+        addr: address,
+        nonce: rowData.nonce,
+        balance: rowData.balance,
+        storageRoot: rowData.storageHash,
+        codeHash: rowData.codeHash,
+        leafIdx,
+        proof: accountProof,
+      };
+
+      if (slot) {
+        const storageTree = responseTree.storageTree;
+        const storageProof = storageTree.getHexProof(
+          storageTree.getLeaf(leafIdx),
+          leafIdx
+        );
+        if (!rowData.value) {
+          return undefined;
+        }
+        storageResponse = {
+          blockNumber,
+          addr: address,
+          slot,
+          value: rowData.value,
+          leafIdx,
+          proof: storageProof,
+        };
+      }
+    }
+    return {
+      blockResponse,
+      accountResponse,
+      storageResponse,
     };
   }
 }

@@ -1,17 +1,17 @@
-import { ethers } from "ethers";
+import { AddressLike, BigNumberish, ethers } from "ethers";
 
 export function encodeQuery(
   length: number,
   blockNumber: number,
   address: string,
   slot: ethers.BigNumberish,
-  value: ethers.BigNumberish,
+  value: ethers.BigNumberish
 ): string {
   const queryTypes = ["uint8", "uint32", "address", "uint256", "uint256"];
   const queryData = [length, blockNumber, address, slot, value];
 
   // Only encode the first `length + 1` elements
-  const encodedQuery = ethers.solidityPacked (
+  const encodedQuery = ethers.solidityPacked(
     queryTypes.slice(0, length + 1),
     queryData.slice(0, length + 1)
   );
@@ -21,7 +21,7 @@ export function encodeQuery(
 export function encodeQueryData(
   versionIdx: number,
   length: number,
-  encodedQueries: string[],
+  encodedQueries: string[]
 ): string {
   const encodedQueryData = ethers.solidityPacked(
     ["uint8", "uint32", "bytes[]"],
@@ -31,9 +31,9 @@ export function encodeQueryData(
 }
 
 export function encodeRowHash(
-  blockNumber: number, 
-  address: string | undefined, 
-  slot: number | undefined,
+  blockNumber: number,
+  address?: AddressLike,
+  slot?: BigNumberish
 ) {
   let length = 3;
   const addressValue = address ?? "0";
@@ -46,8 +46,8 @@ export function encodeRowHash(
   }
 
   const packed = ethers.solidityPacked(
-    ["uint8", "uint32", "address", "uint256"], 
-    [length, blockNumber, addressValue, slotValue]
+    ["uint8", "uint32", "address", "uint256"],
+    [length, blockNumber, addressValue, ethers.toBeHex(slotValue, 32)]
   );
 
   return ethers.keccak256(packed);
