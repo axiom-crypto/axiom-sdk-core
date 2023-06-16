@@ -298,7 +298,7 @@ export class QueryBuilder {
         } else {
           const value =
             blockNumberAccountStorageToValue[
-              `${blockNumber},${address},${slot}`
+            `${blockNumber},${address},${slot}`
             ];
 
           // Calculate keccakFullStorageResponse
@@ -420,6 +420,7 @@ export class QueryBuilder {
     queryHash: string,
     contractAddress?: string
   ): Promise<ResponseTree> {
+    queryHash = queryHash.toLowerCase();
     let address =
       contractAddress ?? Constants[this.config.version].Addresses.AxiomQuery;
     if (!address) {
@@ -529,10 +530,10 @@ export class QueryBuilder {
     slot?: BigNumberish
   ):
     | {
-        blockResponse: SolidityBlockResponse;
-        accountResponse?: SolidityAccountResponse;
-        storageResponse?: SolidityStorageResponse;
-      }
+      blockResponse: SolidityBlockResponse;
+      accountResponse?: SolidityAccountResponse;
+      storageResponse?: SolidityStorageResponse;
+    }
     | undefined {
     const rowHash = encodeRowHash(blockNumber, address, slot);
     const leafIdx = responseTree.rowHashMap.get(rowHash);
