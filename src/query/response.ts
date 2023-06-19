@@ -1,5 +1,6 @@
-import { BigNumberish, ethers, keccak256 } from "ethers";
+import { BigNumberish, ZeroHash, ethers, keccak256 } from "ethers";
 import { MerkleTree } from "merkletreejs";
+import { QueryRow } from "..";
 
 // block_response.keccak = keccak(blockHash . uint32(blockNumber))
 export function getBlockResponse(

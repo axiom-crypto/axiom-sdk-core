@@ -1,6 +1,6 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "The SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -8,7 +8,8 @@
     "build": "rm -rf ./dist/* && tsc && cp ./package.json ./dist/.",
     "build:prod": "rm -rf ./dist/* && ENV=prod tsc && cp ./package.json ./dist/.",
     "publish": "",
-    "test": "jest test/unit",
+    "test": "jest",
+    "test:unit": "jest test/unit",
     "dev": "ts-node src/index.ts"
   },
   "keywords": [],
@@ -26,7 +27,7 @@
   },
   "dependencies": {
     "axios": "^1.4.0",
-    "ethers": "^6.2.2",
+    "ethers": "^6.6.0",
     "graphql": "^16.6.0",
     "graphql-request": "^5.2.0",
     "merkletreejs": "^0.3.10"

@@ -1,22 +1,29 @@
 import { ethers, keccak256 } from "ethers";
-import { Axiom } from "../../src/core/axiom";
-import { AxiomConfig } from "../../src/shared/types";
+import { Axiom, AxiomConfig } from "../../src";
 
 describe('QueryBuilder', () => {
-  if (process.env.PROVIDER_URL === undefined) {
-    throw new Error("PROVIDER_URL environment variable is not set");
+  if (process.env.PROVIDER_URI === undefined) {
+    throw new Error("PROVIDER_URI environment variable is not set");
   }
   const config: AxiomConfig = {
     apiKey: "demo",
-    providerUri: process.env.PROVIDER_URL as string,
-    version: "0.2",
+    providerUri: process.env.PROVIDER_URI as string,
+    version: "1",
   }
   
   const ax = new Axiom(config);
+
+  // Temporarily set v1 contract addresses
+  // ax.updateConstants({v1:{Addresses:{Axiom:"0xF990f9CB1A0aa6B51c0720a6f4cAe577d7AbD86A"}}});
+  ax.updateConstants({v1:{Addresses:{Axiom:"0x8eb3a522cab99ed365e450dad696357de8ab7e9d"}}});
+  ax.updateConstants({v1:{Addresses:{AxiomQuery:"0x82842F7a41f695320CC255B34F18769D68dD8aDF"}}});
+  ax.updateConstants({v1:{Urls:{ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1"}}});
+  ax.updateConstants({v1:{Urls:{ApiQueryUrl:"https://axiom-api-staging.vercel.app/query"}}});
+
   const abiCoder = new ethers.AbiCoder();
 
   describe('Building a Query', () => {
-    test('should correctly sort the query', async () => {
+    test('should correctly sort the Query', async () => {
       const slotArr: string[] = [];
       for (let i = 0; i < 5; i++) {
         const encoded = abiCoder.encode(
@@ -61,7 +68,7 @@ describe('QueryBuilder', () => {
       expect(formattedString).toEqual(targetFormattedString);
     }, 20000);
 
-    test('building query with pre-filled values', async () => {
+    test('should successfully build query with partially pre-filled values', async () => {
       const slotArr: string[] = [];
       for (let i = 0; i < 5; i++) {
         const encoded = abiCoder.encode(
@@ -106,7 +113,7 @@ describe('QueryBuilder', () => {
       expect(formattedString).toEqual(targetFormattedString);
     }, 10000);
 
-    test('should return the correct queryResponse and query', async () => {
+    test('should return the correct keccakQueryResponse and query', async () => {
       const qb = ax.newQueryBuilder();
       await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
       await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
@@ -119,14 +126,13 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
       await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
       await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      const {queryResponse, query} = await qb.build();
+      const { keccakQueryResponse, query } = await qb.build();
       
-      console.log(query);
-      expect(queryResponse).toEqual("0x650d3e097620008d473f7bb0e13acab193a95610cf042607a4792e1835d893c6");
-      expect(query).toEqual("0x010000000b040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000010104c6aa010104c6ab040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000020104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b020104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b040104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+      expect(keccakQueryResponse).toEqual("0x650d3e097620008d473f7bb0e13acab193a95610cf042607a4792e1835d893c6");
+      expect(query).toEqual("0x020000000b040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000010104c6aa010104c6ab040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000020104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b020104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b040104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
     });
 
-    test('should return the correct queryResponse with data from mapping', async () => {
+    test('should return the correct keccakQueryResponse with data from mapping', async () => {
       const BLOCK_NUM = 14_985_438;
       const NOUNS_ADDR = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03";
       
@@ -143,9 +149,9 @@ describe('QueryBuilder', () => {
         const slot = keccak256(encoded);
         await qb.append({blockNumber: BLOCK_NUM, address: NOUNS_ADDR, slot: slot});
       }
-      const {queryResponse} = await qb.build();
+      const { keccakQueryResponse } = await qb.build();
 
-      expect(queryResponse).toEqual("0x8f79702d6624b6e0b6751cb96b01f02dc9d8ac889d5cbca99d52d01fb3c4035e");
+      expect(keccakQueryResponse).toEqual("0x8f79702d6624b6e0b6751cb96b01f02dc9d8ac889d5cbca99d52d01fb3c4035e");
     }, 30000);
   });
 });
