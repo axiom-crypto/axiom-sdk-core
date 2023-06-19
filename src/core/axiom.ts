@@ -24,7 +24,6 @@ export class Axiom {
   /**
    * Exported functions
    */
-  // readonly decodePackedQuery: (packedQuery: string) => string;
   readonly updateConstants: (updateObject: any) => void;
 
   constructor(config: AxiomConfig) {

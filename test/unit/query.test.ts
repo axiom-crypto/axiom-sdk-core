@@ -5,6 +5,11 @@ describe('Axiom Query', () => {
     throw new Error('PROVIDER_URI not set');
   }
 
+  // NOTE: These tests cannot currently be counted on because they use data from the staging
+  //       databases, which may occasionally be wiped. 
+  //
+  // TODO: rewrite tests after we are running on mainnet. 
+
   const config: AxiomConfig = {
     apiKey: "demo",
     providerUri: process.env.PROVIDER_URI_GOERLI as string,

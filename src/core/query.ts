@@ -13,7 +13,7 @@ export class Query {
   private readonly chainId: number;
   private readonly version: string;
 
-  constructor(readonly config: AxiomConfig) {
+  constructor(config: AxiomConfig) {
     this.providerUri = config.providerUri;
     this.apiKey = config.apiKey;
     this.chainId = config.chainId ?? 1;
