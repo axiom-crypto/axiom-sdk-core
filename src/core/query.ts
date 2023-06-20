@@ -1,5 +1,5 @@
 import axios, { HttpStatusCode } from "axios";
-import { AxiomConfig, QueryData, ResponseTree, SolidityAccountResponse, SolidityBlockResponse, SolidityStorageResponse } from "..";
+import { AxiomConfig, MerkleResponseTree, QueryData, ResponseTree, SolidityAccountResponse, SolidityBlockResponse, SolidityStorageResponse, decodePackedQuery } from "..";
 import { Constants } from "../shared/constants";
 import { getBlockResponse, getFullAccountResponse, getFullStorageResponse } from "../query/response";
 import { ZeroHash, ethers, keccak256 } from "ethers";
@@ -8,6 +8,8 @@ import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
 import { getAbiForVersion } from "./lib/abi";
 import { sortAddress, sortBlockNumber, sortSlot } from "../shared/utils";
+import { QueryBuilder } from "../query/queryBuilder";
+import { Config } from "../shared/config";
 
 export class Query {
   private readonly providerUri: string;
@@ -15,6 +17,7 @@ export class Query {
   private readonly chainId: number;
   private readonly version: string;
   private readonly provider: ethers.JsonRpcProvider;
+  private readonly config: AxiomConfig;
 
   constructor(config: AxiomConfig) {
     this.providerUri = config.providerUri;
@@ -22,6 +25,7 @@ export class Query {
     this.chainId = config.chainId ?? 1;
     this.version = config.version as string;
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
+    this.config = config;
   }
 
   private async getDataForQuery(
@@ -246,5 +250,31 @@ export class Query {
     );
     let logs = tx?.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
     return logs ? logs[0]?.args?.queryHash : undefined;
+  }
+
+  async getResponseTreeFromTxHash(txHash: string): Promise<ResponseTree> {
+    let tx = await this.provider.getTransaction(txHash);
+    if (!tx) {
+      throw new Error("Could not find transaction");
+    }
+    let contract = new ethers.Contract(
+      Constants[this.version].Addresses.Axiom,
+      getAbiForVersion(this.version),
+      this.provider
+    );
+    let decodedTx = contract.interface.parseTransaction({ data: tx.data, value: tx.value });
+    console.log(decodedTx);
+    let query = decodedTx?.args.query;
+    console.log(query);
+    let decodedQuery = decodePackedQuery(query);
+    if (!decodedQuery) {
+      throw new Error("Could not find query in transaction");
+    }
+
+    let qb = new QueryBuilder(new Config(this.config));
+    const responseTree = await qb.buildResponseTree(decodedQuery.body);
+
+    return responseTree;
+
   }
 }

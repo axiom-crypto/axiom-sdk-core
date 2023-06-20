@@ -1,15 +1,16 @@
 import { ZeroHash, ethers, keccak256 } from "ethers";
-import { QueryRow } from "../shared/types";
+import { MerkleResponseTree, QueryData, QueryRow, ResponseTree } from "../shared/types";
 import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse,
   getKeccakMerkleRoot,
 } from "./response";
-import { encodeQuery, encodeQueryData } from "./encoder";
+import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
 import { Config } from "../shared/config";
 import { concatHexStrings, getAccountData, sortAddress, sortBlockNumber, sortSlot, zeroBytes, } from "../shared/utils";
 import { Constants, Versions } from "../shared/constants";
+import MerkleTree from "merkletreejs";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
@@ -139,6 +140,26 @@ export class QueryBuilder {
 
   /// Builds a queryResponse from the sorted queries
   private async buildQueryResponse(sortedQueries: QueryRow[]): Promise<string> {
+    const responseTree = await this.buildResponseTree(sortedQueries);
+
+    // Calculate the merkle root for each column
+    const blockResponseRoot = responseTree.blockTree.getHexRoot();
+    const accountResponseRoot = responseTree.accountTree.getHexRoot();
+    const storageResponseRoot = responseTree.storageTree.getHexRoot();
+
+    // Calculate the queryResponse
+    const queryResponse = keccak256(
+      concatHexStrings(
+        blockResponseRoot,
+        accountResponseRoot,
+        storageResponseRoot
+      )
+    );
+    return queryResponse;
+  }
+
+
+  async buildResponseTree(sortedQueries: QueryRow[]): Promise<ResponseTree> {
     // Collapse blockNumber, account, and slot into hash table keys to reduce total
     // number of JSON-RPC calls
     let blockNumberToBlock: { [key: string]: ethers.Block | null } = {};
@@ -196,6 +217,10 @@ export class QueryBuilder {
     let blockResponseColumn: string[] = [];
     let accountResponseColumn: string[] = [];
     let storageResponseColumn: string[] = [];
+
+    let queryData: QueryData[] = []
+
+    const rowHashMap = new Map(sortedQueries.map((row, i) => [encodeRowHash(row.blockNumber, row.address ?? undefined, row.slot ?? undefined), i]));
 
     for (let i = 0; i < sortedQueries.length; i++) {
       const blockNumber = sortedQueries[i].blockNumber;
@@ -272,6 +297,18 @@ export class QueryBuilder {
           );
           storageResponseColumn.push(fullStorageResponse);
         }
+
+        const rowHash = encodeRowHash(blockNumber, address ?? undefined, slot ?? undefined);
+
+        // Add the query data to the queryData array
+        queryData.push({
+          ...sortedQueries[i],
+          rowHash,
+          blockHash,
+          address: address ?? undefined,
+          slot: slot as string ?? undefined,
+          value: sortedQueries[i].value as string ?? undefined,
+        })
       }
     }
 
@@ -287,20 +324,14 @@ export class QueryBuilder {
       Array(numUnused).fill(ZeroHash)
     );
 
-    // Calculate the merkle root for each column
-    const blockResponseRoot = getKeccakMerkleRoot(blockResponseColumn);
-    const accountResponseRoot = getKeccakMerkleRoot(accountResponseColumn);
-    const storageResponseRoot = getKeccakMerkleRoot(storageResponseColumn);
+    return {
+      blockTree: new MerkleTree(blockResponseColumn, keccak256),
+      accountTree: new MerkleTree(accountResponseColumn, keccak256),
+      storageTree: new MerkleTree(storageResponseColumn, keccak256),
+      data: queryData,
+      rowHashMap,
+    }
 
-    // Calculate the queryResponse
-    const queryResponse = keccak256(
-      concatHexStrings(
-        blockResponseRoot,
-        accountResponseRoot,
-        storageResponseRoot
-      )
-    );
-    return queryResponse;
   }
 
   /// Builds a packed queryData blob from the sorted queries
