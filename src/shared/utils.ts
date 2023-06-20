@@ -31,7 +31,7 @@ export async function getAccountData(blockNumber: number, address: `0x${string}`
     [address, [], shortenedHex(blockNumber)]
   );
   return accountData;
-} 
+}
 
 export function concatHexStrings(...args: string[]) {
   return `0x${args.map((s) => {
@@ -42,3 +42,32 @@ export function concatHexStrings(...args: string[]) {
     }
   }).join('')}`;
 }
+
+export function sortBlockNumber(a: number, b: number) {
+  return a - b;
+};
+
+export function sortAddress(a: `0x${string}` | null, b: `0x${string}` | null) {
+  if (a === null && b === null) {
+    return 0;
+  } else if (a === null) {
+    return -1;
+  } else if (b === null) {
+    return 1;
+  }
+  return parseInt(a, 16) - parseInt(b, 16);
+};
+
+export function sortSlot(
+  a: ethers.BigNumberish | null,
+  b: ethers.BigNumberish | null
+) {
+  if (a === null && b === null) {
+    return 0;
+  } else if (a === null) {
+    return -1;
+  } else if (b === null) {
+    return 1;
+  }
+  return parseInt(a.toString(), 16) - parseInt(b.toString(), 16);
+};
