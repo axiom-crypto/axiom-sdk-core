@@ -1,24 +1,15 @@
-import { AddressLike, BigNumberish, ZeroHash, ethers, keccak256 } from "ethers";
-import {
-  QueryData,
-  QueryRow,
-  ResponseTree,
-  SolidityAccountResponse,
-  SolidityBlockResponse,
-  SolidityStorageResponse,
-} from "../shared/types";
+import { ZeroHash, ethers, keccak256 } from "ethers";
+import { QueryRow } from "../shared/types";
 import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse,
   getKeccakMerkleRoot,
 } from "./response";
-import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
+import { encodeQuery, encodeQueryData } from "./encoder";
 import { Config } from "../shared/config";
 import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
 import { Constants, Versions } from "../shared/constants";
-import axios, { HttpStatusCode } from "axios";
-import MerkleTree from "merkletreejs";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
@@ -69,7 +60,6 @@ export class QueryBuilder {
         query.value = null;
       }
     }
-
     this.queries.push(query);
   }
 
@@ -261,8 +251,8 @@ export class QueryBuilder {
 
       const address = sortedQueries[i].address;
       if (address === null) {
-        accountResponseColumn.push(zeroBytes(32));
-        storageResponseColumn.push(zeroBytes(32));
+        accountResponseColumn.push(ZeroHash);
+        storageResponseColumn.push(ZeroHash);
       } else {
         const accountData =
           blockNumberAccountToAccount[`${blockNumber},${address}`];
@@ -294,7 +284,7 @@ export class QueryBuilder {
 
         const slot = sortedQueries[i].slot;
         if (slot === null) {
-          storageResponseColumn.push(zeroBytes(32));
+          storageResponseColumn.push(ZeroHash);
         } else {
           const value =
             blockNumberAccountStorageToValue[
@@ -316,13 +306,13 @@ export class QueryBuilder {
     // Fill in the remaining unused rows in the columns with zeros
     const numUnused = this.maxSize - sortedQueries.length;
     blockResponseColumn = blockResponseColumn.concat(
-      Array(numUnused).fill(zeroBytes(32))
+      Array(numUnused).fill(ZeroHash)
     );
     accountResponseColumn = accountResponseColumn.concat(
-      Array(numUnused).fill(zeroBytes(32))
+      Array(numUnused).fill(ZeroHash)
     );
     storageResponseColumn = storageResponseColumn.concat(
-      Array(numUnused).fill(zeroBytes(32))
+      Array(numUnused).fill(ZeroHash)
     );
 
     // Calculate the merkle root for each column
@@ -392,217 +382,5 @@ export class QueryBuilder {
 
     // Finally return all of the encoded query data
     return encodeQueryData(versionIdx, numQueries, encodedQueries);
-  }
-
-  private async getDataForQuery(
-    queryHash: string,
-    contractAddress?: string
-  ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants[this.config.version].Urls.ApiQueryUrl;
-    const endpoint = Constants[this.config.version].Endpoints.GetDataForQuery;
-    const uri = `${baseUrl}${endpoint}`;
-    const result = await axios.get(uri, {
-      params: { queryHash, chainId: this.config.chainId, contractAddress },
-      headers: {
-        "x-axiom-api-key": this.config.apiKey,
-        "x-provider-uri": this.config.providerUri,
-      },
-    });
-    if (result?.status === HttpStatusCode.Ok) {
-      if (result?.data !== undefined) {
-        return result.data;
-      }
-    }
-    return undefined;
-  }
-
-  async getResponseTreeForQuery(
-    queryHash: string,
-    contractAddress?: string
-  ): Promise<ResponseTree> {
-    queryHash = queryHash.toLowerCase();
-    let address =
-      contractAddress ?? Constants[this.config.version].Addresses.AxiomQuery;
-    if (!address) {
-      address = undefined;
-    }
-    const data = await this.getDataForQuery(queryHash, address);
-    if (data === undefined) {
-      throw new Error(`Could not find query data for ${queryHash}`);
-    }
-    // This is all copied from this.buildQueryResponse, should refactor
-    // Calculate each of the column responses and append them to each column
-    let blockResponseColumn: string[] = [];
-    let accountResponseColumn: string[] = [];
-    let storageResponseColumn: string[] = [];
-
-    const rowHashMap = new Map(data.map((row, i) => [row.rowHash, i]));
-    for (const query of data) {
-      // Calculate the keccakBlockResponse
-      const blockResponse = getBlockResponse(
-        query.blockHash,
-        query.blockNumber
-      );
-      blockResponseColumn.push(blockResponse);
-
-      const address = query.address;
-      if (!address) {
-        accountResponseColumn.push(ZeroHash);
-        storageResponseColumn.push(ZeroHash);
-      } else {
-        const nonce = query.nonce;
-        const balance = query.balance;
-        const storageHash = query.storageHash;
-        const codeHash = query.codeHash;
-        if (
-          nonce === undefined ||
-          balance === undefined ||
-          storageHash === undefined ||
-          codeHash === undefined
-        ) {
-          throw new Error(
-            `Could not find account data for ${address} at block ${query.blockNumber}`
-          );
-        }
-
-        // Calculate keccakFullAccountResponse
-        const fullAccountResponse = getFullAccountResponse(
-          query.blockNumber,
-          address,
-          nonce,
-          balance,
-          storageHash,
-          codeHash
-        );
-        accountResponseColumn.push(fullAccountResponse);
-
-        const slot = query.slot;
-        if (!slot) {
-          storageResponseColumn.push(ZeroHash);
-        } else {
-          const value = query.value;
-          if (!value) {
-            throw new Error(
-              `Could not find storage data for slot ${slot} in account ${address} at block ${query.blockNumber}`
-            );
-          }
-          // Calculate keccakFullStorageResponse
-          const fullStorageResponse = getFullStorageResponse(
-            query.blockNumber,
-            address,
-            slot,
-            value
-          );
-          storageResponseColumn.push(fullStorageResponse);
-        }
-      }
-    }
-
-    // Fill in the remaining unused rows in the columns with zeros
-    const numUnused = this.maxSize - blockResponseColumn.length;
-    blockResponseColumn = blockResponseColumn.concat(
-      Array(numUnused).fill(ZeroHash)
-    );
-    accountResponseColumn = accountResponseColumn.concat(
-      Array(numUnused).fill(ZeroHash)
-    );
-    storageResponseColumn = storageResponseColumn.concat(
-      Array(numUnused).fill(ZeroHash)
-    );
-
-    const blockTree = new MerkleTree(blockResponseColumn, keccak256);
-    const accountTree = new MerkleTree(accountResponseColumn, keccak256);
-    const storageTree = new MerkleTree(storageResponseColumn, keccak256);
-
-    return {
-      blockTree,
-      accountTree,
-      storageTree,
-      rowHashMap,
-      data,
-    };
-  }
-
-  getValidationWitness(
-    responseTree: ResponseTree,
-    blockNumber: number,
-    address?: string,
-    slot?: BigNumberish
-  ):
-    | {
-      blockResponse: SolidityBlockResponse;
-      accountResponse?: SolidityAccountResponse;
-      storageResponse?: SolidityStorageResponse;
-    }
-    | undefined {
-    const rowHash = encodeRowHash(blockNumber, address, slot);
-    const leafIdx = responseTree.rowHashMap.get(rowHash);
-    if (leafIdx === undefined) {
-      console.log(`Could not find this query in the responseTree`);
-      return undefined;
-    }
-    const rowData = responseTree.data[leafIdx];
-    const blockTree = responseTree.blockTree;
-    const blockProof = blockTree.getHexProof(
-      blockTree.getLeaf(leafIdx),
-      leafIdx
-    );
-    const blockResponse = {
-      blockNumber,
-      blockHash: rowData.blockHash,
-      leafIdx,
-      proof: blockProof,
-    };
-    let accountResponse: SolidityAccountResponse | undefined;
-    let storageResponse: SolidityStorageResponse | undefined;
-    if (address) {
-      const accountTree = responseTree.accountTree;
-      const accountProof = accountTree.getHexProof(
-        accountTree.getLeaf(leafIdx),
-        leafIdx
-      );
-      if (
-        !rowData.nonce ||
-        !rowData.balance ||
-        !rowData.storageHash ||
-        !rowData.codeHash
-      ) {
-        return undefined;
-      }
-      accountResponse = {
-        blockNumber,
-        addr: address,
-        nonce: rowData.nonce,
-        balance: rowData.balance,
-        storageRoot: rowData.storageHash,
-        codeHash: rowData.codeHash,
-        leafIdx,
-        proof: accountProof,
-      };
-
-      if (slot) {
-        const storageTree = responseTree.storageTree;
-        const storageProof = storageTree.getHexProof(
-          storageTree.getLeaf(leafIdx),
-          leafIdx
-        );
-        if (!rowData.value) {
-          return undefined;
-        }
-        storageResponse = {
-          blockNumber,
-          addr: address,
-          slot,
-          value: rowData.value,
-          leafIdx,
-          proof: storageProof,
-        };
-      }
-    }
-    return {
-      blockResponse,
-      accountResponse,
-      storageResponse,
-    };
   }
 }

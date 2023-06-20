@@ -19,7 +19,6 @@ let versionData: any = {
   v0: {
     Addresses: {
       Axiom: "0x2251c204749e18a0f9A7a90Cff1b554F8d492b3c",
-      AxiomStoragePf: "",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v0",
@@ -37,7 +36,6 @@ let versionData: any = {
   v0_2: {
     Addresses: {
       Axiom: "0xF990f9CB1A0aa6B51c0720a6f4cAe577d7AbD86A",
-      AxiomStoragePf: "",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v0_2",
@@ -56,7 +54,7 @@ let versionData: any = {
   v1: {
     Addresses: {
       Axiom: "",
-      AxiomStoragePf: "",
+      AxiomQuery: "",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v1",
@@ -67,6 +65,11 @@ let versionData: any = {
       GetBlockParams: endpoints.getBlockParams,
       GetBlockRlpHeader: endpoints.getBlockRlpHeader,
       GetBlockMmrProof: endpoints.getBlockMmrProof,
+      GetAllQueries: endpoints.getAllQueries,
+      GetDataForQuery: endpoints.getDataForQuery,
+      GetQueryCount: endpoints.getQueryCount,
+      GetQueryData: endpoints.getQueryData,
+      GetQuery: endpoints.getQuery,
     },
     Values: {
       MaxQuerySize: 64,
@@ -104,8 +107,8 @@ let versionData: any = {
 // function will only update the first key for each level.
 //
 // Example:
-// const ax.updateConstants({v1:{Addresses:{Axiom:"0x1234"}}});
-// const ax.updateConstants({v1:{Addresses:{AxiomStoragePf:"0x5678"}}});
+// ax.updateConstants({v1:{Addresses:{Axiom:"0x1234"}}});
+// ax.updateConstants({v1:{Addresses:{AxiomStoragePf:"0x5678"}}});
 export const updateConstants = (updateObject: any) => {
   if (process.env.ENV === "prod") {
     console.log("Error: Cannot write constants in prod environment");

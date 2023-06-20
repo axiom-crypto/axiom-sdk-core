@@ -4,10 +4,12 @@ import { AxiomConfig, BlockHashWitness } from "../shared/types";
 
 export class Block {
   private readonly providerUri: string;
+  private readonly apiKey: string;
   private readonly version: string;
 
-  constructor(readonly config: AxiomConfig) {
+  constructor(config: AxiomConfig) {
     this.providerUri = config.providerUri;
+    this.apiKey = config.apiKey;
     this.version = config.version as string;
   }
 
@@ -18,7 +20,7 @@ export class Block {
     const result = await axios.get(uri, { 
       params: { blockNumber },
       headers: { 
-        "x-axiom-api-key": this.config.apiKey,
+        "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
       } 
     });
@@ -37,7 +39,7 @@ export class Block {
     const result = await axios.get(uri, { 
       params: { blockNumber },
       headers: { 
-        "x-axiom-api-key": this.config.apiKey,
+        "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
       } 
     });
@@ -56,7 +58,7 @@ export class Block {
     const result = await axios.get(uri, { 
       params: { blockNumber },
       headers: { 
-        "x-axiom-api-key": this.config.apiKey,
+        "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
       } 
     });
@@ -75,7 +77,7 @@ export class Block {
     const result = await axios.get(uri, { 
       params: { blockNumber },
       headers: { 
-        "x-axiom-api-key": this.config.apiKey,
+        "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
       } 
     });
@@ -94,7 +96,7 @@ export class Block {
     const result = await axios.get(uri, { 
       params: { blockNumber },
       headers: { 
-        "x-axiom-api-key": this.config.apiKey,
+        "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
       } 
     });
