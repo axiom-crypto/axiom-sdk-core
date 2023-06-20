@@ -31,6 +31,7 @@ let versionData: any = {
     },
     Values: {
       MaxQuerySize: 64,
+      QueryEncodingVersion: 1,
     },
   },
   v0_2: {
@@ -49,6 +50,7 @@ let versionData: any = {
     },
     Values: {
       MaxQuerySize: 64,
+      QueryEncodingVersion: 1,
     },
   },
   v1: {
@@ -73,6 +75,7 @@ let versionData: any = {
     },
     Values: {
       MaxQuerySize: 64,
+      QueryEncodingVersion: 1,
     },
   },
   v1_mock: {
@@ -98,6 +101,7 @@ let versionData: any = {
     },
     Values: {
       MaxQuerySize: 64,
+      QueryEncodingVersion: 1,
     },
   },
 };
