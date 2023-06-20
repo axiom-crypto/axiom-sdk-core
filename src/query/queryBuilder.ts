@@ -8,7 +8,7 @@ import {
 } from "./response";
 import { encodeQuery, encodeQueryData } from "./encoder";
 import { Config } from "../shared/config";
-import { concatHexStrings, getAccountData, zeroBytes } from "../shared/utils";
+import { concatHexStrings, getAccountData, sortAddress, sortBlockNumber, sortSlot, zeroBytes, } from "../shared/utils";
 import { Constants, Versions } from "../shared/constants";
 
 export class QueryBuilder {
@@ -116,34 +116,6 @@ export class QueryBuilder {
 
   /// Sorts queries in order of blockNumber, address, and slot
   private sortQueries(): QueryRow[] {
-    const sortBlockNumber = (a: number, b: number) => {
-      return a - b;
-    };
-
-    const sortAddress = (a: `0x${string}` | null, b: `0x${string}` | null) => {
-      if (a === null && b === null) {
-        return 0;
-      } else if (a === null) {
-        return -1;
-      } else if (b === null) {
-        return 1;
-      }
-      return parseInt(a, 16) - parseInt(b, 16);
-    };
-
-    const sortSlot = (
-      a: ethers.BigNumberish | null,
-      b: ethers.BigNumberish | null
-    ) => {
-      if (a === null && b === null) {
-        return 0;
-      } else if (a === null) {
-        return -1;
-      } else if (b === null) {
-        return 1;
-      }
-      return parseInt(a.toString(), 16) - parseInt(b.toString(), 16);
-    };
 
     return this.queries.sort((a, b) => {
       // Sorts by blockNumber, then address, then slot

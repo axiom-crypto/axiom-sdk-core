@@ -7,6 +7,7 @@ import MerkleTree from "merkletreejs";
 import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
 import { getAbiForVersion } from "./lib/abi";
+import { sortAddress, sortBlockNumber, sortSlot } from "../shared/utils";
 
 export class Query {
   private readonly providerUri: string;
@@ -49,10 +50,18 @@ export class Query {
     queryHash: string,
   ): Promise<ResponseTree> {
     queryHash = queryHash.toLowerCase();
-    const data = await this.getDataForQuery(queryHash);
+    let data = await this.getDataForQuery(queryHash);
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
     }
+
+    data = data.sort((a, b) => {
+      return (
+        sortBlockNumber(a.blockNumber, b.blockNumber) ||
+        sortAddress(a.address as `0x${string}` ?? null, b.address as `0x${string}` ?? null) ||
+        sortSlot(a.slot ?? null, b.slot ?? null)
+      )
+    })
     // This is all copied from this.buildQueryResponse, should refactor
     // Calculate each of the column responses and append them to each column
     let blockResponseColumn: string[] = [];
