@@ -2,22 +2,25 @@ import axios, { HttpStatusCode } from "axios";
 import { AxiomConfig, QueryData, ResponseTree, SolidityAccountResponse, SolidityBlockResponse, SolidityStorageResponse } from "..";
 import { Constants } from "../shared/constants";
 import { getBlockResponse, getFullAccountResponse, getFullStorageResponse } from "../query/response";
-import { ZeroHash, keccak256 } from "ethers";
+import { ZeroHash, ethers, keccak256 } from "ethers";
 import MerkleTree from "merkletreejs";
 import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
+import { getAbiForVersion } from "./lib/abi";
 
 export class Query {
   private readonly providerUri: string;
   private readonly apiKey: string;
   private readonly chainId: number;
   private readonly version: string;
+  private readonly provider: ethers.JsonRpcProvider;
 
   constructor(config: AxiomConfig) {
     this.providerUri = config.providerUri;
     this.apiKey = config.apiKey;
     this.chainId = config.chainId ?? 1;
     this.version = config.version as string;
+    this.provider = new ethers.JsonRpcProvider(this.providerUri);
   }
 
   private async getDataForQuery(
@@ -149,10 +152,10 @@ export class Query {
     address?: string,
     slot?: BigNumberish
   ): {
-      blockResponse: SolidityBlockResponse;
-      accountResponse?: SolidityAccountResponse;
-      storageResponse?: SolidityStorageResponse;
-    }
+    blockResponse: SolidityBlockResponse;
+    accountResponse?: SolidityAccountResponse;
+    storageResponse?: SolidityStorageResponse;
+  }
     | undefined {
     const rowHash = encodeRowHash(blockNumber, address, slot);
     const leafIdx = responseTree.rowHashMap.get(rowHash);
@@ -223,5 +226,16 @@ export class Query {
       accountResponse,
       storageResponse,
     };
+  }
+
+  async getQueryHashFromTxHash(txHash: string): Promise<string | undefined> {
+    let tx = await this.provider.getTransactionReceipt(txHash);
+    let contract = new ethers.Contract(
+      Constants[this.version].Addresses.Axiom,
+      getAbiForVersion(this.version),
+      this.provider
+    );
+    let logs = tx?.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
+    return logs ? logs[0]?.args?.queryHash : undefined;
   }
 }
