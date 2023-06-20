@@ -345,7 +345,7 @@ export class QueryBuilder {
   private buildQueryData(sortedQueries: QueryRow[]): string {
     // Extra data that we'll encode with the query data
     const numQueries = sortedQueries.length;
-    const versionIdx = Versions.indexOf(this.config.version);
+    const versionIdx = Constants[this.config.version].Values.QueryEncodingVersion;
 
     const encodedQueries: string[] = [];
     for (let i = 0; i < numQueries; i++) {
