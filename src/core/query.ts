@@ -23,10 +23,10 @@ export class Query {
   private async getDataForQuery(
     queryHash: string,
   ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants[this.version].Urls.ApiQueryUrl;
-    const endpoint = Constants[this.version].Endpoints.GetDataForQuery;
+    const baseUrl = Constants(this.version).Urls.ApiQueryUrl;
+    const endpoint = Constants(this.version).Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
-    const contractAddress = Constants[this.version].Addresses.AxiomQuery
+    const contractAddress = Constants(this.version).Addresses.AxiomQuery
     const result = await axios.get(uri, {
       params: { queryHash, chainId: this.chainId, contractAddress },
       headers: {
@@ -119,7 +119,7 @@ export class Query {
     }
 
     // Fill in the remaining unused rows in the columns with zeros
-    const numUnused = Constants[this.version].Values.MaxQuerySize - blockResponseColumn.length;
+    const numUnused = Constants(this.version).Values.MaxQuerySize - blockResponseColumn.length;
     blockResponseColumn = blockResponseColumn.concat(
       Array(numUnused).fill(ZeroHash)
     );
