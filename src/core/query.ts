@@ -58,105 +58,9 @@ export class Query {
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
     }
-
-    data = data.sort((a, b) => {
-      return (
-        sortBlockNumber(a.blockNumber, b.blockNumber) ||
-        sortAddress(a.address as `0x${string}` ?? null, b.address as `0x${string}` ?? null) ||
-        sortSlot(a.slot ?? null, b.slot ?? null)
-      )
-    })
-    // This is all copied from this.buildQueryResponse, should refactor
-    // Calculate each of the column responses and append them to each column
-    let blockResponseColumn: string[] = [];
-    let accountResponseColumn: string[] = [];
-    let storageResponseColumn: string[] = [];
-
-    const rowHashMap = new Map(data.map((row, i) => [row.rowHash, i]));
-    for (const query of data) {
-      // Calculate the keccakBlockResponse
-      const blockResponse = getBlockResponse(
-        query.blockHash,
-        query.blockNumber
-      );
-      blockResponseColumn.push(blockResponse);
-
-      const address = query.address;
-      if (!address) {
-        accountResponseColumn.push(ZeroHash);
-        storageResponseColumn.push(ZeroHash);
-      } else {
-        const nonce = query.nonce;
-        const balance = query.balance;
-        const storageHash = query.storageHash;
-        const codeHash = query.codeHash;
-        if (
-          nonce === undefined ||
-          balance === undefined ||
-          storageHash === undefined ||
-          codeHash === undefined
-        ) {
-          throw new Error(
-            `Could not find account data for ${address} at block ${query.blockNumber}`
-          );
-        }
-
-        // Calculate keccakFullAccountResponse
-        const fullAccountResponse = getFullAccountResponse(
-          query.blockNumber,
-          address,
-          nonce,
-          balance,
-          storageHash,
-          codeHash
-        );
-        accountResponseColumn.push(fullAccountResponse);
-
-        const slot = query.slot;
-        if (!slot) {
-          storageResponseColumn.push(ZeroHash);
-        } else {
-          const value = query.value;
-          if (!value) {
-            throw new Error(
-              `Could not find storage data for slot ${slot} in account ${address} at block ${query.blockNumber}`
-            );
-          }
-          // Calculate keccakFullStorageResponse
-          const fullStorageResponse = getFullStorageResponse(
-            query.blockNumber,
-            address,
-            slot,
-            value
-          );
-          storageResponseColumn.push(fullStorageResponse);
-        }
-      }
-    }
-
-    // Fill in the remaining unused rows in the columns with zeros
-    const numUnused = Constants[this.version].Values.MaxQuerySize - blockResponseColumn.length;
-    blockResponseColumn = blockResponseColumn.concat(
-      Array(numUnused).fill(ZeroHash)
-    );
-    accountResponseColumn = accountResponseColumn.concat(
-      Array(numUnused).fill(ZeroHash)
-    );
-    storageResponseColumn = storageResponseColumn.concat(
-      Array(numUnused).fill(ZeroHash)
-    );
-
-    const blockTree = new MerkleTree(blockResponseColumn, keccak256);
-    const accountTree = new MerkleTree(accountResponseColumn, keccak256);
-    const storageTree = new MerkleTree(storageResponseColumn, keccak256);
-
-    return {
-      blockTree,
-      accountTree,
-      storageTree,
-      rowHashMap,
-      data,
-    };
+    let qb = new QueryBuilder(new Config(this.config));
+    const responseTree = qb.buildResponseTree(data);
+    return responseTree;
   }
 
   getValidationWitness(
@@ -241,15 +145,18 @@ export class Query {
     };
   }
 
-  async getQueryHashFromTxHash(txHash: string): Promise<string | undefined> {
+  async getQueryHashFromTxHash(txHash: string): Promise<string> {
     let tx = await this.provider.getTransactionReceipt(txHash);
+    if (!tx) {
+      throw new Error("Could not find transaction");
+    }
     let contract = new ethers.Contract(
       Constants[this.version].Addresses.Axiom,
       getAbiForVersion(this.version),
       this.provider
     );
-    let logs = tx?.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
-    return logs ? logs[0]?.args?.queryHash : undefined;
+    let logs = tx.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
+    return logs[0]?.args?.queryHash;
   }
 
   async getResponseTreeFromTxHash(txHash: string): Promise<ResponseTree> {
@@ -272,7 +179,8 @@ export class Query {
     }
 
     let qb = new QueryBuilder(new Config(this.config));
-    const responseTree = await qb.buildResponseTree(decodedQuery.body);
+    const queryData = await qb.getQueryDataFromRows(decodedQuery.body);
+    const responseTree = qb.buildResponseTree(queryData);
 
     return responseTree;
 
