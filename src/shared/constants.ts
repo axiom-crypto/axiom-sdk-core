@@ -1,7 +1,7 @@
 import { versionDataMainnet } from "./chainConfig/mainnet";
 import { versionDataGoerli } from "./chainConfig/goerli";
 
-export const Versions = ["v0", "v0_2", "v1", "v1_mock"];
+export const Versions = ["v0", "v0_2", "v1"];
 
 export type VersionsType = (typeof Versions)[number];
 
