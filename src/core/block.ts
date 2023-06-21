@@ -14,8 +14,8 @@ export class Block {
   }
 
   async getBlockHashWitness(blockNumber: number): Promise<BlockHashWitness | null> {
-    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
-    const endpoint = Constants[this.version].Endpoints.GetBlockHashWitness;
+    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.version).Endpoints.GetBlockHashWitness;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
       params: { blockNumber },
@@ -33,8 +33,8 @@ export class Block {
   }
 
   async getBlockMerkleProof(blockNumber: number): Promise<string[] | null> {
-    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
-    const endpoint = Constants[this.version].Endpoints.GetBlockMerkleProof;
+    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.version).Endpoints.GetBlockMerkleProof;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
       params: { blockNumber },
@@ -52,8 +52,8 @@ export class Block {
   }
 
   async getBlockRlpHeader(blockNumber: number): Promise<string | null> {
-    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
-    const endpoint = Constants[this.version].Endpoints.GetBlockRlpHeader;
+    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.version).Endpoints.GetBlockRlpHeader;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
       params: { blockNumber },
@@ -71,8 +71,8 @@ export class Block {
   }
 
   async getBlockParams(blockNumber: number): Promise<any | null> {
-    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
-    const endpoint = Constants[this.version].Endpoints.GetBlockParams;
+    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.version).Endpoints.GetBlockParams;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
       params: { blockNumber },
@@ -90,8 +90,8 @@ export class Block {
   }
 
   async getBlockMmrProof(blockNumber: number): Promise<any | null> {
-    const baseUrl = Constants[this.version].Urls.ApiBaseUrl;
-    const endpoint = Constants[this.version].Endpoints.GetBlockMmrProof;
+    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.version).Endpoints.GetBlockMmrProof;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
       params: { blockNumber },
