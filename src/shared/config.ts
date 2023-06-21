@@ -47,7 +47,6 @@ export class Config {
   readonly contract: ethers.Contract;
 
   constructor(config: AxiomConfig) {
-    console.log("Config CTR");
     this.apiKey = config.apiKey;
     this.providerUri = this.parseProviderUri(config.providerUri);
     this.chainId = config.chainId || 1;
@@ -55,7 +54,6 @@ export class Config {
     this.timeoutMs = config.timeoutMs || 10000;
 
     setVersionData(this.chainId);
-    console.log(Constants);
 
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
     this.signer =

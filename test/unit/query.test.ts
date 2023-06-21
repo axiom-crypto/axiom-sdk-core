@@ -20,10 +20,6 @@ describe('Axiom Query', () => {
   const ax = new Axiom(config);
 
   // Temporarily set v1 contract address to Goerli testnet address
-  // ax.updateConstants({v1:{Addresses:{Axiom:"0x8eb3a522cab99ed365e450dad696357de8ab7e9d"}}});
-  // ax.updateConstants({v1:{Addresses:{AxiomQuery:"0x82842F7a41f695320CC255B34F18769D68dD8aDF"}}});
-  // ax.updateConstants({v1:{Urls:{ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1"}}});
-  // ax.updateConstants({v1:{Urls:{ApiQueryUrl:"https://axiom-api-staging.vercel.app/query"}}});
   ax.updateConstants({
     v1: {
       Addresses: {
