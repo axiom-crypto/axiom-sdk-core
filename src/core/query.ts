@@ -170,9 +170,7 @@ export class Query {
       this.provider
     );
     let decodedTx = contract.interface.parseTransaction({ data: tx.data, value: tx.value });
-    console.log(decodedTx);
     let query = decodedTx?.args.query;
-    console.log(query);
     let decodedQuery = decodePackedQuery(query);
     if (!decodedQuery) {
       throw new Error("Could not find query in transaction");
