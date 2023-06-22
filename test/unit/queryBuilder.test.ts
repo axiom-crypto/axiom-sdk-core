@@ -13,12 +13,18 @@ describe('QueryBuilder', () => {
   
   const ax = new Axiom(config);
 
-  // Temporarily set v1 contract addresses
-  // ax.updateConstants({v1:{Addresses:{Axiom:"0xF990f9CB1A0aa6B51c0720a6f4cAe577d7AbD86A"}}});
-  ax.updateConstants({v1:{Addresses:{Axiom:"0x8eb3a522cab99ed365e450dad696357de8ab7e9d"}}});
-  ax.updateConstants({v1:{Addresses:{AxiomQuery:"0x82842F7a41f695320CC255B34F18769D68dD8aDF"}}});
-  ax.updateConstants({v1:{Urls:{ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1"}}});
-  ax.updateConstants({v1:{Urls:{ApiQueryUrl:"https://axiom-api-staging.vercel.app/query"}}});
+  // Temporarily set v1 contract addresses  
+  ax.updateConstants({
+    v1: {
+      Addresses: {
+        Axiom: "0x8eb3a522cab99ed365e450dad696357de8ab7e9d",
+        AxiomQuery:"0x82842F7a41f695320CC255B34F18769D68dD8aDF",
+      },
+      Urls: {
+        ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
+      },
+    },
+  });
 
   const abiCoder = new ethers.AbiCoder();
 

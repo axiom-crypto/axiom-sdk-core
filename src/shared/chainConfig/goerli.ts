@@ -1,4 +1,4 @@
-import { Endpoints } from "../endpoints";
+import { Endpoints, Path } from "../endpoints";
 
 export let versionDataGoerli: any = {
   v0: {
@@ -9,10 +9,10 @@ export let versionDataGoerli: any = {
       ApiBaseUrl: "https://axiom-api-staging.vercel.app/v0",
     },
     Endpoints: {
-      GetBlockHashWitness: Endpoints.getBlockHashWitness,
-      GetBlockMerkleProof: Endpoints.getBlockMerkleProof,
-      GetBlockParams: Endpoints.getBlockParams,
-      GetBlockRlpHeader: Endpoints.getBlockRlpHeader,
+      GetBlockHashWitness: Endpoints.GetBlockHashWitness,
+      GetBlockMerkleProof: Endpoints.GetBlockMerkleProof,
+      GetBlockParams: Endpoints.GetBlockParams,
+      GetBlockRlpHeader: Endpoints.GetBlockRlpHeader,
     },
     Values: {
       MaxQuerySize: 64,
@@ -27,11 +27,11 @@ export let versionDataGoerli: any = {
       ApiBaseUrl: "https://axiom-api-staging.vercel.app/v0_2",
     },
     Endpoints: {
-      GetBlockHashWitness: Endpoints.getBlockHashWitness,
-      GetBlockMerkleProof: Endpoints.getBlockMerkleProof,
-      GetBlockParams: Endpoints.getBlockParams,
-      GetBlockRlpHeader: Endpoints.getBlockRlpHeader,
-      GetBlockMmrProof: Endpoints.getBlockMmrProof,
+      GetBlockHashWitness: Endpoints.GetBlockHashWitness,
+      GetBlockMerkleProof: Endpoints.GetBlockMerkleProof,
+      GetBlockParams: Endpoints.GetBlockParams,
+      GetBlockRlpHeader: Endpoints.GetBlockRlpHeader,
+      GetBlockMmrProof: Endpoints.GetBlockMmrProof,
     },
     Values: {
       MaxQuerySize: 64,
@@ -45,19 +45,18 @@ export let versionDataGoerli: any = {
     },
     Urls: {
       ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
-      ApiQueryUrl: "https://axiom-api-staging.vercel.app/query",
     },
     Endpoints: {
-      GetBlockHashWitness: Endpoints.getBlockHashWitness,
-      GetBlockMerkleProof: Endpoints.getBlockMerkleProof,
-      GetBlockParams: Endpoints.getBlockParams,
-      GetBlockRlpHeader: Endpoints.getBlockRlpHeader,
-      GetBlockMmrProof: Endpoints.getBlockMmrProof,
-      GetAllQueries: Endpoints.getAllQueries,
-      GetDataForQuery: Endpoints.getDataForQuery,
-      GetQueryCount: Endpoints.getQueryCount,
-      GetQueryData: Endpoints.getQueryData,
-      GetQuery: Endpoints.getQuery,
+      GetBlockHashWitness: Path.Block + Endpoints.GetBlockHashWitness,
+      GetBlockMerkleProof: Path.Block + Endpoints.GetBlockMerkleProof,
+      GetBlockParams: Path.Block + Endpoints.GetBlockParams,
+      GetBlockRlpHeader: Path.Block + Endpoints.GetBlockRlpHeader,
+      GetBlockMmrProof: Path.Block + Endpoints.GetBlockMmrProof,
+      GetAllQueries: Path.Query + Endpoints.GetAllQueries,
+      GetDataForQuery: Path.Query + Endpoints.GetDataForQuery,
+      GetQueryCount: Path.Query + Endpoints.GetQueryCount,
+      GetQueryData: Path.Query + Endpoints.GetQueryData,
+      GetQuery: Path.Query + Endpoints.GetQuery,
     },
     Values: {
       MaxQuerySize: 64,

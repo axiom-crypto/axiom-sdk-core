@@ -48,7 +48,6 @@ export const ContractEvents = Object.freeze({
 //     },
 //     Urls: {
 //       ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1",
-//       ApiQueryUrl:"https://axiom-api-staging.vercel.app/query",
 //     }
 //   }
 // })

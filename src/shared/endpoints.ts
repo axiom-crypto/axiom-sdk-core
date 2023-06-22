@@ -1,12 +1,17 @@
 export const Endpoints = Object.freeze({
-  getBlockHashWitness: "/get_block_hash_witness",
-  getBlockMerkleProof: "/get_block_merkle_proof",
-  getBlockParams: "/get_block_params",
-  getBlockRlpHeader: "/get_block_rlp_header",
-  getBlockMmrProof: "/get_block_mmr_proof",
-  getAllQueries: "/get_all_queries",
-  getDataForQuery: "/get_data_for_query",
-  getQueryCount: "/get_query_count",
-  getQueryData: "/get_query_data",
-  getQuery: "/get_query",
+  GetBlockHashWitness: "/get_block_hash_witness",
+  GetBlockMerkleProof: "/get_block_merkle_proof",
+  GetBlockParams: "/get_block_params",
+  GetBlockRlpHeader: "/get_block_rlp_header",
+  GetBlockMmrProof: "/get_block_mmr_proof",
+  GetAllQueries: "/get_all_queries",
+  GetDataForQuery: "/get_data_for_query",
+  GetQueryCount: "/get_query_count",
+  GetQueryData: "/get_query_data",
+  GetQuery: "/get_query",
+});
+
+export const Path = Object.freeze({
+  Block: "/block",
+  Query: "/query",
 });
