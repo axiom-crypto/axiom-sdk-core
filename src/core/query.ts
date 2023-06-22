@@ -18,10 +18,10 @@ export class Query {
   private async getDataForQuery(
     queryHash: string,
   ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants(this.version).Urls.ApiQueryUrl;
-    const endpoint = Constants(this.version).Endpoints.GetDataForQuery;
+    const baseUrl = Constants(this.config.version).Urls.ApiQueryUrl;
+    const endpoint = Constants(this.config.version).Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
-    const contractAddress = Constants(this.version).Addresses.AxiomQuery
+    const contractAddress = Constants(this.config.version).Addresses.AxiomQuery
     const result = await axios.get(uri, {
       params: { queryHash, chainId: this.config.chainId, contractAddress },
       headers: {
@@ -45,7 +45,7 @@ export class Query {
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
     }
-    let qb = new QueryBuilder(new Config(this.config));
+    let qb = new QueryBuilder(this.config);
     const responseTree = qb.buildResponseTree(data);
     return responseTree;
 
@@ -139,7 +139,7 @@ export class Query {
       throw new Error("Could not find transaction");
     }
     let contract = new ethers.Contract(
-      Constants[this.config.version].Addresses.Axiom,
+      Constants(this.config.version).Addresses.Axiom,
       getAbiForVersion(this.config.version),
       this.config.provider
     );
@@ -153,7 +153,7 @@ export class Query {
       throw new Error("Could not find transaction");
     }
     let contract = new ethers.Contract(
-      Constants[this.config.version].Addresses.Axiom,
+      Constants(this.config.version).Addresses.Axiom,
       getAbiForVersion(this.config.version),
       this.config.provider
     );
@@ -164,7 +164,7 @@ export class Query {
       throw new Error("Could not find query in transaction");
     }
 
-    let qb = new QueryBuilder(new Config(this.config));
+    let qb = new QueryBuilder(this.config);
     const queryData = await qb.getQueryDataFromRows(decodedQuery.body);
     const responseTree = qb.buildResponseTree(queryData);
 
