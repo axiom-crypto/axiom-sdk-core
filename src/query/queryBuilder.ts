@@ -310,7 +310,6 @@ export class QueryBuilder {
     let queryData: QueryData[] = []
 
     for (let i = 0; i < sortedQueries.length; i++) {
-
       const blockNumber = sortedQueries[i].blockNumber;
       if (blockNumber === null) {
         throw new Error(

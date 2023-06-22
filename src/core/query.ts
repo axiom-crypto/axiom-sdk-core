@@ -1,45 +1,32 @@
 import axios, { HttpStatusCode } from "axios";
-import { AxiomConfig, MerkleResponseTree, QueryData, ResponseTree, SolidityAccountResponse, SolidityBlockResponse, SolidityStorageResponse, decodePackedQuery } from "..";
+import { QueryData, ResponseTree, SolidityAccountResponse, SolidityBlockResponse, SolidityStorageResponse, decodePackedQuery } from "..";
 import { Constants } from "../shared/constants";
-import { getBlockResponse, getFullAccountResponse, getFullStorageResponse } from "../query/response";
-import { ZeroHash, ethers, keccak256 } from "ethers";
-import MerkleTree from "merkletreejs";
+import { ethers } from "ethers";
 import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
 import { getAbiForVersion } from "./lib/abi";
-import { sortAddress, sortBlockNumber, sortSlot } from "../shared/utils";
 import { QueryBuilder } from "../query/queryBuilder";
 import { Config } from "../shared/config";
 
 export class Query {
-  private readonly providerUri: string;
-  private readonly apiKey: string;
-  private readonly chainId: number;
-  private readonly version: string;
-  private readonly provider: ethers.JsonRpcProvider;
-  private readonly config: AxiomConfig;
+  private readonly config: Config;
 
-  constructor(config: AxiomConfig) {
-    this.providerUri = config.providerUri;
-    this.apiKey = config.apiKey;
-    this.chainId = config.chainId ?? 1;
-    this.version = config.version as string;
-    this.provider = new ethers.JsonRpcProvider(this.providerUri);
+  constructor(config: Config) {
     this.config = config;
   }
 
   private async getDataForQuery(
     queryHash: string,
   ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants[this.version].Urls.ApiQueryUrl;
-    const endpoint = Constants[this.version].Endpoints.GetDataForQuery;
+    const baseUrl = Constants[this.config.version].Urls.ApiQueryUrl;
+    const endpoint = Constants[this.config.version].Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
-    const contractAddress = Constants[this.version].Addresses.AxiomQuery
+    const contractAddress = Constants[this.config.version].Addresses.AxiomQuery
     const result = await axios.get(uri, {
-      params: { queryHash, chainId: this.chainId, contractAddress },
+      params: { queryHash, chainId: this.config.chainId, contractAddress },
       headers: {
-        "x-axiom-api-key": this.apiKey,
-        "x-provider-uri": this.providerUri,
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.config.providerUri,
       },
     });
     if (result?.status === HttpStatusCode.Ok) {
@@ -54,7 +41,7 @@ export class Query {
     queryHash: string,
   ): Promise<ResponseTree> {
     queryHash = queryHash.toLowerCase();
-    let data = await this.getDataForQuery(queryHash);
+    const data = await this.getDataForQuery(queryHash);
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
     }
@@ -146,28 +133,28 @@ export class Query {
   }
 
   async getQueryHashFromTxHash(txHash: string): Promise<string> {
-    let tx = await this.provider.getTransactionReceipt(txHash);
+    let tx = await this.config.provider.getTransactionReceipt(txHash);
     if (!tx) {
       throw new Error("Could not find transaction");
     }
     let contract = new ethers.Contract(
-      Constants[this.version].Addresses.Axiom,
-      getAbiForVersion(this.version),
-      this.provider
+      Constants[this.config.version].Addresses.Axiom,
+      getAbiForVersion(this.config.version),
+      this.config.provider
     );
     let logs = tx.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
     return logs[0]?.args?.queryHash;
   }
 
   async getResponseTreeFromTxHash(txHash: string): Promise<ResponseTree> {
-    let tx = await this.provider.getTransaction(txHash);
+    let tx = await this.config.provider.getTransaction(txHash);
     if (!tx) {
       throw new Error("Could not find transaction");
     }
     let contract = new ethers.Contract(
-      Constants[this.version].Addresses.Axiom,
-      getAbiForVersion(this.version),
-      this.provider
+      Constants[this.config.version].Addresses.Axiom,
+      getAbiForVersion(this.config.version),
+      this.config.provider
     );
     let decodedTx = contract.interface.parseTransaction({ data: tx.data, value: tx.value });
     let query = decodedTx?.args.query;
