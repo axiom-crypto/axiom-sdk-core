@@ -18,10 +18,10 @@ export class Query {
   private async getDataForQuery(
     queryHash: string,
   ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants[this.config.version].Urls.ApiQueryUrl;
-    const endpoint = Constants[this.config.version].Endpoints.GetDataForQuery;
+    const baseUrl = Constants(this.version).Urls.ApiQueryUrl;
+    const endpoint = Constants(this.version).Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
-    const contractAddress = Constants[this.config.version].Addresses.AxiomQuery
+    const contractAddress = Constants(this.version).Addresses.AxiomQuery
     const result = await axios.get(uri, {
       params: { queryHash, chainId: this.config.chainId, contractAddress },
       headers: {
@@ -48,6 +48,7 @@ export class Query {
     let qb = new QueryBuilder(new Config(this.config));
     const responseTree = qb.buildResponseTree(data);
     return responseTree;
+
   }
 
   getValidationWitness(

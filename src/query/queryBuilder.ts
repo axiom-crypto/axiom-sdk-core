@@ -19,7 +19,7 @@ export class QueryBuilder {
   private readonly maxSize: number;
 
   constructor(config: Config) {
-    this.maxSize = Constants[config.version].Values.MaxQuerySize;
+    this.maxSize = Constants(config.version).Values.MaxQuerySize;
     if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
@@ -379,7 +379,7 @@ export class QueryBuilder {
   private buildQueryData(sortedQueries: QueryRow[]): string {
     // Extra data that we'll encode with the query data
     const numQueries = sortedQueries.length;
-    const versionIdx = Constants[this.config.version].Values.QueryEncodingVersion;
+    const versionIdx = Constants(this.config.version).Values.QueryEncodingVersion;
 
     const encodedQueries: string[] = [];
     for (let i = 0; i < numQueries; i++) {
