@@ -49,4 +49,10 @@ describe('Axiom Query', () => {
     expect(validationWitness?.accountResponse?.storageRoot).toEqual("0x6ed425c5dbbe2efc69edf85a940267459fb0b919987d238536fc1b6868384741");
     expect(validationWitness?.storageResponse?.value).toEqual("0x0000000000000000000000000000000000000000000000000000000000000001");
   });
+
+  test('should get queryHash from txHash', async () => {
+    const txHash = "0x78bd5855b3a2147e712c96cd0b9bc508c61c588aabb5ea731f2e9f8caa666bc3";
+    const queryHash = await ax.query.getQueryHashFromTxHash(txHash);
+    expect(queryHash).toEqual("0xc27885d9ef09cbceeff4c09c6f6b6b19a61ba24163ac0e63df6117b570a40065");
+  })
 });

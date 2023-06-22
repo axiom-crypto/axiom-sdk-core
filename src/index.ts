@@ -1,2 +1,2 @@
 export * from './shared/types';
-export { Axiom } from './core/axiom';
+export { Axiom, decodePackedQuery } from './core/axiom';

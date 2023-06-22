@@ -103,10 +103,13 @@ export interface QueryData {
   status?: string;
 }
 
-export interface ResponseTree {
+export interface MerkleResponseTree {
   blockTree: MerkleTree;
   accountTree: MerkleTree;
   storageTree: MerkleTree;
+}
+
+export interface ResponseTree extends MerkleResponseTree {
   rowHashMap: Map<string, number>;
   data: QueryData[];
 }
