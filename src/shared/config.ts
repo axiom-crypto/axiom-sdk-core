@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Constants, Versions, setVersionData } from "./constants";
+import { Constants, Versions, setVersionData, updateConstants } from "./constants";
 import { AxiomConfig } from "./types";
 import { getAbiForVersion } from "../core/lib/abi";
 
@@ -41,12 +41,7 @@ export class Config {
    */
   readonly signer: ethers.Wallet | null;
 
-  /**
-   * Deployed Axiom Contract to use
-   */
-  readonly contract: ethers.Contract;
-
-  constructor(config: AxiomConfig) {
+  constructor(config: AxiomConfig, overrides?: any) {
     this.apiKey = config.apiKey;
     this.providerUri = this.parseProviderUri(config.providerUri);
     this.chainId = config.chainId || 1;
@@ -54,17 +49,15 @@ export class Config {
     this.timeoutMs = config.timeoutMs || 10000;
 
     setVersionData(this.chainId);
+    if (overrides !== undefined) {
+      updateConstants(overrides);
+    }
 
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
     this.signer =
       config.privateKey !== undefined
         ? new ethers.Wallet(config.privateKey, this.provider)
         : null;
-    this.contract = new ethers.Contract(
-      Constants(this.version).Addresses.Axiom,
-      getAbiForVersion(this.version),
-      !this.signer ? this.provider : this.signer
-    );
   }
 
   parseProviderUri(providerUri: string): string {

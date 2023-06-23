@@ -10,7 +10,6 @@ let versionData: {[key: string]: any} = {};
 export function setVersionData(chainId: number) {
   switch (chainId) {
     case 1:
-      console.log("version set mainnet");
       versionData = versionDataMainnet;
       break;
     case 5:
@@ -25,7 +24,6 @@ export function setVersionData(chainId: number) {
   }
 }
 
-// export const Constants: { [V in VersionsType]: any } = versionData;
 export function Constants(version: string) {
   return versionData[version];
 }
@@ -36,21 +34,9 @@ export const ContractEvents = Object.freeze({
 });
 
 
-// Update constants using the same nested object structure as the versionData variable.
-// Only works with non-prod builds.
-//
-// Example:
-// ax.updateConstants({
-//   v1: {
-//     Addresses: {
-//       Axiom: "0x8eb3a522cab99ed365e450dad696357de8ab7e9d",
-//       AxiomQuery: "0x82842F7a41f695320CC255B34F18769D68dD8aDF",
-//     },
-//     Urls: {
-//       ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1",
-//     }
-//   }
-// })
+/// Update constants using the same nested object structure as the versionData variable.
+/// Pass the updateObject in as an override when initializing Axiom. Only works with 
+/// non-prod builds.
 export function updateConstants(updateObject: any) {
   if (process.env.ENV === "prod") {
     console.log("Error: Cannot write constants in prod environment");

@@ -11,8 +11,6 @@ export function getAbiForVersion(version: string): ethers.InterfaceAbi {
       return AxiomV02Abi;
     case "v1":
       return AxiomV1Abi;
-    case "v1_mock":
-      return AxiomV1Abi;
     default:
       throw new Error("Invalid ABI");
   }

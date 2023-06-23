@@ -36,7 +36,7 @@ export function encodeRowHash(
   slot?: BigNumberish
 ) {
   let length = 3;
-  const addressValue = address ?? "0";
+  const addressValue = address ?? "0x0000000000000000000000000000000000000000";
   const slotValue = slot ?? 0;
   if (slot === undefined) {
     length = 2;
@@ -44,7 +44,7 @@ export function encodeRowHash(
   if (address === undefined) {
     length = 1;
   }
-
+  
   const packed = ethers.solidityPacked(
     ["uint8", "uint32", "address", "uint256"],
     [length, blockNumber, addressValue, ethers.toBeHex(slotValue, 32)]

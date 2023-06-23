@@ -3,7 +3,7 @@ import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
 import { Query } from './query';
 import { QueryBuilder } from '../query/queryBuilder';
-import { updateConstants } from '../shared/constants';
+import { getAbiForVersion } from './lib/abi';
 
 export class Axiom {
   /**
@@ -21,22 +21,23 @@ export class Axiom {
    */
   readonly query: Query;
 
-  /**
-   * Exported functions
-   */
-  readonly updateConstants: (updateObject: any) => void;
+  constructor(config: AxiomConfig, overrides?: any) {
+    if (process.env.Env === "prod" && overrides !== undefined) {
+      throw new Error("Cannot override config in production");
+    }
 
-  constructor(config: AxiomConfig) {
-    this.config = new Config(config);
+    this.config = new Config(config, overrides);
 
     this.block = new Block(this.config);
     this.query = new Query(this.config);
-
-    this.updateConstants = updateConstants;
   }
 
   newQueryBuilder(): QueryBuilder {
     return new QueryBuilder(this.config);
+  }
+
+  getAbi(): any {
+    return getAbiForVersion(this.config.version);
   }
 }
 
