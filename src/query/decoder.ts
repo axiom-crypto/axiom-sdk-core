@@ -49,7 +49,7 @@ function decodePackedQueryV1(encodedQueries: string, rows: number): QueryRow[] {
       });
       continue;
     }
-    const address = `0x${encodedQueries.slice(offset, offset + 40)}` as `0x${string}`;
+    const address = `0x${encodedQueries.slice(offset, offset + 40)}`;
     offset += 40;
 
     if (queryLength === 2) {

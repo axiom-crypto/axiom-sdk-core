@@ -1,21 +1,26 @@
 import { ZeroHash, ethers, keccak256 } from "ethers";
-import { MerkleResponseTree, QueryData, QueryRow, ResponseTree } from "../shared/types";
+import { QueryData, QueryRow, ResponseTree } from "../shared/types";
 import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse,
-  getKeccakMerkleRoot,
 } from "./response";
 import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
 import { Config } from "../shared/config";
-import { concatHexStrings, getAccountData, sortAddress, sortBlockNumber, sortSlot, zeroBytes, } from "../shared/utils";
-import { Constants, Versions } from "../shared/constants";
+import { 
+  concatHexStrings,
+  getAccountData, 
+  sortAddress,
+  sortBlockNumber,
+  sortSlot 
+} from "../shared/utils";
+import { Constants } from "../shared/constants";
+import { validateQueryRow } from "./validate";
 import MerkleTree from "merkletreejs";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
   private readonly config: Config;
-  private readonly provider: ethers.JsonRpcProvider;
   private readonly maxSize: number;
 
   constructor(config: Config) {
@@ -24,44 +29,25 @@ export class QueryBuilder {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
     this.config = new Config(config);
-    this.provider = new ethers.JsonRpcProvider(this.config.providerUri);
   }
 
   /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder`
-  /// has reached its maximum size, then an error will be thrown.
-  async append(query: QueryRow) {
-    if (this.queries.length >= this.maxSize) {
-      throw new Error(
-        `QueryBuilder has reached its maximum size of ${this.maxSize}. Either reduce the number of queries or pass in a larger size to QueryBuilder.`
-      );
-    }
+  /// has reached its maximum size, or if validation for that `QueryRow` fails then an 
+  /// error will be thrown.
+  async append(queryRow: QueryRow) {
+    const processedRow = await this.processQueryRow(queryRow);
+    await validateQueryRow(this.config.provider, processedRow);
+    this.queries.push(processedRow);
+  }
 
-    if (query.address === null && query.slot !== null) {
-      throw new Error(
-        "If `slot` is specified, then `address` must not be null"
-      );
-    }
-
-    // Ensure valid address
-    if (query.address !== null) {
-      if (query.address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
-        throw new Error(`Invalid address format for: ${query.address}`);
-      }
-    }
-
-    if (!query.value) {
-      if (query.address !== null && query.slot !== null) {
-        // Note that this may fail silently if the archive node is not able to get the value at the slot
-        query.value = await this.provider.getStorage(
-          query.address,
-          query.slot,
-          query.blockNumber
-        );
-      } else {
-        query.value = null;
-      }
-    }
-    this.queries.push(query);
+  /// Appends a `QueryRow` to the current `QueryBuilder` instance without validating the 
+  /// the values first. If there are invalid values (such as the account address being an 
+  /// empty account at the specified block number), then the proof generation of the Query 
+  /// will fail after submitting the transaction, making it impossible to fulfill the 
+  /// Query on-chain.
+  async appendWithoutValidation(queryRow: QueryRow) {
+    const processedRow = await this.processQueryRow(queryRow);
+    this.queries.push(processedRow);
   }
 
   /// Gets the current number of `QueryRow`s appended to the instance of `QueryBuilder`.
@@ -115,9 +101,45 @@ export class QueryBuilder {
     };
   }
 
+  /// Processes an input `QueryRow` and gets a value from the provider if necessary
+  private async processQueryRow(queryRow: QueryRow) {
+    if (this.queries.length >= this.maxSize) {
+      throw new Error(
+        `QueryBuilder has reached its maximum size of ${this.maxSize}. Either reduce the number of queries or pass in a larger size to QueryBuilder.`
+      );
+    }
+
+    if (queryRow.address === null && queryRow.slot !== null) {
+      throw new Error(
+        "If `slot` is specified, then `address` must not be null"
+      );
+    }
+
+    // Ensure valid address
+    if (queryRow.address !== null) {
+      if (queryRow.address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
+        throw new Error(`Invalid address format for: ${queryRow.address}`);
+      }
+    }
+
+    if (!queryRow.value) {
+      if (queryRow.address !== null && queryRow.slot !== null) {
+        // Note that this may fail silently if the archive node is not able to get the value at the slot
+        queryRow.value = await this.config.provider.getStorage(
+          queryRow.address,
+          queryRow.slot,
+          queryRow.blockNumber
+        );
+      } else {
+        queryRow.value = null;
+      }
+    }
+
+    return queryRow;
+  }
+
   /// Sorts queries in order of blockNumber, address, and slot
   private sortQueries(): QueryRow[] {
-
     return this.queries.sort((a, b) => {
       // Sorts by blockNumber, then address, then slot
       return (
@@ -283,7 +305,7 @@ export class QueryBuilder {
     // Get all of the block hashes
     for (const blockNumberStr of Object.keys(blockNumberToBlock)) {
       const blockNumber = parseInt(blockNumberStr);
-      const block = await this.provider.getBlock(blockNumber);
+      const block = await this.config.provider.getBlock(blockNumber);
 
       if (block === null || block.hash === null) {
         throw new Error(
@@ -302,7 +324,8 @@ export class QueryBuilder {
       const account = await getAccountData(
         blockNumber,
         address as `0x${string}`,
-        this.provider
+        [],
+        this.config.provider
       );
       blockNumberAccountToAccount[blockNumberAccountStr] = account;
     }

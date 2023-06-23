@@ -1,13 +1,14 @@
 import axios, { HttpStatusCode } from "axios";
 import { Constants } from "../shared/constants";
-import { AxiomConfig, BlockHashWitness } from "../shared/types";
+import { BlockHashWitness } from "../shared/types";
+import { Config } from "../shared/config";
 
 export class Block {
   private readonly providerUri: string;
   private readonly apiKey: string;
   private readonly version: string;
 
-  constructor(config: AxiomConfig) {
+  constructor(config: Config) {
     this.providerUri = config.providerUri;
     this.apiKey = config.apiKey;
     this.version = config.version as string;

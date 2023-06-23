@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
-import { Constants, Versions, setVersionData, updateConstants } from "./constants";
+import { Versions, setVersionData, updateConstants } from "./constants";
 import { AxiomConfig } from "./types";
-import { getAbiForVersion } from "../core/lib/abi";
 
 export class Config {
   /**
@@ -24,7 +23,10 @@ export class Config {
    */
   readonly version: string;
 
-  // readonly privateKey?: `0x${string}` | undefined;
+  /**
+   * Optional private key used for signing transactions
+   */
+  readonly privateKey?: string | undefined;
 
   /**
    * Default timeout for Axiom API calls
@@ -34,7 +36,7 @@ export class Config {
   /**
    * Provider to use
    */
-  readonly provider: ethers.Provider;
+  readonly provider: ethers.JsonRpcProvider;
 
   /**
    * Signer to use (if privateKey provided)
@@ -74,7 +76,7 @@ export class Config {
       throw new Error("Websockets is not yet supported");
     } else {
       throw new Error(
-        "Invalid provider URI: URI must start with https:// or wss://"
+        "Invalid provider URI: URI must start with http://, https://, or wss://"
       );
     }
   }

@@ -23,12 +23,31 @@ describe('QueryBuilder', () => {
       },
     },
   }
-
   const ax = new Axiom(config, overrides);
 
   const abiCoder = new ethers.AbiCoder();
+  const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+  const NOUNS_ADDR = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03";
 
   describe('Building a Query', () => {
+    test('should successfully build a Query', async () => {
+      const qb = ax.newQueryBuilder();
+      await qb.append({blockNumber: 17090300, address: UNI_V2_ADDR, slot: 0});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 3});
+      const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
+      expect(true).toEqual(true);
+    });
+
+    test('should throw when appending invalid QueryRow data', async () => {
+      const testFn = async () => {
+        const qb = ax.newQueryBuilder();
+        await qb.append({blockNumber: 10000, address: UNI_V2_ADDR, slot: 0});
+      };
+      await expect(testFn()).rejects.toThrow(`Address ${UNI_V2_ADDR} is an empty account at block 10000`);
+    });
+    
     test('should correctly sort the Query', async () => {
       const slotArr: string[] = [];
       for (let i = 0; i < 5; i++) {
@@ -41,32 +60,32 @@ describe('QueryBuilder', () => {
       }
 
       const qb = ax.newQueryBuilder();
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[3]});
-      await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
-      await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 5});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[2]});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2});
-      await qb.append({blockNumber: 17090218, address: null, slot: null});
-      await qb.append({blockNumber: 17090300, address: null, slot: null});
-      await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[1]});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 2});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
-      await qb.append({blockNumber: 17090217, address: null, slot: null});
-      await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: null});
-      await qb.append({blockNumber: 17090217, address: null, slot: null});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
-      await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      await qb.append({blockNumber: 17090219, address: null, slot: null});
-      await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 1});
-      await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: slotArr[4]});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[0]});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 10});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[3]});
+      await qb.appendWithoutValidation({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 5});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[2]});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2});
+      await qb.appendWithoutValidation({blockNumber: 17090218, address: null, slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090300, address: null, slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[1]});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 2});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: null, slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090217, address: null, slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
+      await qb.appendWithoutValidation({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090219, address: null, slot: null});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 1});
+      await qb.appendWithoutValidation({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: slotArr[4]});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[0]});
+      await qb.appendWithoutValidation({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 10});
       
       const targetFormattedString = `query: 0, blockNumber: 17090217, address: null, slot: null, value: null\nquery: 1, blockNumber: 17090217, address: null, slot: null, value: null\nquery: 2, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 3, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 4, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 1, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 5, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 1, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 6, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 2, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 7, blockNumber: 17090218, address: null, slot: null, value: null\nquery: 8, blockNumber: 17090219, address: null, slot: null, value: null\nquery: 9, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0, value: 0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10\nquery: 10, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 1, value: 0x4e6f756e7300000000000000000000000000000000000000000000000000000a\nquery: 11, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 2, value: 0x4e4f554e00000000000000000000000000000000000000000000000000000008\nquery: 12, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 5, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 13, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 14, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 1, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 15, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 10, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 16, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0x3617319a054d772f909f7c479a2cebe5066e836a939412e32403c99029b92eff, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 17, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0xa15bc60c955c405d20d9149c709e2460f1c2d9a497496a7f46004d1772c3054c, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 18, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0xc3a24b0501bd2c13a7e57f2db4369ec4c223447539fc0724a9d55ac4a06ebd4d, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 19, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0xcbc4e5fb02c3d1de23a9f1e014b4d2ee5aeaea9505df5e855c9210bf472495af, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 20, blockNumber: 17090300, address: null, slot: null, value: null\nquery: 21, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: null, value: null\nquery: 22, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0, value: 0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10\nquery: 23, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0x83ec6a1f0257b830b5e016457c9cf1435391bf56cc98f369a58a54fe93772465, value: 0x000000000000000000000000385a7e8a44224b0b89eccd124a1b0417c97bc7fa\nquery: 24, blockNumber: 17090300, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 25, blockNumber: 17090300, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 2, value: 0x0000000000000000000000000000000000000000000000000000000000000000\n`;
       const formattedString = qb.asSortedFormattedString();
@@ -74,73 +93,53 @@ describe('QueryBuilder', () => {
       expect(formattedString).toEqual(targetFormattedString);
     }, 20000);
 
-    test('should successfully build query with partially pre-filled values', async () => {
-      const slotArr: string[] = [];
-      for (let i = 0; i < 5; i++) {
-        const encoded = abiCoder.encode(
-          ["uint256", "uint256"],
-          [i, 3]
-        );
-        const slot = keccak256(encoded);
-        slotArr.push(slot);
-      }
-
+    test('should successfully sort and build query with partially pre-filled values', async () => {
       const qb = ax.newQueryBuilder();
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[3]});
       await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0, value: "0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10"});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
-      await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 5, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
       await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[2]});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
       await qb.append({blockNumber: 17090218, address: null, slot: null});
       await qb.append({blockNumber: 17090300, address: null, slot: null});
       await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 0, value: "0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10"});
       await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[1]});
       await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
       await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 2, value: "0x4e4f554e00000000000000000000000000000000000000000000000000000008"});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
       await qb.append({blockNumber: 17090217, address: null, slot: null});
       await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: null});
       await qb.append({blockNumber: 17090217, address: null, slot: null});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
       await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
       await qb.append({blockNumber: 17090219, address: null, slot: null});
       await qb.append({blockNumber: 17090220, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: 1, value: "0x4e6f756e7300000000000000000000000000000000000000000000000000000a"});
-      await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: slotArr[4]});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: slotArr[0]});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 10, value: "0x0000000000000000000000000000000000000000000000000000000000000000"});
+      await qb.append({blockNumber: 17090300, address: "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03", slot: "0x83ec6a1f0257b830b5e016457c9cf1435391bf56cc98f369a58a54fe93772465", value: "0x000000000000000000000000385a7e8a44224b0b89eccd124a1b0417c97bc7fa"});
       
-      const targetFormattedString = `query: 0, blockNumber: 17090217, address: null, slot: null, value: null\nquery: 1, blockNumber: 17090217, address: null, slot: null, value: null\nquery: 2, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 3, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 4, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 1, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 5, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 1, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 6, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 2, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 7, blockNumber: 17090218, address: null, slot: null, value: null\nquery: 8, blockNumber: 17090219, address: null, slot: null, value: null\nquery: 9, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0, value: 0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10\nquery: 10, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 1, value: 0x4e6f756e7300000000000000000000000000000000000000000000000000000a\nquery: 11, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 2, value: 0x4e4f554e00000000000000000000000000000000000000000000000000000008\nquery: 12, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 5, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 13, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 14, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 1, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 15, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 10, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 16, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0x3617319a054d772f909f7c479a2cebe5066e836a939412e32403c99029b92eff, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 17, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0xa15bc60c955c405d20d9149c709e2460f1c2d9a497496a7f46004d1772c3054c, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 18, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0xc3a24b0501bd2c13a7e57f2db4369ec4c223447539fc0724a9d55ac4a06ebd4d, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 19, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0xcbc4e5fb02c3d1de23a9f1e014b4d2ee5aeaea9505df5e855c9210bf472495af, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 20, blockNumber: 17090300, address: null, slot: null, value: null\nquery: 21, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: null, value: null\nquery: 22, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0, value: 0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10\nquery: 23, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0x83ec6a1f0257b830b5e016457c9cf1435391bf56cc98f369a58a54fe93772465, value: 0x000000000000000000000000385a7e8a44224b0b89eccd124a1b0417c97bc7fa\nquery: 24, blockNumber: 17090300, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 25, blockNumber: 17090300, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 2, value: 0x0000000000000000000000000000000000000000000000000000000000000000\n`;
+      const targetFormattedString = `query: 0, blockNumber: 17090217, address: null, slot: null, value: null\nquery: 1, blockNumber: 17090217, address: null, slot: null, value: null\nquery: 2, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 3, blockNumber: 17090217, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: 0, value: 0x0000000000000000000000000000000000000000000000000000000000000000\nquery: 4, blockNumber: 17090218, address: null, slot: null, value: null\nquery: 5, blockNumber: 17090219, address: null, slot: null, value: null\nquery: 6, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0, value: 0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10\nquery: 7, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 1, value: 0x4e6f756e7300000000000000000000000000000000000000000000000000000a\nquery: 8, blockNumber: 17090220, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 2, value: 0x4e4f554e00000000000000000000000000000000000000000000000000000008\nquery: 9, blockNumber: 17090220, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\nquery: 10, blockNumber: 17090300, address: null, slot: null, value: null\nquery: 11, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: null, value: null\nquery: 12, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0, value: 0x0000000000000000000000000bc3807ec262cb779b38d65b38158acc3bfede10\nquery: 13, blockNumber: 17090300, address: 0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03, slot: 0x83ec6a1f0257b830b5e016457c9cf1435391bf56cc98f369a58a54fe93772465, value: 0x000000000000000000000000385a7e8a44224b0b89eccd124a1b0417c97bc7fa\nquery: 14, blockNumber: 17090300, address: 0xab5801a7d398351b8be11c439e05c5b3259aec9b, slot: null, value: null\n`;
       const formattedString = qb.asSortedFormattedString();
       
       expect(formattedString).toEqual(targetFormattedString);
-    }, 10000);
+    }, 20000);
 
-    test('should return the correct keccakQueryResponse and query', async () => {
+    test('should return the correct keccakQueryResponse, queryHash, and query', async () => {
       const qb = ax.newQueryBuilder();
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
-      await qb.append({blockNumber: 17090217, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 3});
       await qb.append({blockNumber: 17090218, address: null, slot: null});
       await qb.append({blockNumber: 17090219, address: null, slot: null});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 1});
-      await qb.append({blockNumber: 17090220, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 2});
-      await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: 0});
-      await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      await qb.append({blockNumber: 17090300, address: "0xab5801a7d398351b8be11c439e05c5b3259aec9b", slot: null});
-      const { keccakQueryResponse, query } = await qb.build();
+      await qb.append({blockNumber: 17090220, address: UNI_V2_ADDR, slot: 0});
+      await qb.append({blockNumber: 17090220, address: UNI_V2_ADDR, slot: 1});
+      await qb.append({blockNumber: 17090220, address: UNI_V2_ADDR, slot: 3});
+      await qb.append({blockNumber: 17090225, address: UNI_V2_ADDR, slot: 1});
+      await qb.append({blockNumber: 17090300, address: UNI_V2_ADDR, slot: 0});
+      await qb.append({blockNumber: 17090300, address: UNI_V2_ADDR, slot: null});
+      await qb.append({blockNumber: 17090300, address: UNI_V2_ADDR, slot: null});
+      const { keccakQueryResponse, queryHash, query } = await qb.build();
       
-      expect(keccakQueryResponse).toEqual("0x650d3e097620008d473f7bb0e13acab193a95610cf042607a4792e1835d893c6");
-      expect(query).toEqual("0x010000000b040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040104c6a9ab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000010104c6aa010104c6ab040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000040104c6acab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000020104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b020104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b040104c6fcab5801a7d398351b8be11c439e05c5b3259aec9b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-    });
+      expect(keccakQueryResponse).toEqual("0x01d64a36939226d64c2c5962b0a5a701a6770b81eea205edd528a9e5e228007b");
+      expect(queryHash).toEqual("0x617e4ff412c0206455613caed909914de23e8b916cc119179a356397cb5f9281");
+      expect(query).toEqual("0x010000000c040104c6a95c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6a95c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000018e433c7bf8a2e1d0197ce5d8f9afada1a771360040104c6a95c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000281c1010104c6aa010104c6ab040104c6ac5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040104c6ac5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000018e433c7bf8a2e1d0197ce5d8f9afada1a771360040104c6ac5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000281c1040104c6b15c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000018e433c7bf8a2e1d0197ce5d8f9afada1a771360020104c6fc5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f020104c6fc5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f040104c6fc5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+    }, 20000);
 
     test('should return the correct keccakQueryResponse with data from mapping', async () => {
       const BLOCK_NUM = 14_985_438;
-      const NOUNS_ADDR = "0x9C8fF314C9Bc7F6e59A9d9225Fb22946427eDC03";
       
       const qb = ax.newQueryBuilder();
       await qb.append({blockNumber: BLOCK_NUM, address: NOUNS_ADDR, slot: 0});
@@ -158,6 +157,6 @@ describe('QueryBuilder', () => {
       const { keccakQueryResponse } = await qb.build();
 
       expect(keccakQueryResponse).toEqual("0x8f79702d6624b6e0b6751cb96b01f02dc9d8ac889d5cbca99d52d01fb3c4035e");
-    }, 30000);
+    }, 60000);
   });
 });

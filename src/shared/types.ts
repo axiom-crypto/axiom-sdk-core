@@ -25,8 +25,6 @@ export interface AxiomConfig {
    */
   version?: string;
 
-  // privateKey?: `0x${string}` | undefined;
-
   /**
    * Default timeout in milliseconds for Axiom API calls
    * (default: 10000)
@@ -48,12 +46,12 @@ export interface BlockHashWitness {
   /**
    * The claimed block hash of the block
    */
-  claimedBlockHash: `0x${string}`;
+  claimedBlockHash: string;
 
   /**
    * The hash of the previous group of blocks
    */
-  prevHash: `0x${string}`;
+  prevHash: string;
 
   /**
    * The number of transactions included in this group
@@ -71,7 +69,7 @@ export interface BlockHashWitness {
 /// variables in the interface as null when we process the Query.
 export interface QueryRow {
   blockNumber: number;
-  address: `0x${string}` | null;
+  address: string | null;
   slot: ethers.BigNumberish | null;
 
   // append will query the provider for this value and fill it in or write null if slot is not null and this value is filled in.
@@ -139,4 +137,11 @@ export interface SolidityStorageResponse {
   value: BigNumberish;
   leafIdx: number;
   proof: string[];
+}
+
+export interface AccountState {
+  nonce: string;
+  balance: string;
+  storageHash: string;
+  codeHash: string;
 }

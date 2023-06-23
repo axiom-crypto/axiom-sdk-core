@@ -1,9 +1,5 @@
 import { ethers } from "ethers";
 
-export function zeroBytes(numBytes: number) {
-  return `0x${"00".repeat(numBytes)}`;
-}
-
 export function stripZerosLeft(hex: string) {
   if (hex.substring(0, 2) === '0x') {
     const hexSubstr = hex.substring(2, hex.length);
@@ -25,10 +21,10 @@ export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpc
   return fullBlock;
 }
 
-export async function getAccountData(blockNumber: number, address: `0x${string}`, provider: ethers.JsonRpcProvider) {
+export async function getAccountData(blockNumber: number, address: string, slots: ethers.BigNumberish[], provider: ethers.JsonRpcProvider) {
   const accountData = await provider.send(
     'eth_getProof',
-    [address, [], shortenedHex(blockNumber)]
+    [address, slots, shortenedHex(blockNumber)]
   );
   return accountData;
 }
@@ -47,7 +43,7 @@ export function sortBlockNumber(a: number, b: number) {
   return a - b;
 };
 
-export function sortAddress(a: `0x${string}` | null, b: `0x${string}` | null) {
+export function sortAddress(a: string | null, b: string | null) {
   if (a === null && b === null) {
     return 0;
   } else if (a === null) {
