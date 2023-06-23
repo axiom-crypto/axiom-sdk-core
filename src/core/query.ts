@@ -1,5 +1,12 @@
 import axios, { HttpStatusCode } from "axios";
-import { QueryData, ResponseTree, SolidityAccountResponse, SolidityBlockResponse, SolidityStorageResponse, decodePackedQuery } from "..";
+import { 
+  QueryData,
+  ResponseTree,
+  SolidityAccountResponse,
+  SolidityBlockResponse,
+  SolidityStorageResponse,
+  decodePackedQuery
+} from "..";
 import { Constants } from "../shared/constants";
 import { ethers } from "ethers";
 import { encodeRowHash } from "../query/encoder";
@@ -7,6 +14,11 @@ import { BigNumberish } from "ethers";
 import { getAbiForVersion } from "./lib/abi";
 import { QueryBuilder } from "../query/queryBuilder";
 import { Config } from "../shared/config";
+import { 
+  getBlockResponse,
+  getFullAccountResponse,
+  getFullStorageResponse
+} from "../query/response";
 
 export class Query {
   private readonly config: Config;
@@ -169,6 +181,35 @@ export class Query {
     const responseTree = qb.buildResponseTree(queryData);
 
     return responseTree;
+  }
 
+  /// Passthrough appropriately-named user-facing function for getting the block response
+  getKeccakBlockResponse(
+    blockHash: string, 
+    blockNumber: number
+  ): string {
+    return getBlockResponse(blockHash, blockNumber);
+  }
+
+  /// Passthrough appropriately-named user-facing function for getting the full account response.
+  getKeccakAccountResponse(
+    blockNumber: number,
+    address: string,
+    nonce: BigNumberish,
+    balance: BigNumberish,
+    storageRoot: string,
+    codeHash: string
+  ): string {
+    return getFullAccountResponse(blockNumber, address, nonce, balance, storageRoot, codeHash);
+  }
+
+  /// Passthrough appropriately-named user-facing function for getting the full storage response.
+  getKeccakStorageResponse(
+    blockNumber: number,
+    address: string,
+    slot: BigNumberish,
+    value: BigNumberish
+  ): string {
+    return getFullStorageResponse(blockNumber, address, slot, value);
   }
 }
