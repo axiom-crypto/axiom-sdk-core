@@ -10,7 +10,7 @@ In order to get started, create a config object and pass it to a new Axiom class
 const config: AxiomConfig = {
     apiKey: "demo",
     providerUri: <your provider uri (such as from Alchemy, Infura, etc)>,
-    version: "1",
+    version: "v1",
 }
 const ax = new Axiom(config);
 ```
@@ -46,7 +46,7 @@ You can submit a query to the on-chain Axiom contract by calling the sendQuery f
 ```
 const provider = new ethers.JsonRpcProvider(<your provider uri (such as from Alchemy, Infura, etc)>);
 const wallet = new ethers.Wallet(<the private key for the address>, provider);
-const axiomContract = new ethers.Contract(<AxiomV1 contract address>, getAbiForVersion("v1"), wallet);
+const axiomContract = new ethers.Contract(<AxiomV1 contract address>, ax.getAxiomQueryAbi(), wallet);
 
 const txResult = await axiomContract.sendQuery(queryResponse, <address to send refund in case the transaction doesn't work>, query, {value: ethers.parseEther("0.1")});
 const txReceipt = await txResult.wait();

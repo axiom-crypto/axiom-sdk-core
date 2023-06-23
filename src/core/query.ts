@@ -11,7 +11,7 @@ import { Constants } from "../shared/constants";
 import { ethers } from "ethers";
 import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
-import { getAbiForVersion } from "./lib/abi";
+import { getAxiomQueryAbiForVersion } from "./lib/abi";
 import { QueryBuilder } from "../query/queryBuilder";
 import { Config } from "../shared/config";
 import { 
@@ -152,7 +152,7 @@ export class Query {
     }
     let contract = new ethers.Contract(
       Constants(this.config.version).Addresses.Axiom,
-      getAbiForVersion(this.config.version),
+      getAxiomQueryAbiForVersion(this.config.version),
       this.config.provider
     );
     let logs = tx.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
@@ -166,7 +166,7 @@ export class Query {
     }
     let contract = new ethers.Contract(
       Constants(this.config.version).Addresses.Axiom,
-      getAbiForVersion(this.config.version),
+      getAxiomQueryAbiForVersion(this.config.version),
       this.config.provider
     );
     let decodedTx = contract.interface.parseTransaction({ data: tx.data, value: tx.value });

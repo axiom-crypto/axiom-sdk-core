@@ -3,7 +3,7 @@ import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
 import { Query } from './query';
 import { QueryBuilder } from '../query/queryBuilder';
-import { getAbiForVersion } from './lib/abi';
+import { getAxiomAbiForVersion, getAxiomQueryAbiForVersion } from './lib/abi';
 
 export class Axiom {
   /**
@@ -36,8 +36,12 @@ export class Axiom {
     return new QueryBuilder(this.config);
   }
 
-  getAbi(): any {
-    return getAbiForVersion(this.config.version);
+  getAxiomAbi(): any {
+    return getAxiomAbiForVersion(this.config.version);
+  }
+
+  getAxiomQueryAbi(): any {
+    return getAxiomQueryAbiForVersion(this.config.version);
   }
 }
 
