@@ -1,6 +1,6 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "main": "index.js",
   "types": "index.d.ts",

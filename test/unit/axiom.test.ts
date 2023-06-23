@@ -33,6 +33,7 @@ describe('Decoder', () => {
       },
     }
     const ax = new Axiom(config, overrides);
+    ax.block.getBlockHashWitness(15537394);
     
     expect(typeof ax).toEqual("object");
     expect(typeof ax.block).toEqual("object");
@@ -47,7 +48,7 @@ describe('Decoder', () => {
       version: "v0.2",
     }
     const ax = new Axiom(config);
-    const abi = ax.getAbi();
+    const abi = ax.getAxiomAbi();
     expect(abi[0].type).toEqual("constructor");
   })
 });
