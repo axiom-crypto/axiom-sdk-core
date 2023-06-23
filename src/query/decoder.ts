@@ -14,7 +14,7 @@ export function decodePackedQuery(query: string): { header: any, body: QueryRow[
     version: queryVersion,
     rows: queryRows,
   };
-  let body = [];
+  let body: QueryRow[] = [];
   if (queryVersion === 1) {
     body = decodePackedQueryV1(encodedQueries, queryRows);
   } else {

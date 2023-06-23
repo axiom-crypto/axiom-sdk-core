@@ -2,7 +2,7 @@ import axios, { HttpStatusCode } from "axios";
 import { Constants } from "../shared/constants";
 import { BlockHashWitness } from "../shared/types";
 import { Config } from "../shared/config";
-import packageJson from "../../package.json";
+import { SDK_VERSION } from "../version";
 
 export class Block {
   private readonly providerUri: string;
@@ -24,7 +24,7 @@ export class Block {
       headers: { 
         "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
-        "User-Agent": 'axiom-ts-sdk/' + packageJson.version,
+        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
@@ -44,7 +44,7 @@ export class Block {
       headers: { 
         "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
-        "User-Agent": 'axiom-ts-sdk/' + packageJson.version,
+        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
@@ -64,7 +64,7 @@ export class Block {
       headers: { 
         "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
-        "User-Agent": 'axiom-ts-sdk/' + packageJson.version,
+        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
@@ -84,7 +84,7 @@ export class Block {
       headers: { 
         "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
-        "User-Agent": 'axiom-ts-sdk/' + packageJson.version,
+        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {
@@ -104,7 +104,7 @@ export class Block {
       headers: { 
         "x-axiom-api-key": this.apiKey,
         "x-provider-uri": this.providerUri,
-        "User-Agent": 'axiom-ts-sdk/' + packageJson.version,
+        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
     if (result?.status === HttpStatusCode.Ok) {

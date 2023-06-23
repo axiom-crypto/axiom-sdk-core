@@ -19,7 +19,7 @@ import {
   getFullAccountResponse,
   getFullStorageResponse
 } from "../query/response";
-import packageJson from "../../package.json";
+import { SDK_VERSION } from "../version";
 
 export class Query {
   private readonly config: Config;
@@ -40,7 +40,7 @@ export class Query {
       headers: {
         "x-axiom-api-key": this.config.apiKey,
         "x-provider-uri": this.config.providerUri,
-        "User-Agent": 'axiom-ts-sdk/' + packageJson.version,
+        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       },
     });
     if (result?.status === HttpStatusCode.Ok) {

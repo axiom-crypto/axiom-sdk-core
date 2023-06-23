@@ -17,7 +17,7 @@ export async function validateQueryRow(
     if (!ethers.isAddress(queryRow.address)) {
       throw new Error(`Address ${queryRow.address} is not a valid address`);
     }
-    let slots = [];
+    let slots: BigNumberish[] = [];
     if (slot) {
       slots.push(slot);
     }
