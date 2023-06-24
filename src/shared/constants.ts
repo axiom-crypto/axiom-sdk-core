@@ -1,116 +1,67 @@
-export const Versions = [
-  "v0",
-  "v0_2",
-  "v1",
-];
+import { versionDataMainnet, versionOverrideMainnetMock } from "./chainConfig/mainnet";
+import { versionDataGoerli, versionOverrideGoerliMock } from "./chainConfig/goerli";
 
-export type VersionsType = typeof Versions[number];
+export const Versions = ["v0", "v0_2", "v1"];
 
-const endpoints = {
-  getBlockHashWitness: "/get_block_hash_witness",
-  getBlockMerkleProof: "/get_block_merkle_proof",
-  getBlockParams: "/get_block_params",
-  getBlockRlpHeader: "/get_block_rlp_header",
-  getBlockMmrProof: "/get_block_mmr_proof",
-}
+export type VersionsType = (typeof Versions)[number];
 
-let versionData: any = {
-  v0: {
-    Addresses: {
-      Axiom: "0x2251c204749e18a0f9A7a90Cff1b554F8d492b3c",
-      AxiomStoragePf: "",
-    },
-    Urls: {
-      ApiBaseUrl: "https://api.axiom.xyz/v0",
-    },
-    Endpoints: {
-      GetBlockHashWitness: endpoints.getBlockHashWitness,
-      GetBlockMerkleProof: endpoints.getBlockMerkleProof,
-      GetBlockParams: endpoints.getBlockParams,
-      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
-    },
-    Values: {
-      MaxQuerySize: 64,
-    },
-  },
-  v0_2: {
-    Addresses: {
-      Axiom: "0xF990f9CB1A0aa6B51c0720a6f4cAe577d7AbD86A",
-      AxiomStoragePf: "",
-    },
-    Urls: {
-      ApiBaseUrl: "https://api.axiom.xyz/v0_2",
-    },
-    Endpoints: {
-      GetBlockHashWitness: endpoints.getBlockHashWitness,
-      GetBlockMerkleProof: endpoints.getBlockMerkleProof,
-      GetBlockParams: endpoints.getBlockParams,
-      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
-      GetBlockMmrProof: endpoints.getBlockMmrProof,
-    },
-    Values: {
-      MaxQuerySize: 64,
-    },
-  },
-  v1: {
-    Addresses: {
-      Axiom: "",
-      AxiomStoragePf: "",
-    },
-    Urls: {
-      ApiBaseUrl: "https://api.axiom.xyz/v1",
-    },
-    Endpoints: {
-      GetBlockHashWitness: endpoints.getBlockHashWitness,
-      GetBlockMerkleProof: endpoints.getBlockMerkleProof,
-      GetBlockParams: endpoints.getBlockParams,
-      GetBlockRlpHeader: endpoints.getBlockRlpHeader,
-      GetBlockMmrProof: endpoints.getBlockMmrProof,
-    },
-    Values: {
-      MaxQuerySize: 64,
-    },
-  },
-}
+let versionData: {[key: string]: any} = {};
 
-// Quick and dirty function to update SINGLE constant. Function must be called multiple times 
-// to update multiple constants. The update object must be a single level deep, otherwise the 
-// function will only update the first key for each level.
-//
-// Example: 
-// const ax.updateConstants({v1:{Addresses:{Axiom:"0x1234"}}});
-// const ax.updateConstants({v1:{Addresses:{AxiomStoragePf:"0x5678"}}});
-export const updateConstants = (updateObject: any) => {
+export function setVersionData(chainId: number, mock: boolean) {
+  switch (chainId) {
+    case 1:
+      versionData = versionDataMainnet;
+      if (mock) {
+        updateConstants(versionOverrideMainnetMock);
+      }
+      break;
+    case 5:
+      versionData = versionDataGoerli;
+      if (mock) {
+        updateConstants(versionOverrideGoerliMock);
+      }
+      break;
+    default:
+      throw new Error(`Unsupported chainId: ${chainId}`);
+  }
+
   if (process.env.ENV === "prod") {
-    console.log("Error: Cannot write constants in prod environment");
-    return;
-  }
-
-  // Parse the update object
-  let versionMem = versionData;
-  let updateMem = {...updateObject};
-  let lastKey: string;
-  for (let i = 0; i < 10; i++) {
-    lastKey = Object.keys(updateMem)[0];
-    if (typeof updateMem[lastKey] !== "object") {
-      versionMem[lastKey] = updateMem[lastKey];
-      break;
-    }
-    
-    if (versionMem[lastKey] === undefined) {
-      console.log("Invalid path");
-      break;
-    }
-    updateMem = updateMem[lastKey];
-    versionMem = versionMem[lastKey];
+    versionData = Object.freeze(versionData);
   }
 }
 
-export const Constants: {[V in VersionsType]: any} = process.env.ENV === "prod" 
-  ? Object.freeze(versionData) 
-  : versionData;
+export function Constants(version: string) {
+  return versionData[version];
+}
 
 export const ContractEvents = Object.freeze({
   QueryInitiatedOnchain: "QueryInitiatedOnchain",
   QueryFulfilled: "QueryFulfilled",
-})
+});
+
+
+/// Update constants using the same nested object structure as the versionData variable.
+/// Pass the updateObject in as an override when initializing Axiom. Only works with 
+/// non-prod builds.
+export function updateConstants(updateObject: any) {
+  if (process.env.ENV === "prod") {
+    console.log("Error: Cannot write constants in prod environment");
+    return;
+  }
+  updateConstantsRecursive(versionData, updateObject);
+}
+
+function updateConstantsRecursive(versionMem: any, updateMem: any) {
+  const keys = Object.keys(updateMem);
+  for (const key of keys) {
+    if (versionMem[key] === undefined) {
+      console.log("versionData does not have key", key);
+      continue;
+    }
+    if (typeof updateMem[key] !== "object") {
+      versionMem[key] = updateMem[key];
+      continue;  
+    }
+    updateConstantsRecursive(versionMem[key], updateMem[key]);
+  }
+}

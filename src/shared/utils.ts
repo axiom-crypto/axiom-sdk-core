@@ -1,9 +1,5 @@
 import { ethers } from "ethers";
 
-export function zeroBytes(numBytes: number) {
-  return `0x${"00".repeat(numBytes)}`;
-}
-
 export function stripZerosLeft(hex: string) {
   if (hex.substring(0, 2) === '0x') {
     const hexSubstr = hex.substring(2, hex.length);
@@ -25,13 +21,13 @@ export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpc
   return fullBlock;
 }
 
-export async function getAccountData(blockNumber: number, address: `0x${string}`, provider: ethers.JsonRpcProvider) {
+export async function getAccountData(blockNumber: number, address: string, slots: ethers.BigNumberish[], provider: ethers.JsonRpcProvider) {
   const accountData = await provider.send(
     'eth_getProof',
-    [address, [], shortenedHex(blockNumber)]
+    [address, slots, shortenedHex(blockNumber)]
   );
   return accountData;
-} 
+}
 
 export function concatHexStrings(...args: string[]) {
   return `0x${args.map((s) => {
@@ -42,3 +38,32 @@ export function concatHexStrings(...args: string[]) {
     }
   }).join('')}`;
 }
+
+export function sortBlockNumber(a: number, b: number) {
+  return a - b;
+};
+
+export function sortAddress(a: string | null, b: string | null) {
+  if (a === null && b === null) {
+    return 0;
+  } else if (a === null) {
+    return -1;
+  } else if (b === null) {
+    return 1;
+  }
+  return parseInt(a, 16) - parseInt(b, 16);
+};
+
+export function sortSlot(
+  a: ethers.BigNumberish | null,
+  b: ethers.BigNumberish | null
+) {
+  if (a === null && b === null) {
+    return 0;
+  } else if (a === null) {
+    return -1;
+  } else if (b === null) {
+    return 1;
+  }
+  return parseInt(a.toString(), 16) - parseInt(b.toString(), 16);
+};

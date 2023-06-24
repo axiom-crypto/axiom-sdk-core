@@ -1,19 +1,30 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "0.1.0",
-  "description": "The SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
+  "version": "0.3.1",
+  "description": "SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
+  "author": "Intrinsic Technologies",
+  "license": "MIT",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "build": "rm -rf ./dist/* && tsc && cp ./package.json ./dist/.",
-    "build:prod": "rm -rf ./dist/* && ENV=prod tsc && cp ./package.json ./dist/.",
-    "publish": "",
-    "test": "jest test/unit",
+    "build": "ts-node scripts/preTsc.ts && rm -rf ./dist/* && tsc && ts-node scripts/postTsc.ts",
+    "build:staging": "ts-node scripts/preTsc.ts && rm -rf ./dist/* && ENV=staging tsc && ts-node scripts/postTsc.ts",
+    "build:prod": "ts-node scripts/preTsc.ts && rm -rf ./dist/* && ENV=prod tsc && ts-node scripts/postTsc.ts",
+    "test": "jest",
+    "test:unit": "jest test/unit",
     "dev": "ts-node src/index.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "publishConfig": {
+    "directory": "dist"
+  },
+  "keywords": [
+    "axiom",
+    "ethereum",
+    "zero knowledge",
+    "zk",
+    "coprocessor",
+    "crypto"
+  ],
   "devDependencies": {
     "@types/jest": "^29.5.2",
     "@types/node": "^18.15.10",
@@ -26,7 +37,7 @@
   },
   "dependencies": {
     "axios": "^1.4.0",
-    "ethers": "^6.2.2",
+    "ethers": "^6.6.0",
     "graphql": "^16.6.0",
     "graphql-request": "^5.2.0",
     "merkletreejs": "^0.3.10"

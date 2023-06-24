@@ -1,18 +1,34 @@
+import { QueryRow } from "..";
+
 // The packed query blob is encodePacked as [versionIdx, length, encdoedQueries[]]: ["uint8", "uint32", "bytes[]"]
 // Each row is then encodePacked as [length, blockNumber, address, slot, value]: ["uint8", "uint32", "address", "uint256", "uint256"]
-export function decodePackedQuery(query: string): any | null {
-  const queryVersion = query.slice(2, 4);
+export function decodePackedQuery(query: string): { header: any, body: QueryRow[] } | null {
+  const queryVersion = parseInt(query.slice(2, 4));
   const queryRows = parseInt(query.slice(4, 12), 16);
   const encodedQueries = query.slice(12);
-  
-  if (queryVersion === "01") {
-    return decodePackedQueryV1(encodedQueries, queryRows);
+  if (isNaN(queryVersion) || isNaN(queryRows)) {
+    return null;
   }
-  return null;
+
+  let header = {
+    version: queryVersion,
+    rows: queryRows,
+  };
+  let body: QueryRow[] = [];
+  if (queryVersion === 1) {
+    body = decodePackedQueryV1(encodedQueries, queryRows);
+  } else {
+    return null;
+  }
+
+  return {
+    header,
+    body,
+  };
 }
 
-function decodePackedQueryV1(encodedQueries: string, rows: number): any {
-  let decodedQueries: any[] = [];
+function decodePackedQueryV1(encodedQueries: string, rows: number): QueryRow[] {
+  let decodedQueries: QueryRow[] = [];
   let offset = 0;
   for (let i = 0; i < rows; i++) {
     const queryLength = parseInt(encodedQueries.slice(offset, offset + 2), 16);
