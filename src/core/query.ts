@@ -13,7 +13,7 @@ import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
 import { getAxiomQueryAbiForVersion } from "./lib/abi";
 import { QueryBuilder } from "../query/queryBuilder";
-import { Config } from "../shared/config";
+import { InternalConfig } from "../shared/internalConfig";
 import { 
   getBlockResponse,
   getFullAccountResponse,
@@ -22,9 +22,9 @@ import {
 import { SDK_VERSION } from "../version";
 
 export class Query {
-  private readonly config: Config;
+  private readonly config: InternalConfig;
 
-  constructor(config: Config) {
+  constructor(config: InternalConfig) {
     this.config = config;
   }
 
@@ -36,7 +36,12 @@ export class Query {
     const uri = `${baseUrl}${endpoint}`;
     const contractAddress = Constants(this.config.version).Addresses.AxiomQuery
     const result = await axios.get(uri, {
-      params: { queryHash, chainId: this.config.chainId, contractAddress },
+      params: { 
+        queryHash,
+        chainId: this.config.chainId,
+        contractAddress,
+        mock: this.config.mock,
+      },
       headers: {
         "x-axiom-api-key": this.config.apiKey,
         "x-provider-uri": this.config.providerUri,

@@ -1,15 +1,16 @@
-import { Config } from '../shared/config';
+import { InternalConfig } from '../shared/internalConfig';
 import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
 import { Query } from './query';
 import { QueryBuilder } from '../query/queryBuilder';
 import { getAxiomAbiForVersion, getAxiomQueryAbiForVersion } from './lib/abi';
+import { Constants } from '../shared/constants';
 
 export class Axiom {
   /**
    * Axiom configuration parameters 
    */
-  readonly config: Config;
+  readonly config: InternalConfig;
 
   /**
    * Functions that relate to calculating various aspects of blocks
@@ -26,7 +27,7 @@ export class Axiom {
       throw new Error("Cannot override config in production");
     }
 
-    this.config = new Config(config, overrides);
+    this.config = new InternalConfig(config, overrides);
 
     this.block = new Block(this.config);
     this.query = new Query(this.config);
@@ -42,6 +43,14 @@ export class Axiom {
 
   getAxiomQueryAbi(): any {
     return getAxiomQueryAbiForVersion(this.config.version);
+  }
+
+  getAxiomContractAddress(): string | undefined {
+    return Constants(this.config.version).Addresses.Axiom;
+  }
+
+  getAxiomQueryContractAddress(): string | undefined {
+    return Constants(this.config.version).Addresses.AxiomQuery;
   }
 }
 

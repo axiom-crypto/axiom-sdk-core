@@ -1,29 +1,28 @@
 import axios, { HttpStatusCode } from "axios";
 import { Constants } from "../shared/constants";
 import { BlockHashWitness } from "../shared/types";
-import { Config } from "../shared/config";
+import { InternalConfig } from "../shared/internalConfig";
 import { SDK_VERSION } from "../version";
 
 export class Block {
-  private readonly providerUri: string;
-  private readonly apiKey: string;
-  private readonly version: string;
+  private readonly config: InternalConfig;
 
-  constructor(config: Config) {
-    this.providerUri = config.providerUri;
-    this.apiKey = config.apiKey;
-    this.version = config.version as string;
+  constructor(config: InternalConfig) {
+    this.config = config;
   }
 
   async getBlockHashWitness(blockNumber: number): Promise<BlockHashWitness | null> {
-    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
-    const endpoint = Constants(this.version).Endpoints.GetBlockHashWitness;
+    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.config.version).Endpoints.GetBlockHashWitness;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
-      params: { blockNumber },
+      params: { 
+        blockNumber,
+        mock: this.config.mock,
+      },
       headers: { 
-        "x-axiom-api-key": this.apiKey,
-        "x-provider-uri": this.providerUri,
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.config.providerUri,
         "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
@@ -36,14 +35,17 @@ export class Block {
   }
 
   async getBlockMerkleProof(blockNumber: number): Promise<string[] | null> {
-    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
-    const endpoint = Constants(this.version).Endpoints.GetBlockMerkleProof;
+    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.config.version).Endpoints.GetBlockMerkleProof;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
-      params: { blockNumber },
+      params: { 
+        blockNumber,
+        mock: this.config.mock,
+      },
       headers: { 
-        "x-axiom-api-key": this.apiKey,
-        "x-provider-uri": this.providerUri,
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.config.providerUri,
         "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
@@ -56,14 +58,17 @@ export class Block {
   }
 
   async getBlockRlpHeader(blockNumber: number): Promise<string | null> {
-    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
-    const endpoint = Constants(this.version).Endpoints.GetBlockRlpHeader;
+    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.config.version).Endpoints.GetBlockRlpHeader;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
-      params: { blockNumber },
+      params: { 
+        blockNumber,
+        mock: this.config.mock,
+      },
       headers: { 
-        "x-axiom-api-key": this.apiKey,
-        "x-provider-uri": this.providerUri,
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.config.providerUri,
         "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
@@ -76,14 +81,17 @@ export class Block {
   }
 
   async getBlockParams(blockNumber: number): Promise<any | null> {
-    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
-    const endpoint = Constants(this.version).Endpoints.GetBlockParams;
+    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.config.version).Endpoints.GetBlockParams;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
-      params: { blockNumber },
+      params: { 
+        blockNumber,
+        mock: this.config.mock,
+      },
       headers: { 
-        "x-axiom-api-key": this.apiKey,
-        "x-provider-uri": this.providerUri,
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.config.providerUri,
         "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });
@@ -96,14 +104,17 @@ export class Block {
   }
 
   async getBlockMmrProof(blockNumber: number): Promise<any | null> {
-    const baseUrl = Constants(this.version).Urls.ApiBaseUrl;
-    const endpoint = Constants(this.version).Endpoints.GetBlockMmrProof;
+    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
+    const endpoint = Constants(this.config.version).Endpoints.GetBlockMmrProof;
     const uri = `${baseUrl}${endpoint}`;
     const result = await axios.get(uri, { 
-      params: { blockNumber },
+      params: { 
+        blockNumber,
+        mock: this.config.mock,
+      },
       headers: { 
-        "x-axiom-api-key": this.apiKey,
-        "x-provider-uri": this.providerUri,
+        "x-axiom-api-key": this.config.apiKey,
+        "x-provider-uri": this.config.providerUri,
         "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
       } 
     });

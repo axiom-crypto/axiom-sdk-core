@@ -6,7 +6,7 @@ import {
   getFullStorageResponse,
 } from "./response";
 import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
-import { Config } from "../shared/config";
+import { InternalConfig } from "../shared/internalConfig";
 import { 
   concatHexStrings,
   getAccountData, 
@@ -20,15 +20,15 @@ import MerkleTree from "merkletreejs";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
-  private readonly config: Config;
+  private readonly config: InternalConfig;
   private readonly maxSize: number;
 
-  constructor(config: Config) {
+  constructor(config: InternalConfig) {
     this.maxSize = Constants(config.version).Values.MaxQuerySize;
     if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
-    this.config = new Config(config);
+    this.config = new InternalConfig(config);
   }
 
   /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder`

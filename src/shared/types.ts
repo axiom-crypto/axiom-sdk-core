@@ -35,6 +35,11 @@ export interface AxiomConfig {
    * Optional private key used for signing transactions
    */
   privateKey?: string;
+
+  /**
+   * Sets usage of mock prover and database for testing
+   */
+  mock?: boolean;
 }
 
 export interface BlockHashWitness {

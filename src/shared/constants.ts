@@ -1,5 +1,5 @@
-import { versionDataMainnet } from "./chainConfig/mainnet";
-import { versionDataGoerli } from "./chainConfig/goerli";
+import { versionDataMainnet, versionOverrideMainnetMock } from "./chainConfig/mainnet";
+import { versionDataGoerli, versionOverrideGoerliMock } from "./chainConfig/goerli";
 
 export const Versions = ["v0", "v0_2", "v1"];
 
@@ -7,13 +7,19 @@ export type VersionsType = (typeof Versions)[number];
 
 let versionData: {[key: string]: any} = {};
 
-export function setVersionData(chainId: number) {
+export function setVersionData(chainId: number, mock: boolean) {
   switch (chainId) {
     case 1:
       versionData = versionDataMainnet;
+      if (mock) {
+        updateConstants(versionOverrideMainnetMock);
+      }
       break;
     case 5:
       versionData = versionDataGoerli;
+      if (mock) {
+        updateConstants(versionOverrideGoerliMock);
+      }
       break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);

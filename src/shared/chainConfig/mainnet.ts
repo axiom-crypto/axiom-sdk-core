@@ -64,3 +64,13 @@ export let versionDataMainnet: any = {
     },
   },
 };
+
+export let versionOverrideMainnetMock: any = {
+  v1: {
+    Addresses: {
+      Axiom: "",
+      AxiomQuery: "",
+    },
+  },
+};
+

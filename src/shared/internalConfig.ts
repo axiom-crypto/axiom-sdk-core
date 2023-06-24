@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { Versions, setVersionData, updateConstants } from "./constants";
 import { AxiomConfig } from "./types";
 
-export class Config {
+export class InternalConfig {
   /**
    * Axiom API key
    */
@@ -24,14 +24,14 @@ export class Config {
   readonly version: string;
 
   /**
-   * Optional private key used for signing transactions
-   */
-  readonly privateKey?: string | undefined;
-
-  /**
    * Default timeout for Axiom API calls
    */
   readonly timeoutMs: number;
+
+  /**
+   * Sets usage of mock prover and database for testing
+   */
+  readonly mock: boolean;
 
   /**
    * Provider to use
@@ -39,27 +39,33 @@ export class Config {
   readonly provider: ethers.JsonRpcProvider;
 
   /**
+   * Optional private key used for signing transactions
+   */
+  readonly privateKey?: string;
+
+  /**
    * Signer to use (if privateKey provided)
    */
-  readonly signer: ethers.Wallet | null;
+  readonly signer?: ethers.Wallet;
 
   constructor(config: AxiomConfig, overrides?: any) {
     this.apiKey = config.apiKey ?? "no-api-key";
     this.providerUri = this.parseProviderUri(config.providerUri);
-    this.chainId = config.chainId || 1;
+    this.chainId = config.chainId ?? 1;
     this.version = this.parseVersion(config.version);
-    this.timeoutMs = config.timeoutMs || 10000;
+    this.timeoutMs = config.timeoutMs ?? 10000;
+    this.mock = config.mock ?? false;
 
-    setVersionData(this.chainId);
+    setVersionData(this.chainId, this.mock);
     if (overrides !== undefined) {
       updateConstants(overrides);
     }
 
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
-    this.signer =
-      config.privateKey !== undefined
-        ? new ethers.Wallet(config.privateKey, this.provider)
-        : null;
+
+    if (config.privateKey !== undefined && config.privateKey !== "") {
+      this.signer = new ethers.Wallet(config.privateKey, this.provider)
+    }
   }
 
   parseProviderUri(providerUri: string): string {

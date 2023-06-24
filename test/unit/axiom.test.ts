@@ -42,7 +42,6 @@ describe('Axiom Core tests', () => {
       },
     }
     const ax = new Axiom(config, overrides);
-    ax.block.getBlockHashWitness(15537394);
     
     expect(typeof ax).toEqual("object");
     expect(typeof ax.block).toEqual("object");
@@ -58,6 +57,34 @@ describe('Axiom Core tests', () => {
     }
     const ax = new Axiom(config);
     const abi = ax.getAxiomAbi();
+
     expect(abi[0].type).toEqual("constructor");
   })
+
+  test('should get Axiom contract address', () => {
+    const config: AxiomConfig = {
+      apiKey: "demo",
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v1",
+      chainId: 5,
+    }
+    const ax = new Axiom(config);
+    const addr = ax.getAxiomContractAddress();
+
+    expect(addr).toEqual("0x8eb3a522cab99ed365e450dad696357de8ab7e9d");
+  });
+
+  test('should get AxiomQuery Mock contract address', () => {
+    const config: AxiomConfig = {
+      apiKey: "demo",
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v1",
+      chainId: 5,
+      mock: true,
+    }
+    const ax = new Axiom(config);
+    const addr = ax.getAxiomQueryContractAddress();
+    
+    expect(addr).toEqual("0x06E05bbce03eFD739779533D93e4f5ea7c673137");
+  });
 });
