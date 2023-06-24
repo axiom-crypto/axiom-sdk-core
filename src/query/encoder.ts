@@ -1,4 +1,4 @@
-import { AddressLike, BigNumberish, ethers } from "ethers";
+import { AddressLike, BigNumberish, ZeroAddress, ethers } from "ethers";
 
 export function encodeQuery(
   length: number,
@@ -36,7 +36,7 @@ export function encodeRowHash(
   slot?: BigNumberish
 ) {
   let length = 3;
-  const addressValue = address ?? "0x0000000000000000000000000000000000000000";
+  const addressValue = address ?? ZeroAddress;
   const slotValue = slot ?? 0;
   if (slot === undefined) {
     length = 2;

@@ -1,4 +1,4 @@
-import { ZeroHash, ethers, keccak256 } from "ethers";
+import { ZeroAddress, ZeroHash, ethers, keccak256 } from "ethers";
 import { QueryData, QueryRow, ResponseTree } from "../shared/types";
 import {
   getBlockResponse,
@@ -411,7 +411,7 @@ export class QueryBuilder {
       // Check for block number
       const blockNumber = sortedQueries[i].blockNumber;
       if (blockNumber === null) {
-        const encodedQuery = encodeQuery(length, 0, "0", 0, 0);
+        const encodedQuery = encodeQuery(length, 0, ZeroAddress, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       }
@@ -420,7 +420,7 @@ export class QueryBuilder {
       length++;
       const address = sortedQueries[i].address;
       if (address === null) {
-        const encodedQuery = encodeQuery(length, blockNumber, "0", 0, 0);
+        const encodedQuery = encodeQuery(length, blockNumber, ZeroAddress, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
       }
