@@ -1,6 +1,15 @@
 import { Axiom, AxiomConfig } from "../../src";
 
-describe('Decoder', () => {
+describe('Axiom Core tests', () => {
+  test('should initialize without an API key', () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v1",
+    }
+    const ax = new Axiom(config);
+    expect(typeof ax).toEqual("object");
+  });
+
   test('should initialize Axiom', () => {
     const config: AxiomConfig = {
       apiKey: "demo",

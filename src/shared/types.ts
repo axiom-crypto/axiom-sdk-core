@@ -5,7 +5,7 @@ export interface AxiomConfig {
   /**
    * Axiom API key (required)
    */
-  apiKey: string;
+  apiKey?: string;
 
   /**
    * Full provider URI (https:// or wss://) from service such as Infura

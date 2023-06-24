@@ -44,7 +44,7 @@ export class Config {
   readonly signer: ethers.Wallet | null;
 
   constructor(config: AxiomConfig, overrides?: any) {
-    this.apiKey = config.apiKey;
+    this.apiKey = config.apiKey ?? "no-api-key";
     this.providerUri = this.parseProviderUri(config.providerUri);
     this.chainId = config.chainId || 1;
     this.version = this.parseVersion(config.version);
