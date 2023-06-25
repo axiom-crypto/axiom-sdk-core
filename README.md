@@ -102,7 +102,7 @@ const config: AxiomConfig = {
     version: "v1",
 }
 const ax = new Axiom(config);
-const responseTree = await ax.query.getResponseTreeForQuery(<keccakQueryResponse>);
+const responseTree = await ax.query.getResponseTreeForQuery(<queryHash>);
 const keccakBlockResponse = responseTree.blockTree.getHexRoot();
 const keccakAccountResponse = responseTree.accountTree.getHexRoot();
 const keccakStorageResponse = responseTree.storageTree.getHexRoot();
