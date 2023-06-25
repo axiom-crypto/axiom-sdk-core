@@ -31,10 +31,10 @@ export class Query {
   private async getDataForQuery(
     queryHash: string,
   ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants(this.config.version).Urls.ApiQueryUrl;
+    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
     const endpoint = Constants(this.config.version).Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
-    const contractAddress = Constants(this.config.version).Addresses.AxiomQuery
+    const contractAddress = Constants(this.config.version).Addresses.AxiomQuery;
     const result = await axios.get(uri, {
       params: { 
         queryHash,
