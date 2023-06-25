@@ -1,8 +1,8 @@
 # Axiom SDK
 
-Axiom is a ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowledge proofs, Axiom allows anyone to prove historical data on-chain and use that data in a smart contract.
+Axiom is a ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowledge proofs, Axiom allows anyone to prove historical data on-chain and trustlessly use that data in a smart contract.
 
-## Getting started
+# Getting started
 
 In order to get started, create a config object and pass it to a new Axiom class instance as follows:
 
@@ -75,6 +75,75 @@ After the contract has processed the `sendQuery` call, it will emit an event tha
 
 ```solidity
 event QueryFulfilled(bytes32 keccakQueryResponse, uint256 payment, address prover);
+```
+
+# Reading query results
+
+We provide the `areResponsesValid` view function in AxiomV1Query to help allow users to read block, account, and storage data from verified query results.  This function has the following signature:
+
+```typescript
+function areResponsesValid(
+    bytes32 keccakBlockResponse,
+    bytes32 keccakAccountResponse,
+    bytes32 keccakStorageResponse,
+    BlockResponse[] calldata blockResponses,
+    AccountResponse[] calldata accountResponses,
+    StorageResponse[] calldata storageResponses
+) external view returns (bool);
+```
+
+To verify data about historic blocks, accounts, or storage, first pass in the `queryHash` (not the `keccakQueryResponse`; `queryHash` is also found as an output of the QueryBuilder `build` function) from the Axiom SDK to generate the `keccakBlockResponse`, `keccakAccountResponse`, and `keccakStorageResponse` which encode the verified query result on-chain:
+
+```typescript
+import { Axiom, AxiomConfig } from "@axiom-crypto/core";
+
+const config: AxiomConfig = {
+    providerUri: <your provider uri (such as from Alchemy, Infura, etc)>,
+    version: "v1",
+}
+const ax = new Axiom(config);
+const responseTree = await ax.query.getResponseTreeForQuery(<keccakQueryResponse>);
+const keccakBlockResponse = responseTree.blockTree.getHexRoot();
+const keccakAccountResponse = responseTree.accountTree.getHexRoot();
+const keccakStorageResponse = responseTree.storageTree.getHexRoot();
+```
+
+Then, generate responses for data in historic block headers, accounts, and storage slots by creating `BlockResponse`, `AccountResponse`, and `StorageResponse` objects using `getValidationWitness`:
+
+```typescript
+const blockResponse: SolidityBlockResponse = ax.query.getValidationWitness(
+    responseTree, <blockNumber>
+);
+const accountResponse: SolidityAccountResponse = ax.query.getValidationWitness(
+    responseTree, <blockNumber>, <address>
+);
+const storageResponse: SolidityStorageResponse = ax.query.getValidationWitness(
+    responseTree, <blockNumber>, <address>, <storage slot>
+);
+```
+
+After passing these into `getValidationWitness` and verifying on-chain, read off the data you'd like to use from each object: 
+
+- `BlockResponse` -- the `blockNumber` and `blockHash`
+- `AccountResponse` -- the `blockNumber`, `addr`, `nonce`, `balance`, `storageRoot`, and `codeHash`
+- `StorageResponse` -- the `blockNumber`, `addr`, `slot`, and `value` 
+
+## Advanced reads
+
+For more advanced users, we offer access to the raw Merkle-ized query results via `isKeccakResultValid` and `isPoseidonResultValid`.  These allow validation of Keccak and Poseidon encoded block, account, and storage data in the [Axiom Query Format](https://docs-alpha.axiom.xyz/developers/sending-a-query/axiom-query-format). The Poseidon format may be especially useful for ZK developers.
+
+```solidity
+function isKeccakResultValid(
+    bytes32 keccakBlockResponse, 
+    bytes32 keccakAccountResponse, 
+    bytes32 keccakStorageResponse
+) external view returns (bool);
+
+function isPoseidonResultValid(
+    bytes32 poseidonBlockResponse, 
+    bytes32 poseidonAccountResponse, 
+    bytes32 poseidonStorageResponse
+) external view returns (bool);
 ```
 
 # Troubleshooting
