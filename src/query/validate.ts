@@ -44,9 +44,17 @@ export async function validateQueryRow(
       const storageProof = proofRes.storageProof[0];
       const proof = storageProof.proof;
       const _value = storageProof.value;
-      if (!isAssignedSlot(slot, proof)) {
+      if (proof.length === 0) {
         throw new Error(
-          `Slot ${slot} is empty in account ${queryRow.address} at block ${queryRow.blockNumber}`
+          `Slot ${slot} has empty MPT proof in account ${queryRow.address} at block ${queryRow.blockNumber}`
+        );
+      }
+      if (
+        !isAssignedSlot(slot, proof) &&
+        ethers.toBeHex(_value, 32) !== ethers.toBeHex(0, 32)
+      ) {
+        throw new Error(
+          `WARNING: eth_getProof returned non-zero value on an empty slot`
         );
       }
       const storageHash = ethers.keccak256(proof[0]);

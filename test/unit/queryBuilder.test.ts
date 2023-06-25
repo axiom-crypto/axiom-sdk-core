@@ -40,6 +40,16 @@ describe('QueryBuilder', () => {
       expect(true).toEqual(true);
     });
 
+    test('should successfully build a Query with 0x0-valued slots', async () => {
+      const qb = ax.newQueryBuilder();
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 2});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 4});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 5});
+      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 6});
+      const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
+      expect(true).toEqual(true);
+    });
+
     test('should throw when appending invalid QueryRow data', async () => {
       const testFn = async () => {
         const qb = ax.newQueryBuilder();
