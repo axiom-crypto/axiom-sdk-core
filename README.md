@@ -10,7 +10,7 @@ In order to get started, create a config object and pass it to a new Axiom class
 const config: AxiomConfig = {
     providerUri: <your provider uri (such as from Alchemy, Infura, etc)>,
     version: "v1",
-    chainId: 1, // optional; defaults to 1 (Ethereum mainnet)
+    chainId: 1, // optional; defaults to 1 (Ethereum Mainnet)
 }
 const ax = new Axiom(config);
 ```
@@ -34,7 +34,7 @@ await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
 await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
 ```
 
-The `append` function will validate the value at the slot. If the slot value is 
+The `append` function will validate the value at the slot. If you attempt to read from a slot at an account that has not yet been created, an error will be thrown.
 
 Call the QueryBuilder's `build` function to generate the `keccakQueryResponse`, `queryHash`, and `query` calldata for the Axiom contract function:
 
@@ -71,4 +71,28 @@ Note that if you submit a Query with the exact same appended queries as a previo
 
 ## Using the result of the call
 
-After the contract has processed the `sendQuery` call, it will emit an event that the Prover will use to generate a ZK proof of the data in the query. Once the Prover is done generating the ZK proof, it will write that the `keccakQueryResponse` for that Query has been fulfilled, and an event will be emitted letting the user know that their data is ready to be used.
+After the contract has processed the `sendQuery` call, it will emit an event that the Prover will use to generate a ZK proof of the data in the query. Once the Prover is done generating the ZK proof, it will write that the `keccakQueryResponse` for that Query has been fulfilled, and a the following event will be emitted, letting you know that your data is ready to be used:
+
+```solidity
+event QueryFulfilled(bytes32 keccakQueryResponse, uint256 payment, address prover);
+```
+
+# Troubleshooting
+
+## Submitting the same `keccakQueryResponse`
+
+Each `keccakQueryResponse` submitted to AxiomQuery must be unique, therefore if you have already called `sendQuery` with one `keccakQueryResponse`, the transaction will fail if you try to submit the same `keccakQueryResponse` after the first. This means that your calls to the QueryBuilder `append` function must differ in at least one field by the time `build` is called.
+
+## Provider URIs
+
+Ensure that the `providerUri` you are using matches the `chainId`. For example, on Ethereum Mainnet (`chainId` 1), Alchemy's `providerUri` looks like:
+
+```
+https://eth-mainnet.g.alchemy.com/v2/UBGccHgGCaE...
+```
+
+Whereas on Goerli (`chainId` 5), it looks like this:
+
+```
+https://eth-goerli.g.alchemy.com/v2/UBGccHgGCaE...
+```
