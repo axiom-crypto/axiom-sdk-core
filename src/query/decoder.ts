@@ -1,8 +1,8 @@
-import { QueryRow } from "..";
+import { DecodedQuery, QueryHeader, QueryRow } from "..";
 
 // The packed query blob is encodePacked as [versionIdx, length, encdoedQueries[]]: ["uint8", "uint32", "bytes[]"]
 // Each row is then encodePacked as [length, blockNumber, address, slot, value]: ["uint8", "uint32", "address", "uint256", "uint256"]
-export function decodePackedQuery(query: string): { header: any, body: QueryRow[] } | null {
+export function decodePackedQuery(query: string): DecodedQuery | null {
   const queryVersion = parseInt(query.slice(2, 4));
   const queryRows = parseInt(query.slice(4, 12), 16);
   const encodedQueries = query.slice(12);
@@ -10,9 +10,9 @@ export function decodePackedQuery(query: string): { header: any, body: QueryRow[
     return null;
   }
 
-  let header = {
+  let header: QueryHeader = {
     version: queryVersion,
-    rows: queryRows,
+    numRows: queryRows,
   };
   let body: QueryRow[] = [];
   if (queryVersion === 1) {
@@ -43,9 +43,9 @@ function decodePackedQueryV1(encodedQueries: string, rows: number): QueryRow[] {
     if (queryLength === 1) {
       decodedQueries.push({
         blockNumber,
-        address: null,
-        slot: null,
-        value: null,
+        address: undefined,
+        slot: undefined,
+        value: undefined,
       });
       continue;
     }
@@ -56,8 +56,8 @@ function decodePackedQueryV1(encodedQueries: string, rows: number): QueryRow[] {
       decodedQueries.push({
         blockNumber,
         address,
-        slot: null,
-        value: null,
+        slot: undefined,
+        value: undefined,
       });
       continue;
     }

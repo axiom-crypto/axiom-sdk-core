@@ -43,27 +43,32 @@ export function sortBlockNumber(a: number, b: number) {
   return a - b;
 };
 
-export function sortAddress(a: string | null, b: string | null) {
-  if (a === null && b === null) {
+export function sortAddress(a?: string, b?: string) {
+  if (a === undefined && b === undefined) {
     return 0;
-  } else if (a === null) {
+  } else if (a === undefined) {
     return -1;
-  } else if (b === null) {
+  } else if (b === undefined) {
     return 1;
   }
   return parseInt(a, 16) - parseInt(b, 16);
 };
 
 export function sortSlot(
-  a: ethers.BigNumberish | null,
-  b: ethers.BigNumberish | null
+  a?: ethers.BigNumberish,
+  b?: ethers.BigNumberish
 ) {
-  if (a === null && b === null) {
+  if (a === undefined && b === undefined) {
     return 0;
-  } else if (a === null) {
+  } else if (a === undefined) {
     return -1;
-  } else if (b === null) {
+  } else if (b === undefined) {
     return 1;
   }
   return parseInt(a.toString(), 16) - parseInt(b.toString(), 16);
 };
+
+// Deep copy any object with nested objects. Will not deep copy functions inside the object.
+export function deepCopyObject(obj: any): any {
+  return JSON.parse(JSON.stringify(obj));
+}

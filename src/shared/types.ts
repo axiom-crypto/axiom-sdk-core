@@ -74,11 +74,21 @@ export interface BlockHashWitness {
 /// variables in the interface as null when we process the Query.
 export interface QueryRow {
   blockNumber: number;
-  address: string | null;
-  slot: ethers.BigNumberish | null;
+  address?: string;
+  slot?: ethers.BigNumberish;
 
   // append will query the provider for this value and fill it in or write null if slot is not null and this value is filled in.
-  value?: ethers.BigNumberish | null;
+  value?: ethers.BigNumberish;
+}
+
+export interface QueryHeader {
+  version: number;
+  numRows: number;
+}
+
+export interface DecodedQuery {
+  header: QueryHeader;
+  body: QueryRow[];
 }
 
 export const BlockHashWitnessABI =
@@ -148,6 +158,12 @@ export interface SolidityStorageResponse {
   value: BigNumberish;
   leafIdx: number;
   proof: string[];
+}
+
+export interface ValidationWitnessResponse {
+  blockResponse: SolidityBlockResponse;
+  accountResponse?: SolidityAccountResponse;
+  storageResponse?: SolidityStorageResponse;
 }
 
 export interface AccountState {

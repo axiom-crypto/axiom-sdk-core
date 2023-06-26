@@ -6,7 +6,7 @@ import {
   getFullStorageResponse,
 } from "./response";
 import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
-import { InternalConfig } from "../shared/internalConfig";
+import { InternalConfig } from "../core/internalConfig";
 import { 
   concatHexStrings,
   getAccountData, 
@@ -14,22 +14,21 @@ import {
   sortBlockNumber,
   sortSlot 
 } from "../shared/utils";
-import { Constants } from "../shared/constants";
 import { validateQueryRow } from "./validate";
 import MerkleTree from "merkletreejs";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
-  private responseTree: ResponseTree | undefined = undefined;
+  private responseTree?: ResponseTree = undefined;
   private readonly config: InternalConfig;
   private readonly maxSize: number;
 
   constructor(config: InternalConfig) {
-    this.maxSize = Constants(config.version).Values.MaxQuerySize;
+    this.config = new InternalConfig(config);
+    this.maxSize = this.config.getConstants().Values.MaxQuerySize;
     if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
-    this.config = new InternalConfig(config);
   }
 
   /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder`
@@ -111,21 +110,21 @@ export class QueryBuilder {
       );
     }
 
-    if (queryRow.address === null && queryRow.slot !== null) {
+    if (queryRow.address === undefined && queryRow.slot !== undefined) {
       throw new Error(
         "If `slot` is specified, then `address` must not be null"
       );
     }
 
     // Ensure valid address
-    if (queryRow.address !== null) {
+    if (queryRow.address !== undefined) {
       if (queryRow.address.match(/^0x[0-9a-fA-F]{40}$/) === null) {
         throw new Error(`Invalid address format for: ${queryRow.address}`);
       }
     }
 
     if (!queryRow.value) {
-      if (queryRow.address !== null && queryRow.slot !== null) {
+      if (queryRow.address !== undefined && queryRow.slot !== undefined) {
         // Note that this may fail silently if the archive node is not able to get the value at the slot
         queryRow.value = await this.config.provider.getStorage(
           queryRow.address,
@@ -133,7 +132,7 @@ export class QueryBuilder {
           queryRow.blockNumber
         );
       } else {
-        queryRow.value = null;
+        queryRow.value = undefined;
       }
     }
 
@@ -157,7 +156,20 @@ export class QueryBuilder {
     let str = "";
     for (let i = 0; i < queries.length; i++) {
       const query = queries[i];
-      str += `query: ${i}, blockNumber: ${query.blockNumber}, address: ${query.address}, slot: ${query.slot}, value: ${query.value}\n`;
+      str += `query: ${i}`;
+      if (query.blockNumber !== undefined) {
+        str += `, blockNumber: ${query.blockNumber}`;
+      }
+      if (query.address !== undefined) {
+        str += `, address: ${query.address}`;
+      }
+      if (query.slot !== undefined) {
+        str += `, slot: ${query.slot}`;
+      }
+      if (query.value !== undefined) {
+        str += `, value: ${query.value}`;
+      }
+      str += `\n`;
     }
     return str;
   }
@@ -172,7 +184,6 @@ export class QueryBuilder {
     const blockResponseRoot = responseTree.blockTree.getHexRoot();
     const accountResponseRoot = responseTree.accountTree.getHexRoot();
     const storageResponseRoot = responseTree.storageTree.getHexRoot();
-
     // Calculate the queryResponse
     const queryResponse = keccak256(
       concatHexStrings(
@@ -277,7 +288,6 @@ export class QueryBuilder {
     };
   }
 
-
   async getQueryDataFromRows(sortedQueries: QueryRow[]): Promise<QueryData[]> {
     // Collapse blockNumber, account, and slot into hash table keys to reduce total
     // number of JSON-RPC calls
@@ -290,14 +300,14 @@ export class QueryBuilder {
       blockNumberToBlock[`${blockNumber}`] = null;
 
       const address = sortedQueries[i].address;
-      if (address !== null) {
+      if (address !== undefined) {
         blockNumberAccountToAccount[`${blockNumber},${address}`] = null;
       }
 
       const slot = sortedQueries[i].slot;
       if (
-        address !== null &&
-        slot !== null &&
+        address !== undefined &&
+        slot !== undefined &&
         sortedQueries[i].value !== undefined
       ) {
         blockNumberAccountStorageToValue[`${blockNumber},${address},${slot}`] =
@@ -346,7 +356,7 @@ export class QueryBuilder {
       const block = blockNumberToBlock[blockNumber.toString()];
       if (block === null) {
         throw new Error(
-          `Could not find get ${blockNumber} in mapping of blocks`
+          `Could not get ${blockNumber} in mapping of blocks`
         );
       }
 
@@ -358,7 +368,7 @@ export class QueryBuilder {
       const address = sortedQueries[i].address;
       const slot = sortedQueries[i].slot;
 
-      const rowHash = encodeRowHash(blockNumber, address ?? undefined, slot ?? undefined);
+      const rowHash = encodeRowHash(blockNumber, address, slot);
 
       let row: QueryData = {
         rowHash,
@@ -366,7 +376,7 @@ export class QueryBuilder {
         blockHash,
       };
 
-      if (address != null) {
+      if (address !== undefined) {
         row.address = address;
         const accountData =
           blockNumberAccountToAccount[`${blockNumber},${address}`];
@@ -386,12 +396,11 @@ export class QueryBuilder {
         }
 
         row.slot = sortedQueries[i].slot?.toString() ?? undefined;
-        if (slot != null) {
+        if (slot !== undefined) {
           row.value =
             blockNumberAccountStorageToValue[
             `${blockNumber},${address},${slot}`
             ];
-
         }
       }
 
@@ -405,7 +414,7 @@ export class QueryBuilder {
   private buildQueryData(sortedQueries: QueryRow[]): string {
     // Extra data that we'll encode with the query data
     const numQueries = sortedQueries.length;
-    const versionIdx = Constants(this.config.version).Values.QueryEncodingVersion;
+    const versionIdx = this.config.getConstants().Values.QueryEncodingVersion;
 
     const encodedQueries: string[] = [];
     for (let i = 0; i < numQueries; i++) {
@@ -413,7 +422,7 @@ export class QueryBuilder {
 
       // Check for block number
       const blockNumber = sortedQueries[i].blockNumber;
-      if (blockNumber === null) {
+      if (blockNumber === undefined) {
         const encodedQuery = encodeQuery(length, 0, ZeroAddress, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
@@ -422,7 +431,7 @@ export class QueryBuilder {
       // Query has block number; check for address
       length++;
       const address = sortedQueries[i].address;
-      if (address === null) {
+      if (address === undefined) {
         const encodedQuery = encodeQuery(length, blockNumber, ZeroAddress, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;
@@ -432,7 +441,7 @@ export class QueryBuilder {
       length++;
       const slot = sortedQueries[i].slot;
       const value = sortedQueries[i].value;
-      if (slot === null || value === null || value === undefined) {
+      if (slot === undefined || value === undefined) {
         const encodedQuery = encodeQuery(length, blockNumber, address, 0, 0);
         encodedQueries.push(encodedQuery);
         continue;

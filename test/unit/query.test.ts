@@ -12,23 +12,21 @@ describe('Axiom Query', () => {
 
   // Temporarily set v1 contract address to Goerli testnet address
   const overrides = {
-    v1: {
-      Addresses: {
-        Axiom: "0x8eb3a522cab99ed365e450dad696357de8ab7e9d",
-        AxiomQuery: "0x82842F7a41f695320CC255B34F18769D68dD8aDF",
-      },
-      Urls: {
-        ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1",
-      }
-    }
-  }
+    Addresses: {
+      Axiom: "0x8eb3a522cab99ed365e450dad696357de8ab7e9d",
+      AxiomQuery: "0x82842F7a41f695320CC255B34F18769D68dD8aDF",
+    },
+    Urls: {
+      ApiBaseUrl:"https://axiom-api-staging.vercel.app/v1",
+    },
+  };
 
   const config: AxiomConfig = {
     apiKey: "demo",
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v1",
     chainId: 5,
-  }
+  };
 
   const ax = new Axiom(config, overrides);
   

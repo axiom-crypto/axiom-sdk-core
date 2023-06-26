@@ -10,7 +10,8 @@ In order to get started, create a config object and pass it to a new Axiom class
 const config: AxiomConfig = {
     providerUri: <your provider uri (such as from Alchemy, Infura, etc)>,
     version: "v1",
-    chainId: 1, // optional; defaults to 1 (Ethereum Mainnet)
+    chainId: 5, // Goerli; defaults to 1 (Ethereum Mainnet)
+    mock: true, // builds proofs without 
 }
 const ax = new Axiom(config);
 ```
@@ -29,7 +30,8 @@ For more information on slots, please see our documentation on [finding storage 
 
 ```typescript
 const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-await qb.append({blockNumber: 17090300, address: null, slot: null});
+await qb.append({blockNumber: 17090300});
+await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR});
 await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
 await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
 ```
@@ -50,13 +52,13 @@ You can submit a query to the on-chain Axiom contract by calling the `sendQuery`
 const providerUri = your provider URI (such as from Alchemy, Infura, etc)>;
 const provider = new ethers.JsonRpcProvider(providerUri);
 const wallet = new ethers.Wallet(<private key>, provider);
-const axiomContract = new ethers.Contract(
-    ax.getAxiomContractAddress(), 
+const axiomQuery = new ethers.Contract(
+    ax.getAxiomQueryAddress() as string, 
     ax.getAxiomQueryAbi(), 
     wallet
 );
 
-const txResult = await axiomContract.sendQuery(
+const txResult = await axiomQuery.sendQuery(
     keccakQueryResponse,
     <refund adddress>,
     query,

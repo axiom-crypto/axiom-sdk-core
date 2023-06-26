@@ -12,4 +12,9 @@ function copyPackageJson() {
   fs.writeFileSync('./dist/package.json', JSON.stringify(packageJsonCopy, null, 2));
 }
 
+function copyReadme() {
+  fs.copyFileSync('./README.md', './dist/README.md');
+}
+
 copyPackageJson();
+copyReadme();
