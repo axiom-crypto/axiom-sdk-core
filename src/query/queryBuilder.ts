@@ -1,5 +1,5 @@
 import { ZeroAddress, ZeroHash, ethers, keccak256 } from "ethers";
-import { QueryData, QueryRow, ResponseTree } from "../shared/types";
+import { QueryBuilderResponse, QueryData, QueryRow, ResponseTree } from "../shared/types";
 import {
   getBlockResponse,
   getFullAccountResponse,
@@ -20,6 +20,7 @@ import MerkleTree from "merkletreejs";
 
 export class QueryBuilder {
   private queries: QueryRow[] = [];
+  private responseTree: ResponseTree | undefined = undefined;
   private readonly config: InternalConfig;
   private readonly maxSize: number;
 
@@ -78,12 +79,13 @@ export class QueryBuilder {
     return this.formatQueries(sortedQueries);
   }
 
+  /// Gets the ResponseTree for the current set of queries if `build()` has been called
+  getResponseTree(): ResponseTree | undefined {
+    return this.responseTree;
+  }
+
   /// Builds the query response and query data to be sent to the Axiom contract.
-  async build(): Promise<{
-    keccakQueryResponse: string;
-    queryHash: string;
-    query: string;
-  }> {
+  async build(): Promise<QueryBuilderResponse> {
     if (this.queries.length === 0) {
       throw new Error(
         "Cannot build query response and query data with no queries"
@@ -164,6 +166,7 @@ export class QueryBuilder {
   private async buildQueryResponse(sortedQueries: QueryRow[]): Promise<string> {
     const queryData = await this.getQueryDataFromRows(sortedQueries);
     const responseTree = this.buildResponseTree(queryData);
+    this.responseTree = responseTree;
 
     // Calculate the merkle root for each column
     const blockResponseRoot = responseTree.blockTree.getHexRoot();

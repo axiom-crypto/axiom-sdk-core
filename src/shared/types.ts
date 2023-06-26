@@ -106,6 +106,12 @@ export interface QueryData {
   status?: string;
 }
 
+export interface QueryBuilderResponse {
+  keccakQueryResponse: string;
+  queryHash: string;
+  query: string;
+}
+
 export interface MerkleResponseTree {
   blockTree: MerkleTree;
   accountTree: MerkleTree;
