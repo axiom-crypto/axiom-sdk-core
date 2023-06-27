@@ -112,7 +112,7 @@ Building the query is the same as before:
 const { keccakQueryResponse, queryHash, query } = await qb.build();
 ```
 
-Calling `sendQuery` on the Mainnet contract is also the same as before, however the payment value required on Mainnet will be higher, currently at 0.025 ETH.
+Calling `sendQuery` on the Mainnet contract is also the same as before. The payment value required on Mainnet is currently 0.01 ETH, but may change in the future.
 
 ```typescript
 const txResult = await axiomQuery.sendQuery(
@@ -120,7 +120,7 @@ const txResult = await axiomQuery.sendQuery(
     <refund adddress>,
     query,
     {
-        value: ethers.parseEther("0.025"), // Mainnet payment value
+        value: ethers.parseEther("0.01"), // Mainnet payment value
     }
 );
 const txReceipt = await txResult.wait();
