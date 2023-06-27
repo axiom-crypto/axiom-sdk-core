@@ -2,19 +2,23 @@
 
 Axiom is a ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowledge proofs, Axiom allows anyone to prove historical data on-chain and trustlessly use that data in a smart contract.
 
-# Getting started
+# Getting started (Goerli Testnet)
+
+So we don't start out using real money, our example will be on the Goerli Testnet. If you need Goerli Ether, you can [try this faucet](https://goerlifaucet.com/) or any number of other Goerli faucets via a quick search. 
 
 In order to get started, create a config object and pass it to a new Axiom class instance as follows:
 
 ```typescript
 const config: AxiomConfig = {
-    providerUri: <your provider uri (such as from Alchemy, Infura, etc)>,
+    providerUri: <your Goerli Testnet provider URI (from Alchemy, Infura, etc)>,
     version: "v1",
     chainId: 5, // Goerli; defaults to 1 (Ethereum Mainnet)
-    mock: true, // builds proofs without 
+    mock: true, // builds proofs without utilizing actual Prover resources
 }
 const ax = new Axiom(config);
 ```
+
+Ensure that the `providerUri` you are using is for Goerli Testnet or your function calls will fail. 
 
 ## Building a query
 
@@ -30,13 +34,13 @@ For more information on slots, please see our documentation on [finding storage 
 
 ```typescript
 const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-await qb.append({blockNumber: 17090300});
-await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR});
-await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
-await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
+await qb.append({blockNumber: 9221736});
+await qb.append({blockNumber: 9221524, address: UNI_V2_ADDR});
+await qb.append({blockNumber: 9221524, address: UNI_V2_ADDR, slot: 0});
+await qb.append({blockNumber: 9221524, address: UNI_V2_ADDR, slot: 1});
 ```
 
-The `append` function will validate the value at the slot. If you attempt to read from a slot at an account that has not yet been created, an error will be thrown.
+The `append` function will validate the value at the slot. If you attempt to read from a slot at an account that has not yet been created, an error will be thrown. Please note that `blockNumber`s on Goerli versus Mainnet are different.
 
 Call the QueryBuilder's `build` function to generate the `keccakQueryResponse`, `queryHash`, and `query` calldata for the Axiom contract function:
 
@@ -49,7 +53,7 @@ const { keccakQueryResponse, queryHash, query } = await qb.build();
 You can submit a query to the on-chain Axiom contract by calling the `sendQuery` function on the contract after providing a signer:
 
 ```typescript
-const providerUri = your provider URI (such as from Alchemy, Infura, etc)>;
+const providerUri = your provider URI (from Alchemy, Infura, etc)>;
 const provider = new ethers.JsonRpcProvider(providerUri);
 const wallet = new ethers.Wallet(<private key>, provider);
 const axiomQuery = new ethers.Contract(
@@ -63,7 +67,7 @@ const txResult = await axiomQuery.sendQuery(
     <refund adddress>,
     query,
     {
-        value: ethers.parseEther("0.05"),
+        value: ethers.parseEther("0.01"), // Goerli payment value
     }
 );
 const txReceipt = await txResult.wait();
@@ -77,6 +81,49 @@ After the contract has processed the `sendQuery` call, it will emit an event tha
 
 ```solidity
 event QueryFulfilled(bytes32 keccakQueryResponse, uint256 payment, address prover);
+```
+
+## Submitting a Query on Mainnet
+
+Submitting a query on Ethereum Mainnet is similar to doing it on testnet, but we'll be changing the `chainId` to 1 and removing the `mock` key in the `AxiomConfig` object. Please be sure to also use a Mainnet `providerUri` value. 
+
+```typescript
+const config: AxiomConfig = {
+    providerUri: <your Ethereum Mainnet provider URI (from Alchemy, Infura, etc)>,
+    version: "v1",
+    chainId: 1,
+}
+const ax = new Axiom(config);
+```
+
+Next, we'll create the data that we want to prove to append to the QueryBuilder instance as before, but with the very important difference being that `blockNumber`, `address`, and `slot` that we want to prove will likely be different on Mainnet versus Goerli.
+
+```typescript
+const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+await qb.append({blockNumber: 17090300});
+await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR});
+await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
+await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
+```
+
+Building the query is the same as before:
+
+```typescript
+const { keccakQueryResponse, queryHash, query } = await qb.build();
+```
+
+Calling `sendQuery` on the Mainnet contract is also the same as before, however the payment value required on Mainnet will be higher, currently at 0.025 ETH.
+
+```typescript
+const txResult = await axiomQuery.sendQuery(
+    keccakQueryResponse,
+    <refund adddress>,
+    query,
+    {
+        value: ethers.parseEther("0.025"), // Mainnet payment value
+    }
+);
+const txReceipt = await txResult.wait();
 ```
 
 # Reading query results
@@ -167,3 +214,7 @@ Whereas on Goerli (`chainId` 5), it looks like this:
 ```
 https://eth-goerli.g.alchemy.com/v2/UBGccHgGCaE...
 ```
+
+## Block Numbers
+
+Block numbers on Goerli Testnet are significantly lower (~9 million) than those on Ethereum Mainnet (~17 million), so please ensure that you are using the correct `blockNumber` values for the `chainId` that you set. 
