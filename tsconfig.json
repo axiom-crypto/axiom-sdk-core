@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "moduleResolution": "node16",
+    "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,

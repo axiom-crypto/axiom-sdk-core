@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { Versions, setVersionData, updateConstants } from "./constants";
-import { AxiomConfig } from "./types";
+import { Versions, setVersionData, updateConstants } from "../shared/constants";
+import { AxiomConfig } from "../shared/types";
 
 export class InternalConfig {
   /**
@@ -39,6 +39,11 @@ export class InternalConfig {
   readonly provider: ethers.JsonRpcProvider;
 
   /**
+   * Stored version data tree
+   */
+  readonly versionData: any;
+
+  /**
    * Optional private key used for signing transactions
    */
   readonly privateKey?: string;
@@ -56,16 +61,21 @@ export class InternalConfig {
     this.timeoutMs = config.timeoutMs ?? 10000;
     this.mock = config.mock ?? false;
 
-    setVersionData(this.chainId, this.mock);
+    let versionData = setVersionData(this.chainId, this.version, this.mock);
     if (overrides !== undefined) {
-      updateConstants(overrides);
+      updateConstants(versionData, this.version, overrides);
     }
+    this.versionData = Object.freeze(versionData);
 
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
 
     if (config.privateKey !== undefined && config.privateKey !== "") {
       this.signer = new ethers.Wallet(config.privateKey, this.provider)
     }
+  }
+
+  getConstants(): any {
+    return this.versionData[this.version];
   }
 
   parseProviderUri(providerUri: string): string {
@@ -87,18 +97,19 @@ export class InternalConfig {
     }
   }
 
-  parseVersion(version: string | undefined): string {
+  parseVersion(version?: string): string {
     if (version === undefined) {
       return Versions[Versions.length - 1];
     }
 
-    if (!version.toLowerCase().startsWith("v")) {
-      version = `v${version}`;
+    let parsedVersion = version.toLowerCase();
+    if (!parsedVersion.startsWith("v")) {
+      parsedVersion = `v${parsedVersion}`;
     }
-    version = version.replace(/\./g, "_") as string;
+    parsedVersion = parsedVersion.replace(/\./g, "_") as string;
 
-    if (Versions.includes(version)) {
-      return version;
+    if (Versions.includes(parsedVersion)) {
+      return parsedVersion;
     }
     throw new Error(
       "Invalid version number. Valid versions are: " + Versions.join(", ")

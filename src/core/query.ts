@@ -5,15 +5,15 @@ import {
   SolidityAccountResponse,
   SolidityBlockResponse,
   SolidityStorageResponse,
+  ValidationWitnessResponse,
   decodePackedQuery
 } from "..";
-import { Constants } from "../shared/constants";
 import { ethers } from "ethers";
 import { encodeRowHash } from "../query/encoder";
 import { BigNumberish } from "ethers";
 import { getAxiomQueryAbiForVersion } from "./lib/abi";
 import { QueryBuilder } from "../query/queryBuilder";
-import { InternalConfig } from "../shared/internalConfig";
+import { InternalConfig } from "./internalConfig";
 import { 
   getBlockResponse,
   getFullAccountResponse,
@@ -31,10 +31,10 @@ export class Query {
   private async getDataForQuery(
     queryHash: string,
   ): Promise<QueryData[] | undefined> {
-    const baseUrl = Constants(this.config.version).Urls.ApiBaseUrl;
-    const endpoint = Constants(this.config.version).Endpoints.GetDataForQuery;
+    const baseUrl = this.config.getConstants().Urls.ApiBaseUrl;
+    const endpoint = this.config.getConstants().Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
-    const contractAddress = Constants(this.config.version).Addresses.AxiomQuery;
+    const contractAddress = this.config.getConstants().Addresses.AxiomQuery;
     const result = await axios.get(uri, {
       params: { 
         queryHash,
@@ -75,12 +75,7 @@ export class Query {
     blockNumber: number,
     address?: string,
     slot?: BigNumberish
-  ): {
-    blockResponse: SolidityBlockResponse;
-    accountResponse?: SolidityAccountResponse;
-    storageResponse?: SolidityStorageResponse;
-  }
-    | undefined {
+  ): ValidationWitnessResponse | undefined {
     const rowHash = encodeRowHash(blockNumber, address, slot);
     const leafIdx = responseTree.rowHashMap.get(rowHash);
     if (leafIdx === undefined) {
@@ -158,7 +153,7 @@ export class Query {
       throw new Error("Could not find transaction");
     }
     let contract = new ethers.Contract(
-      Constants(this.config.version).Addresses.Axiom,
+      this.config.getConstants().Addresses.Axiom,
       getAxiomQueryAbiForVersion(this.config.version),
       this.config.provider
     );
@@ -172,7 +167,7 @@ export class Query {
       throw new Error("Could not find transaction");
     }
     let contract = new ethers.Contract(
-      Constants(this.config.version).Addresses.Axiom,
+      this.config.getConstants().Addresses.Axiom,
       getAxiomQueryAbiForVersion(this.config.version),
       this.config.provider
     );
