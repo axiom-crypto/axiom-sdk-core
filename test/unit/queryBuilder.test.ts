@@ -53,7 +53,16 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 5});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 6});
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-      expect(true).toEqual(true);
+    });
+
+    test('should successfully build a Query with blockNumbers that contain a leading zero', async () => {
+      // NOTE: Alchemy automatically formats the hex blockNumber to remove the leading zero, 
+      // whereas Infura does not.
+      const qb = ax.newQueryBuilder();
+      await qb.append({blockNumber: 1808});   // 0x0710
+      await qb.append({blockNumber: 4095});   // 0x0fff
+      await qb.append({blockNumber: 100000}); // 0x0186a0
+      const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
     });
 
     test('should throw when appending invalid QueryRow data', async () => {
