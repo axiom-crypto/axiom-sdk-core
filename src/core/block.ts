@@ -18,6 +18,7 @@ export class Block {
       params: { 
         blockNumber,
         mock: this.config.mock,
+        chainId: this.config.chainId,
       },
       headers: { 
         "x-axiom-api-key": this.config.apiKey,
@@ -41,6 +42,7 @@ export class Block {
       params: { 
         blockNumber,
         mock: this.config.mock,
+        chainId: this.config.chainId,
       },
       headers: { 
         "x-axiom-api-key": this.config.apiKey,
@@ -64,6 +66,7 @@ export class Block {
       params: { 
         blockNumber,
         mock: this.config.mock,
+        chainId: this.config.chainId,
       },
       headers: { 
         "x-axiom-api-key": this.config.apiKey,
@@ -87,6 +90,7 @@ export class Block {
       params: { 
         blockNumber,
         mock: this.config.mock,
+        chainId: this.config.chainId,
       },
       headers: { 
         "x-axiom-api-key": this.config.apiKey,
@@ -110,6 +114,7 @@ export class Block {
       params: { 
         blockNumber,
         mock: this.config.mock,
+        chainId: this.config.chainId,
       },
       headers: { 
         "x-axiom-api-key": this.config.apiKey,

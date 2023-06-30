@@ -16,7 +16,7 @@ export function shortenedHex(num: number) {
 export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
   const fullBlock = await provider.send(
     'eth_getBlockByNumber',
-    [ethers.toBeHex(blockNumber), true]
+    [shortenedHex(blockNumber), true]
   );
   return fullBlock;
 }
