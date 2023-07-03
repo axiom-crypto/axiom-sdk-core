@@ -40,7 +40,7 @@ export let versionDataMainnet: any = {
   },
   v1: {
     Addresses: {
-      Axiom: "",
+      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
       AxiomQuery: "",
     },
     Urls: {
@@ -68,7 +68,7 @@ export let versionDataMainnet: any = {
 export let versionOverrideMainnetMock: any = {
   v1: {
     Addresses: {
-      Axiom: "",
+      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
       AxiomQuery: "",
     },
   },
