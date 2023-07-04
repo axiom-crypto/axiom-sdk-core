@@ -1,6 +1,6 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "author": "Intrinsic Technologies",
   "license": "MIT",

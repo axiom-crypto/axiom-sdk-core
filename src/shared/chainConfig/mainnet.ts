@@ -40,8 +40,8 @@ export let versionDataMainnet: any = {
   },
   v1: {
     Addresses: {
-      Axiom: "",
-      AxiomQuery: "",
+      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
+      AxiomQuery: "0xd617ab7f787adf64c2b5b920c251ea10cd35a952",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v1",
@@ -68,8 +68,8 @@ export let versionDataMainnet: any = {
 export let versionOverrideMainnetMock: any = {
   v1: {
     Addresses: {
-      Axiom: "",
-      AxiomQuery: "",
+      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
+      AxiomQuery: "0xd617ab7f787adf64c2b5b920c251ea10cd35a952",
     },
   },
 };
