@@ -24,30 +24,56 @@ import { SDK_VERSION } from "../version";
 export class Query {
   private readonly config: InternalConfig;
 
+  /**
+   * @param config Axiom internal configuration parameters
+   */
   constructor(config: InternalConfig) {
     this.config = config;
   }
 
+  /**
+   * Calls the API to get the QueryData rows for a given Query. Requires either one of 
+   * keccakQueryResponse or queryHash to be specified.
+   * @param keccakQueryResponse (optional) A keccak256 hash of the entire query data blob
+   * @param queryHash (optional) A keccak256 hash of the entire query data blob
+   * @returns QueryData[] | undefined
+   */
   private async getDataForQuery(
-    queryHash: string,
+    keccakQueryResponse?: string,
+    queryHash?: string
   ): Promise<QueryData[] | undefined> {
+    if (keccakQueryResponse === undefined && queryHash === undefined) {
+      throw new Error("Must specify either keccakQueryResponse or queryHash");
+    }
+    if (keccakQueryResponse !== undefined && queryHash !== undefined) {
+      throw new Error("Cannot specify both keccakQueryResponse and queryHash");
+    }
     const baseUrl = this.config.getConstants().Urls.ApiBaseUrl;
     const endpoint = this.config.getConstants().Endpoints.GetDataForQuery;
     const uri = `${baseUrl}${endpoint}`;
     const contractAddress = this.config.getConstants().Addresses.AxiomQuery;
-    const result = await axios.get(uri, {
-      params: { 
+    const headers = {
+      "x-axiom-api-key": this.config.apiKey,
+      "x-provider-uri": this.config.providerUri,
+      "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
+    }
+    let params;
+    if (keccakQueryResponse !== undefined) {
+      params = {
+        keccakQueryResponse,
+        chainId: this.config.chainId,
+        contractAddress,
+        mock: this.config.mock,
+      }
+    } else {
+      params = {
         queryHash,
         chainId: this.config.chainId,
         contractAddress,
         mock: this.config.mock,
-      },
-      headers: {
-        "x-axiom-api-key": this.config.apiKey,
-        "x-provider-uri": this.config.providerUri,
-        "User-Agent": 'axiom-sdk-ts/' + SDK_VERSION,
-      },
-    });
+      }
+    }
+    const result = await axios.get(uri, { params, headers });
     if (result?.status === HttpStatusCode.Ok) {
       if (result?.data !== undefined) {
         return result.data;
@@ -56,20 +82,95 @@ export class Query {
     return undefined;
   }
 
-  async getResponseTreeForQuery(
+  /**
+   * Gets parsed transaction logs from a transaction hash
+   * @param txHash Transaction hash from the `sendQuery` call
+   * @returns (ethers.LogDescription | null)[]
+   */
+  private async getTxLogsForTxHash(txHash: string): Promise<(ethers.LogDescription | null)[]> {
+    let tx = await this.config.provider.getTransactionReceipt(txHash);
+    if (!tx) {
+      throw new Error(
+        "Could not find transaction (ensure you are using the tx hash of the `sendQuery` transaction)"
+      );
+    }
+    let contract = new ethers.Contract(
+      this.config.getConstants().Addresses.Axiom,
+      getAxiomQueryAbiForVersion(this.config.version),
+      this.config.provider
+    );
+    let logs = tx.logs.map((log) => 
+      contract.interface.parseLog({ data: log.data, topics: log.topics as string[] })
+    );
+    return logs;
+  }
+
+  /**
+   * Gets parsed transaction description from a transaction hash
+   * @param txHash Transaction hash from the `sendQuery` call
+   * @returns ethers.TransactionDescription | null
+   */
+  private async getTxDecodedForTxHash(txHash: string): Promise<(ethers.TransactionDescription | null)> {
+    let tx = await this.config.provider.getTransaction(txHash);
+    if (!tx) {
+      throw new Error(
+        "Could not find transaction (ensure you are using the tx hash of the `sendQuery` transaction)"
+      );
+    }
+    let contract = new ethers.Contract(
+      this.config.getConstants().Addresses.Axiom,
+      getAxiomQueryAbiForVersion(this.config.version),
+      this.config.provider
+    );
+    let decodedTx = contract.interface.parseTransaction({ data: tx.data, value: tx.value });
+    return decodedTx;
+  }
+
+  /**
+   * Gets a `ResponseTree` for a given queryHash
+   * @param keccakQueryResponse A keccak256 hash calculated from the Query
+   * @returns ResponseTree
+   */
+  async getResponseTreeForKeccakQueryResponse(
+    keccakQueryResponse: string,
+  ): Promise<ResponseTree> {
+    keccakQueryResponse = keccakQueryResponse.toLowerCase();
+    const data = await this.getDataForQuery(keccakQueryResponse);
+    if (data === undefined) {
+      throw new Error(`Could not find query data for ${keccakQueryResponse}`);
+    }
+    let qb = new QueryBuilder(this.config);
+    const responseTree = qb.buildResponseTree(data);
+    return responseTree;
+  }
+
+  /**
+   * Gets a `ResponseTree` for a given queryHash
+   * @param queryHash A keccak256 hash of the entire query data blob
+   * @returns ResponseTree
+   */
+  async getResponseTreeForQueryHash(
     queryHash: string,
   ): Promise<ResponseTree> {
     queryHash = queryHash.toLowerCase();
-    const data = await this.getDataForQuery(queryHash);
+    const data = await this.getDataForQuery(undefined, queryHash);
     if (data === undefined) {
       throw new Error(`Could not find query data for ${queryHash}`);
     }
     let qb = new QueryBuilder(this.config);
     const responseTree = qb.buildResponseTree(data);
     return responseTree;
-
   }
 
+  /**
+   * Gets a ValidationWitnessResponse, which contains the blockResponse, accountResponse, 
+   * and storageResponse
+   * @param responseTree A `ResponseTree` object
+   * @param blockNumber The block number to get the witness for
+   * @param address (optional) the address to get the witness for
+   * @param slot (optional) the slot to get the witness for
+   * @returns ValidationWitnessResponse | undefined
+   */
   getValidationWitness(
     responseTree: ResponseTree,
     blockNumber: number,
@@ -147,35 +248,39 @@ export class Query {
     };
   }
 
-  async getQueryHashFromTxHash(txHash: string): Promise<string> {
-    let tx = await this.config.provider.getTransactionReceipt(txHash);
-    if (!tx) {
-      throw new Error("Could not find transaction");
-    }
-    let contract = new ethers.Contract(
-      this.config.getConstants().Addresses.Axiom,
-      getAxiomQueryAbiForVersion(this.config.version),
-      this.config.provider
-    );
-    let logs = tx.logs.map((log) => contract.interface.parseLog({ data: log.data, topics: log.topics as string[] }));
+  /**
+   * Gets a keccakQueryResponse from the transaction hash (from the `sendQuery` call)
+   * @param txHash Transaction hash from the `sendQuery` call
+   * @returns keccakQueryResponse | undefined
+   */
+  async getKeccakQueryResponseFromTxHash(txHash: string): Promise<string | undefined> {
+    let logs = await this.getTxLogsForTxHash(txHash);
+    return logs[0]?.args?.keccakQueryResponse;
+  }
+
+  /**
+   * Gets a queryHash from a the transaction hash (from the `sendQuery` call)
+   * @param txHash Transaction hash from the `sendQuery` call
+   * @returns keccakQueryResponse | undefined
+   */
+  async getQueryHashFromTxHash(txHash: string): Promise<string | undefined> {
+    let logs = await this.getTxLogsForTxHash(txHash);
     return logs[0]?.args?.queryHash;
   }
 
+  /**
+   * Gets a ResponseTree by passing in the transaction hash (from the `sendQuery` call)
+   * @param txHash Transaction hash from the `sendQuery` call
+   * @returns ResponseTree
+   */
   async getResponseTreeFromTxHash(txHash: string): Promise<ResponseTree> {
-    let tx = await this.config.provider.getTransaction(txHash);
-    if (!tx) {
-      throw new Error("Could not find transaction");
-    }
-    let contract = new ethers.Contract(
-      this.config.getConstants().Addresses.Axiom,
-      getAxiomQueryAbiForVersion(this.config.version),
-      this.config.provider
-    );
-    let decodedTx = contract.interface.parseTransaction({ data: tx.data, value: tx.value });
+    let decodedTx = await this.getTxDecodedForTxHash(txHash);
     let query = decodedTx?.args.query;
     let decodedQuery = decodePackedQuery(query);
     if (!decodedQuery) {
-      throw new Error("Could not find query in transaction");
+      throw new Error(
+        "Could not find query in transaction (ensure you are using the tx hash of the `sendQuery` transaction)"
+      );
     }
 
     let qb = new QueryBuilder(this.config);
@@ -185,7 +290,12 @@ export class Query {
     return responseTree;
   }
 
-  /// Passthrough appropriately-named user-facing function for getting the block response
+  /**
+   * A passthrough function that identifies the hash function used in `getBlockResponse`
+   * @param blockHash Block hash of the block to use
+   * @param blockNumber Block number of the block to use
+   * @returns string - Keccak hash of the block response
+   */
   getKeccakBlockResponse(
     blockHash: string, 
     blockNumber: number
@@ -193,7 +303,16 @@ export class Query {
     return getBlockResponse(blockHash, blockNumber);
   }
 
-  /// Passthrough appropriately-named user-facing function for getting the full account response.
+  /**
+   * A passthrough function that identifies the hash function used in `getAccountResponse`
+   * @param blockNumber Block number of the block to use
+   * @param address Address of the account to use
+   * @param nonce Nonce of the account
+   * @param balance Balance of the account
+   * @param storageRoot Storage root (aka storage hash) of the account
+   * @param codeHash Code hash of the account
+   * @returns string - Keccak hash of the account response
+   */
   getKeccakAccountResponse(
     blockNumber: number,
     address: string,
@@ -205,7 +324,14 @@ export class Query {
     return getFullAccountResponse(blockNumber, address, nonce, balance, storageRoot, codeHash);
   }
 
-  /// Passthrough appropriately-named user-facing function for getting the full storage response.
+  /**
+   * A passthrough function that identifies the hash function used in `getStorageResponse`
+   * @param blockNumber Block number of the block to use
+   * @param address Address of the account to use
+   * @param slot Slot of the storage in the account
+   * @param value Value at that slot
+   * @returns string - Keccak hash of the storage response
+   */
   getKeccakStorageResponse(
     blockNumber: number,
     address: string,
