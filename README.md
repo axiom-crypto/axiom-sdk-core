@@ -30,7 +30,7 @@ const qb = ax.newQueryBuilder();
 
 Append queries to the instance of QueryBuilder with a `blockNumber` (required), `address` (optional), and `slot` number (optional). The maximum number queries that can be appended to a QueryBuilder object is currently fixed at 64. If you need more queries, split the request up into multiple QueryBuilder objects.
 
-For more information on slots, please see our documentation on [finding storage slots](https://docs-alpha.axiom.xyz/developers/sending-a-query/finding-storage-slots).
+For more information on slots, please see our documentation on [finding storage slots](https://docs.axiom.xyz/developers/sending-a-query/finding-storage-slots).
 
 ```typescript
 const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
@@ -179,7 +179,7 @@ After passing these into `getValidationWitness` and verifying on-chain, read off
 
 ## Advanced reads
 
-For more advanced users, we offer access to the raw Merkle-ized query results via `isKeccakResultValid` and `isPoseidonResultValid`.  These allow validation of Keccak and Poseidon encoded block, account, and storage data in the [Axiom Query Format](https://docs-alpha.axiom.xyz/developers/sending-a-query/axiom-query-format). The Poseidon format may be especially useful for ZK developers.
+For more advanced users, we offer access to the raw Merkle-ized query results via `isKeccakResultValid` and `isPoseidonResultValid`.  These allow validation of Keccak and Poseidon encoded block, account, and storage data in the [Axiom Query Format](https://docs.axiom.xyz/developers/sending-a-query/axiom-query-format). The Poseidon format may be especially useful for ZK developers.
 
 ```solidity
 function isKeccakResultValid(
