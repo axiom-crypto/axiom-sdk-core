@@ -1,5 +1,6 @@
 import axios, { HttpStatusCode } from "axios";
 import { 
+  KeccakResponses,
   QueryData,
   ResponseTree,
   SolidityAccountResponse,
@@ -288,6 +289,19 @@ export class Query {
     const responseTree = qb.buildResponseTree(queryData);
 
     return responseTree;
+  }
+
+  /**
+   * Convenience function for getting the `KeccakResponses` from a `ResponseTree`
+   * @param responseTree A `ResponseTree` object
+   * @returns KeccakResponses
+   */
+  getResponses(responseTree: ResponseTree): KeccakResponses {
+    return {
+      keccakBlockResponse: responseTree.blockTree.getHexRoot(),
+      keccakAccountResponse: responseTree.accountTree.getHexRoot(),
+      keccakStorageResponse: responseTree.storageTree.getHexRoot(),
+    }
   }
 
   /**
