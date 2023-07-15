@@ -4,6 +4,7 @@ import { Block } from './block';
 import { Query } from './query';
 import { QueryBuilder } from '../query/queryBuilder';
 import { getAxiomAbiForVersion, getAxiomQueryAbiForVersion } from './lib/abi';
+import { Experimental } from '../experimental';
 
 export class Axiom {
   /**
@@ -21,11 +22,19 @@ export class Axiom {
    */
   readonly query: Query;
 
+  /**
+   * Experimental: Tx/Receipts
+   */
+  readonly experimental: Experimental;
+
   constructor(config: AxiomConfig, overrides?: any) {
     this.config = new InternalConfig(config, overrides);
 
     this.block = new Block(this.config);
     this.query = new Query(this.config);
+
+    // Experimental
+    this.experimental = new Experimental(this.config);
   }
 
   newQueryBuilder(): QueryBuilder {

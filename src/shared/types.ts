@@ -81,9 +81,16 @@ export interface QueryRow {
   value?: ethers.BigNumberish;
 }
 
+export enum QueryType {
+  StateQuery,
+  TransactionQuery,
+  ReceiptQuery,
+}
+
 export interface QueryHeader {
   version: number;
   numRows: number;
+  queryType?: QueryType
 }
 
 export interface DecodedQuery {

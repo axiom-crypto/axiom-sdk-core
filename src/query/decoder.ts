@@ -1,22 +1,49 @@
-import { DecodedQuery, QueryHeader, QueryRow } from "..";
+import { DecodedQuery, QueryHeader, QueryRow, QueryType } from "..";
 
 // The packed query blob is encodePacked as [versionIdx, length, encdoedQueries[]]: ["uint8", "uint32", "bytes[]"]
 // Each row is then encodePacked as [length, blockNumber, address, slot, value]: ["uint8", "uint32", "address", "uint256", "uint256"]
 export function decodePackedQuery(query: string): DecodedQuery | null {
   const queryVersion = parseInt(query.slice(2, 4));
-  const queryRows = parseInt(query.slice(4, 12), 16);
-  const encodedQueries = query.slice(12);
-  if (isNaN(queryVersion) || isNaN(queryRows)) {
+  let queryRows: number;
+  let queryType: QueryType | undefined;
+  let encodedQueries: string;
+  
+  if (queryVersion === 1) {
+    queryRows = parseInt(query.slice(4, 12), 16);
+    encodedQueries = query.slice(12);
+  } else if (queryVersion === 255) {
+    queryType = parseInt(query.slice(4, 6));
+    queryRows = parseInt(query.slice(6, 14), 16);
+    encodedQueries = query.slice(14);
+  } else {
     return null;
   }
 
-  let header: QueryHeader = {
-    version: queryVersion,
-    numRows: queryRows,
-  };
-  let body: QueryRow[] = [];
+  if (
+    isNaN(queryVersion) || 
+    isNaN(queryRows) ||
+    (queryType && isNaN(queryType))
+  ) {
+    return null;
+  }
+
+  let header: QueryHeader;
+  let body: any;
   if (queryVersion === 1) {
+    header = {
+      version: queryVersion,
+      numRows: queryRows,
+    };
+    let body: QueryRow[] = [];
     body = decodePackedQueryV1(encodedQueries, queryRows);
+  } else if (queryVersion === 255) {
+    header = {
+      version: queryVersion,
+      queryType,
+      numRows: queryRows,
+    };
+    body = {}; // TODO
+    // body = decodePackedQueryExperimental(queryType, queryRows, encodedQueries);
   } else {
     return null;
   }

@@ -13,6 +13,17 @@ export function shortenedHex(num: number) {
   return stripZerosLeft(ethers.toBeHex(num));
 }
 
+export function makeEvenHex(hex: string) {
+  let _hex = hex;
+  if (hex.substring(0, 2) === "0x") {
+    _hex = hex.substring(2);
+  }
+  if (_hex.length % 2 === 1) {
+    _hex = "0" + _hex;
+  }
+  return "0x" + _hex;
+}
+
 export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
   const fullBlock = await provider.send(
     'eth_getBlockByNumber',
@@ -27,6 +38,14 @@ export async function getAccountData(blockNumber: number, address: string, slots
     [address, slots, shortenedHex(blockNumber)]
   );
   return accountData;
+}
+
+export async function getTransaction(provider: ethers.JsonRpcProvider, txHash: string) {
+  const tx = await provider.send(
+    'eth_getTransactionByHash',
+    [ethers.hexlify(txHash)]
+  );
+  return tx;
 }
 
 export function concatHexStrings(...args: string[]) {
