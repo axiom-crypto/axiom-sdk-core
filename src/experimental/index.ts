@@ -1,6 +1,6 @@
 import { InternalConfig } from "../core/internalConfig";
 import { TxReceiptsQueryBuilder } from "./txReceiptsQueryBuilder";
-import { decodeTxReceiptsPackedQuery } from "./decoder";
+import { OnlyReceiptsQueryBuilder } from "./onlyReceiptsQueryBuilder";
 
 export class Experimental {
   private readonly config: InternalConfig;
@@ -13,7 +13,7 @@ export class Experimental {
     return new TxReceiptsQueryBuilder(this.config);
   }
 
-  decodeTxReceiptsPackedQuery(packed: string): any {
-    return decodeTxReceiptsPackedQuery(packed);
+  newOnlyReceiptsQueryBuilder(): OnlyReceiptsQueryBuilder {
+    return new OnlyReceiptsQueryBuilder(this.config);
   }
 }
