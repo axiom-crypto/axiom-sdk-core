@@ -70,7 +70,7 @@ export class InternalConfig {
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
 
     if (config.privateKey !== undefined && config.privateKey !== "") {
-      this.signer = new ethers.Wallet(config.privateKey, this.provider)
+      this.signer = new ethers.Wallet(config.privateKey, this.provider);
     }
   }
 
@@ -103,9 +103,6 @@ export class InternalConfig {
     }
 
     let parsedVersion = version.toLowerCase();
-    if (!parsedVersion.startsWith("v")) {
-      parsedVersion = `v${parsedVersion}`;
-    }
     parsedVersion = parsedVersion.replace(/\./g, "_") as string;
 
     if (Versions.includes(parsedVersion)) {

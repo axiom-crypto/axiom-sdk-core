@@ -63,6 +63,34 @@ export let versionDataMainnet: any = {
       QueryEncodingVersion: 1,
     },
   },
+  experimental: {
+    Addresses: {
+      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
+      AxiomQuery: "0xd617ab7f787adf64c2b5b920c251ea10cd35a952",
+    },
+    Urls: {
+      ApiBaseUrl: "https://api.axiom.xyz/v1",
+    },
+    Endpoints: {
+      GetBlockHashWitness: Path.Block + Endpoints.GetBlockHashWitness,
+      GetBlockMerkleProof: Path.Block + Endpoints.GetBlockMerkleProof,
+      GetBlockParams: Path.Block + Endpoints.GetBlockParams,
+      GetBlockRlpHeader: Path.Block + Endpoints.GetBlockRlpHeader,
+      GetBlockMmrProof: Path.Block + Endpoints.GetBlockMmrProof,
+      GetAllQueries: Path.Query + Endpoints.GetAllQueries,
+      GetDataForQuery: Path.Query + Endpoints.GetDataForQuery,
+      GetQueryCount: Path.Query + Endpoints.GetQueryCount,
+      GetQueryData: Path.Query + Endpoints.GetQueryData,
+      GetQuery: Path.Query + Endpoints.GetQuery,
+    },
+    Values: {
+      MaxQuerySize: 64,
+      MaxTxsQuerySize: 4,
+      MaxTxReceiptsQuerySize: 4,
+      MaxOnlyReceiptsQuerySize: 4,
+      QueryEncodingVersion: 1,
+    },
+  },
 };
 
 export let versionOverrideMainnetMock: any = {
@@ -73,4 +101,3 @@ export let versionOverrideMainnetMock: any = {
     },
   },
 };
-
