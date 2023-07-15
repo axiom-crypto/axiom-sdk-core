@@ -265,29 +265,38 @@ class TxQueryBuilder {
     }
 
     // Map transaction type to field index based on block number
+    const txType = parseInt(tx.type);
+    if (isNaN(txType)) {
+      throw new Error(`Unable to get txType for txHash ${queryRow.txHash}`);
+    }
     let fieldIdx;
-    if (blockNumber < Constants.EIP_2930_BLOCK_NUM) {
-      fieldIdx = mapTransactionTypeToFieldIndex(
-        TransactionType.Legacy,
-        queryRow.field
-      );
-    } else if (blockNumber < Constants.EIP_1559_BLOCK_NUM) {
-      fieldIdx = mapTransactionTypeToFieldIndex(
-        TransactionType.Eip2930,
-        queryRow.field
-      );
-    } else {
-      fieldIdx = mapTransactionTypeToFieldIndex(
-        TransactionType.Eip1559,
-        queryRow.field
-      );
+    switch (txType) {
+      case 0:
+        fieldIdx = mapTransactionTypeToFieldIndex(
+          TransactionType.Legacy,
+          queryRow.field
+        );
+        break;
+      case 1:
+        fieldIdx = mapTransactionTypeToFieldIndex(
+          TransactionType.Eip2930,
+          queryRow.field
+        );
+        break;
+      case 2:
+        fieldIdx = mapTransactionTypeToFieldIndex(
+          TransactionType.Eip1559,
+          queryRow.field
+        );
+        break;
+      default:
+        throw new Error(`Invalid tx type: ${txType}`);
     }
 
     // Get data from transaction
     let queryData: TxQueryData;
     try {
       const txIdx = parseInt(tx.transactionIndex);
-      const txType = parseInt(tx.type);
       const txFieldStr = TxFields[txType][fieldIdx];
       let value = txFieldStr in tx ? tx[txFieldStr] : "0x";
       if (!(txFieldStr in ["input", "accessList", "to"])) {
