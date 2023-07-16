@@ -21,6 +21,12 @@ export function setVersionData(chainId: number, version: string, mock: boolean) 
         updateConstants(versionData, version, versionOverrideGoerliMock[version]);
       }
       break;
+    case 31337:
+      versionData = deepCopyObject(versionDataMainnet);
+      if (mock) {
+        updateConstants(versionData, version, versionOverrideMainnetMock[version]);
+      }
+      break;
     default:
       throw new Error(`Unsupported chainId: ${chainId}`);
   }
