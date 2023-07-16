@@ -87,7 +87,7 @@ export let versionDataMainnet: any = {
       MaxQuerySize: 64,
       MaxTxsQuerySize: 4,
       MaxTxReceiptsQuerySize: 4,
-      MaxOnlyReceiptsQuerySize: 4,
+      MaxOnlyReceiptsQuerySize: 8,
       QueryEncodingVersion: 1,
     },
   },

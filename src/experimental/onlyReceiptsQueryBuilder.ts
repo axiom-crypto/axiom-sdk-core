@@ -67,7 +67,7 @@ export class OnlyReceiptsQueryBuilder {
       );
     this.config = new InternalConfig(config);
     this.maxSize =
-      maxSize ?? this.config.getConstants().Values.OnlyReceiptsQueryBuilder;
+      maxSize ?? this.config.getConstants().Values.MaxOnlyReceiptsQuerySize;
     if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }

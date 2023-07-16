@@ -160,6 +160,16 @@ export class TxReceiptsQueryBuilder {
   }
 
   async build(): Promise<QueryBuilderResponse> {
+    const keccakQueryResponse = await this.getResponse();
+    const query = this.packQuery();
+    const queryHash = keccak256(query);
+    return { queryHash, query, keccakQueryResponse };
+  }
+
+  async getResponseTrees(): Promise<{
+    tx: TxResponseTree;
+    receipt: ReceiptResponseTree;
+  }> {
     if (this.tx.queries.length === 0 && this.receipt.getCurrentSize() === 0) {
       throw new Error("You haven't made any queries yet!");
     }
@@ -177,22 +187,14 @@ export class TxReceiptsQueryBuilder {
         field: TransactionField.To,
       });
     }
-    const keccakQueryResponse = this.getResponse();
-    const query = this.packQuery();
-    const queryHash = keccak256(query);
-    return { queryHash, query, keccakQueryResponse };
-  }
-
-  getResponseTrees(): { tx: TxResponseTree; receipt: ReceiptResponseTree } {
-    // special resize strategy:
     return {
       tx: this.tx.getResponseTree(),
       receipt: this.receipt.getResponseTree(),
     };
   }
 
-  getResponse(): string {
-    const { tx, receipt } = this.getResponseTrees();
+  async getResponse(): Promise<string> {
+    const { tx, receipt } = await this.getResponseTrees();
     const txResponse = tx.tree.getHexRoot();
     const receiptResponse = receipt.tree.getHexRoot();
     const response = ethers.solidityPackedKeccak256(
@@ -230,8 +232,7 @@ class TxQueryBuilder {
         "TxQueryBuilder is only supported when version = experimental"
       );
     this.config = new InternalConfig(config);
-    this.maxSize =
-      maxSize ?? this.config.getConstants().Values.MaxTxReceiptsQuerySize;
+    this.maxSize = maxSize ?? this.config.getConstants().Values.MaxTxsQuerySize;
     if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
     }
