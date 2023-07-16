@@ -177,7 +177,14 @@ export class OnlyReceiptsQueryBuilder {
           if (queryRow.logIndex === undefined || logIdx >= logs.length) {
             throw new Error("Invalid log index");
           }
-          const log = logs[logIdx];
+          const _log = logs[logIdx];
+          const log = [_log.address, _log.topics, _log.data].map((x) => {
+            if (x === "0x0") {
+              return "0x";
+            }
+            if (typeof x === "string") return makeEvenHex(x);
+            return x;
+          });
           value = ethers.encodeRlp(log);
           break;
         default:

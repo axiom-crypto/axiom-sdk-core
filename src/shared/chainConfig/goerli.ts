@@ -67,7 +67,7 @@ export let versionDataGoerli: any = {
     Addresses: {
       Axiom: "0x8eb3a522cab99ed365e450dad696357de8ab7e9d",
       AxiomQuery: "0x82842F7a41f695320CC255B34F18769D68dD8aDF",
-      AxiomExperimental: "",
+      AxiomExperimental: "0x584c62d7A56B662fE50e16CaF4B5a7091D02BD6A",
     },
     Urls: {
       ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
