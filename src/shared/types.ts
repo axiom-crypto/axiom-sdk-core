@@ -90,7 +90,7 @@ export enum QueryType {
 export interface QueryHeader {
   version: number;
   numRows: number;
-  queryType?: QueryType
+  queryType?: QueryType;
 }
 
 export interface DecodedQuery {

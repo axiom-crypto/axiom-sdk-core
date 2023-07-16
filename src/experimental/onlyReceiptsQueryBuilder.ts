@@ -2,6 +2,7 @@ import { ethers, keccak256 } from "ethers";
 import { InternalConfig } from "../core/internalConfig";
 import { getReceipt, makeEvenHex } from "../shared/utils";
 import {
+  OnlyReceiptsValidationData,
   ProcessedReceiptQueryRow,
   ReceiptQueryData,
   ReceiptResponseTree,
@@ -9,6 +10,7 @@ import {
 import MerkleTree from "merkletreejs";
 import { QueryBuilderResponse } from "../shared/types";
 import { encodeReceiptQuery } from "./encoder";
+import { getReceiptResponse } from "./response";
 
 export enum ReceiptField {
   Status, // status for post EIP-658
@@ -90,6 +92,37 @@ export class OnlyReceiptsQueryBuilder {
       queryHash,
       query,
       keccakQueryResponse,
+    };
+  }
+
+  /**
+   * Generates the calldata to pass into the `areOnlyReceiptsValid` view function.
+   * @returns keccakReceiptResponse: the keccak256 hash of the response tree
+   * @returns receiptResponses: the Merkle proof of each receipt datum into the response tree
+   */
+  async getValidationWitness(): Promise<OnlyReceiptsValidationData> {
+    const keccakReceiptResponse = this.getResponse();
+    const receiptResponses = [];
+    const _tree = this.getResponseTree();
+    const tree = _tree.tree;
+    const dataToIndex = _tree.dataToIndex;
+    for (const queryData of this.queryData) {
+      const leafIdx = dataToIndex.get(queryData);
+      if (leafIdx === undefined) {
+        throw new Error(
+          `Could not find query ${queryData} in the responseTree`
+        );
+      }
+      const proof = tree.getHexProof(tree.getLeaf(leafIdx), leafIdx);
+      receiptResponses.push({
+        leafIdx,
+        proof,
+        ...queryData,
+      });
+    }
+    return {
+      keccakReceiptResponse,
+      receiptResponses,
     };
   }
 
@@ -221,17 +254,7 @@ export class OnlyReceiptsQueryBuilder {
     const leaves = [];
     try {
       for (const queryData of this.queryData) {
-        const leaf = ethers.solidityPackedKeccak256(
-          ["uint32", "uint32", "uint8", "uint8", "bytes"],
-          [
-            queryData.blockNumber,
-            queryData.txIdx,
-            queryData.fieldIdx,
-            queryData.logIdx,
-            queryData.value,
-          ]
-        );
-        leaves.push(leaf);
+        leaves.push(getReceiptResponse(queryData));
       }
     } catch (err) {
       throw new Error(`Unable to build tree: ${err}`);

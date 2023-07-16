@@ -1,11 +1,13 @@
 import { ZeroHash, ethers, keccak256, solidityPackedKeccak256 } from "ethers";
 import { InternalConfig } from "../core/internalConfig";
-import { Constants, TxFields } from "./constants";
+import { TxFields } from "./constants";
 import { getTransaction, makeEvenHex } from "../shared/utils";
 import {
   ProcessedTxQueryRow,
   ReceiptResponseTree,
+  SolidityTxResponse,
   TxQueryData,
+  TxReceiptsValidationData,
   TxResponseTree,
 } from "./types";
 import MerkleTree from "merkletreejs";
@@ -15,8 +17,8 @@ import {
   ReceiptQueryRow,
 } from "./onlyReceiptsQueryBuilder";
 import { encodeReceiptQuery, encodeTxQuery } from "./encoder";
-import { Query } from "../core/query";
 import { QueryBuilderResponse } from "../shared/types";
+import { getTxResponse } from "./response";
 
 export enum TransactionType {
   Legacy,
@@ -164,6 +166,28 @@ export class TxReceiptsQueryBuilder {
     const query = this.packQuery();
     const queryHash = keccak256(query);
     return { queryHash, query, keccakQueryResponse };
+  }
+
+  /**
+   * Generates the calldata to pass into the `areTxReceiptsValid` view function.
+   * @returns keccakTxResponse: the keccak256 merkle root of the queried transaction data
+   * @returns keccakReceiptResponse: the keccak256 merkle root of the queried receipt data
+   * @returns txResponses: the Merkle proof of each transaction datum into the response tree
+   * @returns receiptResponses: the Merkle proof of each receipt datum into the response tree
+   */
+  async getValidationWitness(): Promise<TxReceiptsValidationData> {
+    // call this first so it creates response trees with correct resizing strategy
+    await this.getResponseTrees();
+    const { keccakTxResponse, txResponses } =
+      await this.tx.getValidationWitness();
+    const { keccakReceiptResponse, receiptResponses } =
+      await this.receipt.getValidationWitness();
+    return {
+      keccakTxResponse,
+      keccakReceiptResponse,
+      txResponses,
+      receiptResponses,
+    };
   }
 
   async getResponseTrees(): Promise<{
@@ -348,17 +372,7 @@ class TxQueryBuilder {
     const leaves = [];
     try {
       for (const queryData of this.queryData) {
-        const leaf = ethers.solidityPackedKeccak256(
-          ["uint32", "uint32", "uint8", "uint8", "bytes"],
-          [
-            queryData.blockNumber,
-            queryData.txIdx,
-            queryData.txType,
-            queryData.fieldIdx,
-            queryData.value,
-          ]
-        );
-        leaves.push(leaf);
+        leaves.push(getTxResponse(queryData));
       }
     } catch (err) {
       throw new Error(`Unable to build tree: ${err}`);
@@ -375,5 +389,34 @@ class TxQueryBuilder {
       dataToIndex,
     };
     return this.responseTree.tree.getHexRoot();
+  }
+
+  async getValidationWitness(): Promise<{
+    keccakTxResponse: string;
+    txResponses: SolidityTxResponse[];
+  }> {
+    const keccakTxResponse = await this.getResponse();
+    const txResponses = [];
+    const _tree = this.getResponseTree();
+    const tree = _tree.tree;
+    const dataToIndex = _tree.dataToIndex;
+    for (const queryData of this.queryData) {
+      const leafIdx = dataToIndex.get(queryData);
+      if (leafIdx === undefined) {
+        throw new Error(
+          `Could not find query ${queryData} in the responseTree`
+        );
+      }
+      const proof = tree.getHexProof(tree.getLeaf(leafIdx), leafIdx);
+      txResponses.push({
+        leafIdx,
+        proof,
+        ...queryData,
+      });
+    }
+    return {
+      keccakTxResponse,
+      txResponses,
+    };
   }
 }

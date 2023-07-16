@@ -38,3 +38,25 @@ export interface ReceiptResponseTree {
   data: ReceiptQueryData[];
   dataToIndex: Map<ReceiptQueryData, number>;
 }
+
+export interface SolidityTxResponse extends TxQueryData {
+  leafIdx: number;
+  proof: string[];
+}
+
+export interface SolidityReceiptResponse extends ReceiptQueryData {
+  leafIdx: number;
+  proof: string[];
+}
+
+export interface TxReceiptsValidationData {
+  keccakTxResponse: string;
+  keccakReceiptResponse: string;
+  txResponses: SolidityTxResponse[];
+  receiptResponses: SolidityReceiptResponse[];
+}
+
+export interface OnlyReceiptsValidationData {
+  keccakReceiptResponse: string;
+  receiptResponses: SolidityReceiptResponse[];
+}
