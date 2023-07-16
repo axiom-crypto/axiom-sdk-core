@@ -1,9 +1,7 @@
-import { TxReceiptQueryRow } from "./txReceiptsQueryBuilder";
+export function decodeExperimentalQuery(query: string) {}
 
-export function decodeTxReceiptsPackedQuery(query: string) {
-
-}
-
+/*
 function decodeTxReceiptsPackedQueryV1(encodedQueries: string, rows: number): TxReceiptQueryRow[] {
   return [];
 }
+*/

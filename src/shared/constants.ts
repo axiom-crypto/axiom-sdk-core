@@ -1,24 +1,42 @@
-import { versionDataMainnet, versionOverrideMainnetMock } from "./chainConfig/mainnet";
-import { versionDataGoerli, versionOverrideGoerliMock } from "./chainConfig/goerli";
+import {
+  versionDataMainnet,
+  versionOverrideMainnetMock,
+} from "./chainConfig/mainnet";
+import {
+  versionDataGoerli,
+  versionOverrideGoerliMock,
+} from "./chainConfig/goerli";
 import { deepCopyObject } from "./utils";
 
-export const Versions = ["v0", "v0_2", "v1"];
+export const Versions = ["v0", "v0_2", "v1", "experimental"];
 
-export type VersionsType = (typeof Versions)[number]
+export type VersionsType = (typeof Versions)[number];
 
-export function setVersionData(chainId: number, version: string, mock: boolean) {
+export function setVersionData(
+  chainId: number,
+  version: string,
+  mock: boolean
+) {
   let versionData;
   switch (chainId) {
     case 1:
       versionData = deepCopyObject(versionDataMainnet);
       if (mock) {
-        updateConstants(versionData, version, versionOverrideMainnetMock[version]);
+        updateConstants(
+          versionData,
+          version,
+          versionOverrideMainnetMock[version]
+        );
       }
       break;
     case 5:
       versionData = deepCopyObject(versionDataGoerli);
       if (mock) {
-        updateConstants(versionData, version, versionOverrideGoerliMock[version]);
+        updateConstants(
+          versionData,
+          version,
+          versionOverrideGoerliMock[version]
+        );
       }
       break;
     case 31337:
@@ -38,14 +56,17 @@ export const ContractEvents = Object.freeze({
   QueryFulfilled: "QueryFulfilled",
 });
 
-
 /// Update constants using the same nested object structure as the versionData variable.
 /// Pass the updateObject in as an override when initializing Axiom.
-export function updateConstants(versionData: any, version: string, updateObject: any): any {
-  const versionUpdateObject = { 
-    [version]: updateObject 
-  }
-  return updateConstantsRecursive({...versionData}, versionUpdateObject);
+export function updateConstants(
+  versionData: any,
+  version: string,
+  updateObject: any
+): any {
+  const versionUpdateObject = {
+    [version]: updateObject,
+  };
+  return updateConstantsRecursive({ ...versionData }, versionUpdateObject);
 }
 
 function updateConstantsRecursive(versionMem: any, updateMem: any): any {
@@ -57,7 +78,7 @@ function updateConstantsRecursive(versionMem: any, updateMem: any): any {
     }
     if (typeof updateMem[key] !== "object") {
       versionMem[key] = updateMem[key];
-      continue;  
+      continue;
     }
     updateConstantsRecursive(versionMem[key], updateMem[key]);
   }
