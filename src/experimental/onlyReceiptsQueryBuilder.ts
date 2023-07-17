@@ -11,6 +11,7 @@ import MerkleTree from "merkletreejs";
 import { QueryBuilderResponse } from "../shared/types";
 import { encodeReceiptQuery } from "./encoder";
 import { getReceiptResponse } from "./response";
+import { abi as AxiomExperimentalAbi } from "./lib/abi/AxiomExperimentalTxMock.json";
 
 export enum ReceiptField {
   Status, // status for post EIP-658
@@ -124,6 +125,29 @@ export class OnlyReceiptsQueryBuilder {
       keccakReceiptResponse,
       receiptResponses,
     };
+  }
+
+  /**
+   * Convenience method to call `sendTxReceiptsQuery` on the currently built query for you.
+   */
+  async sendOnlyReceiptsQuery(
+    signer: ethers.Signer,
+    refundee: string,
+    extraArgs: any
+  ) {
+    const { keccakQueryResponse, query } = await this.build();
+    const axiomExperimental = new ethers.Contract(
+      this.config.getConstants().Addresses.AxiomExperimental,
+      AxiomExperimentalAbi,
+      signer
+    );
+    const tx = await axiomExperimental.sendOnlyReceiptsQuery(
+      keccakQueryResponse,
+      refundee,
+      query,
+      extraArgs
+    );
+    return tx.wait();
   }
 
   getResponseTree(): ReceiptResponseTree {

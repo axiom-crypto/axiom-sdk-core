@@ -19,6 +19,7 @@ import {
 import { encodeReceiptQuery, encodeTxQuery } from "./encoder";
 import { QueryBuilderResponse } from "../shared/types";
 import { getTxResponse } from "./response";
+import { abi as AxiomExperimentalAbi } from "./lib/abi/AxiomExperimentalTxMock.json";
 
 export enum TransactionType {
   Legacy,
@@ -144,8 +145,10 @@ export function mapTransactionTypeToFieldIndex(
 export class TxReceiptsQueryBuilder {
   private tx: TxQueryBuilder;
   private receipt: OnlyReceiptsQueryBuilder;
+  private config: InternalConfig;
 
   constructor(config: InternalConfig) {
+    this.config = config;
     this.tx = new TxQueryBuilder(config);
     this.receipt = new OnlyReceiptsQueryBuilder(
       config,
@@ -188,6 +191,29 @@ export class TxReceiptsQueryBuilder {
       txResponses,
       receiptResponses,
     };
+  }
+
+  /**
+   * Convenience method to call `sendTxReceiptsQuery` on the currently built query for you.
+   */
+  async sendTxReceiptsQuery(
+    signer: ethers.Signer,
+    refundee: string,
+    extraArgs: any
+  ) {
+    const { keccakQueryResponse, query } = await this.build();
+    const axiomExperimental = new ethers.Contract(
+      this.config.getConstants().Addresses.AxiomExperimental,
+      AxiomExperimentalAbi,
+      signer
+    );
+    const tx = await axiomExperimental.sendTxReceiptsQuery(
+      keccakQueryResponse,
+      refundee,
+      query,
+      extraArgs
+    );
+    return tx.wait();
   }
 
   async getResponseTrees(): Promise<{
