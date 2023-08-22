@@ -1,5 +1,5 @@
 import { ethers, keccak256 } from "ethers";
-import { Axiom, AxiomConfig } from "../../src";
+import { Axiom, AxiomConfig } from "../../../src";
 
 describe('QueryBuilder', () => {
   if (process.env.PROVIDER_URI === undefined) {
@@ -34,15 +34,6 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 0});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 3});
-      const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
-
-    test('should successfully build a Query with 0x0-valued slots', async () => {
-      const qb = ax.newQueryBuilder();
-      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 2});
-      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 4});
-      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 5});
-      await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 6});
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
     });
 

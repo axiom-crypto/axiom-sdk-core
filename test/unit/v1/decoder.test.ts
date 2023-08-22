@@ -1,4 +1,5 @@
-import { decodePackedQuery } from "../../src/query/decoder";
+import { decodePackedQuery } from "../../../src";
+
 
 describe('Decoder', () => {
   test('Decoding a packed QueryV1', () => {

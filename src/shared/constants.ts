@@ -2,7 +2,7 @@ import { versionDataMainnet, versionOverrideMainnetMock } from "./chainConfig/ma
 import { versionDataGoerli, versionOverrideGoerliMock } from "./chainConfig/goerli";
 import { deepCopyObject } from "./utils";
 
-export const Versions = ["v0", "v0_2", "v1"];
+export const Versions = ["v0", "v0_2", "v1", "v2"];
 
 export type VersionsType = (typeof Versions)[number]
 

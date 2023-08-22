@@ -63,6 +63,31 @@ export let versionDataMainnet: any = {
       QueryEncodingVersion: 1,
     },
   },
+  v2: {
+    Addresses: {
+      Axiom: "",
+      AxiomQuery: "",
+    },
+    Urls: {
+      ApiBaseUrl: "https://api.axiom.xyz/v2",
+    },
+    Endpoints: {
+      GetBlockHashWitness: Path.Block + Endpoints.GetBlockHashWitness,
+      GetBlockMerkleProof: Path.Block + Endpoints.GetBlockMerkleProof,
+      GetBlockParams: Path.Block + Endpoints.GetBlockParams,
+      GetBlockRlpHeader: Path.Block + Endpoints.GetBlockRlpHeader,
+      GetBlockMmrProof: Path.Block + Endpoints.GetBlockMmrProof,
+      GetAllQueries: Path.Query + Endpoints.GetAllQueries,
+      GetDataForQuery: Path.Query + Endpoints.GetDataForQuery,
+      GetQueryCount: Path.Query + Endpoints.GetQueryCount,
+      GetQueryData: Path.Query + Endpoints.GetQueryData,
+      GetQuery: Path.Query + Endpoints.GetQuery,
+    },
+    Values: {
+      MaxQuerySize: 64,
+      QueryEncodingVersion: 2,
+    },
+  }
 };
 
 export let versionOverrideMainnetMock: any = {

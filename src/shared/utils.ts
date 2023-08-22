@@ -68,7 +68,29 @@ export function sortSlot(
   return parseInt(a.toString(), 16) - parseInt(b.toString(), 16);
 };
 
+export function deepSort(
+  arr: any[],
+  keys: string[],
+  sortFns: ((a: any, b: any) => number)[],
+) {
+  return arr.sort((a, b) => {
+    let result = 0;
+    for (let i = 0; i < keys.length; i++) {
+      result = sortFns[i](a[keys[i]], b[keys[i]]);
+      if (result !== 0) {
+        return result;
+      }
+    }
+    return result;
+  });
+}
+
 // Deep copy any object with nested objects. Will not deep copy functions inside the object.
 export function deepCopyObject(obj: any): any {
   return JSON.parse(JSON.stringify(obj));
+}
+
+export function getFunctionSelector(functionName: string, params: string[]) {
+  return ethers.FunctionFragment.getSelector(functionName, params);
+  // return ethers.dataSlice(ethers.id(functionSignature), 0, 4);
 }

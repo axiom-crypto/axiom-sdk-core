@@ -1,4 +1,4 @@
-import { DecodedQuery, QueryHeader, QueryRow } from "..";
+import { DecodedQuery, QueryHeader, QueryRow } from "../..";
 
 // The packed query blob is encodePacked as [versionIdx, length, encdoedQueries[]]: ["uint8", "uint32", "bytes[]"]
 // Each row is then encodePacked as [length, blockNumber, address, slot, value]: ["uint8", "uint32", "address", "uint256", "uint256"]

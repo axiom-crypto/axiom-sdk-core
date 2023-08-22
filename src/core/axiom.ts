@@ -1,9 +1,11 @@
 import { InternalConfig } from './internalConfig';
 import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
-import { Query } from './query';
-import { QueryBuilder } from '../query/queryBuilder';
+import { QueryV1 } from '../v1/query/queryV1';
+import { QueryBuilderV1 } from '../v1/query/queryBuilderV1';
 import { getAxiomAbiForVersion, getAxiomQueryAbiForVersion } from './lib/abi';
+import { Query } from './query';
+import { QueryV2 } from '../v2/query/queryV2';
 
 export class Axiom {
   /**
@@ -24,12 +26,31 @@ export class Axiom {
   constructor(config: AxiomConfig, overrides?: any) {
     this.config = new InternalConfig(config, overrides);
 
-    this.block = new Block(this.config);
-    this.query = new Query(this.config);
+    switch (this.config.version) {
+      case "v0":
+      case "v0_2":
+      case "v1":
+        this.block = new Block(this.config);
+        this.query = new QueryV1(this.config);
+        break;
+      case "v2":
+        this.block = new Block(this.config);
+        this.query = new QueryV2(this.config);
+        break;
+      default:
+        throw new Error(`Invalid version detected: ${this.config.version}`)
+    }
   }
 
-  newQueryBuilder(): QueryBuilder {
-    return new QueryBuilder(this.config);
+  newQueryBuilder(): QueryBuilderV1 {
+    if (
+      !(this.config.version === "v0" || 
+      this.config.version === "v0_2" || 
+      this.config.version === "v1"
+    )) {
+      throw new Error("QueryBuilder is deprecated after v1");
+    }
+    return new QueryBuilderV1(this.config);
   }
 
   getAxiomAbi(): any {
@@ -49,4 +70,4 @@ export class Axiom {
   }
 }
 
-export { decodePackedQuery } from '../query/decoder';
+export { decodePackedQuery } from '../v1/query/decoder';

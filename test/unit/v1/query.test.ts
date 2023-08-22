@@ -1,4 +1,4 @@
-import { Axiom, AxiomConfig } from "../../src";
+import { Axiom, AxiomConfig } from "../../../src";
 
 describe('Axiom Query', () => {
   if (process.env.PROVIDER_URI === undefined) {

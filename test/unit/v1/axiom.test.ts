@@ -1,5 +1,5 @@
-import { Axiom, AxiomConfig } from "../../src";
-import { Versions } from "../../src/shared/constants";
+import { Axiom, AxiomConfig } from "../../../src";
+import { Versions } from "../../../src/shared/constants";
 
 describe('Axiom Core tests', () => {
   const AX_ADDR_OVERRIDE = "0x8eb3a522cab99ed365e450dad696357de8ab7e9d";

@@ -1,10 +1,17 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-require('dotenv').config({
+// require('dotenv').config({
+//   path: '.env.local'
+// });
+import dotenv from 'dotenv';
+dotenv.config({
   path: '.env.local'
 });
 
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  // transform: {
+  //   '^.+\\.ts?$': 'ts-jest',
+  // },
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
 };

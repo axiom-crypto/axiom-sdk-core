@@ -1,30 +1,30 @@
 import { ZeroAddress, ZeroHash, ethers, keccak256 } from "ethers";
-import { QueryBuilderResponse, QueryData, QueryRow, ResponseTree } from "../shared/types";
+import { QueryBuilderResponse, QueryData, QueryRow, ResponseTree } from "../../shared/types";
 import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse,
 } from "./response";
 import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
-import { InternalConfig } from "../core/internalConfig";
+import { InternalConfig } from "../../core/internalConfig";
 import { 
   concatHexStrings,
   getAccountData, 
   sortAddress,
   sortBlockNumber,
   sortSlot 
-} from "../shared/utils";
+} from "../../shared/utils";
 import { validateQueryRow } from "./validate";
 import MerkleTree from "merkletreejs";
 
-export class QueryBuilder {
+export class QueryBuilderV1 {
+  protected readonly config: InternalConfig;
   private queries: QueryRow[] = [];
   private responseTree?: ResponseTree = undefined;
-  private readonly config: InternalConfig;
   private readonly maxSize: number;
 
   constructor(config: InternalConfig) {
-    this.config = new InternalConfig(config);
+    this.config = config;
     this.maxSize = this.config.getConstants().Values.MaxQuerySize;
     if ((this.maxSize & (this.maxSize - 1)) !== 0) {
       throw new Error("QueryBuilder maxSize must be a power of 2");
