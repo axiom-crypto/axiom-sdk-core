@@ -85,6 +85,14 @@ export function deepSort(
   });
 }
 
+export function sortByNumber(a: number, b: number) {
+  return a - b;
+}
+
+export function sortByHex(a: string, b: string) {
+  return parseInt(a, 16) - parseInt(b, 16);
+}
+
 // Deep copy any object with nested objects. Will not deep copy functions inside the object.
 export function deepCopyObject(obj: any): any {
   return JSON.parse(JSON.stringify(obj));
@@ -92,5 +100,4 @@ export function deepCopyObject(obj: any): any {
 
 export function getFunctionSelector(functionName: string, params: string[]) {
   return ethers.FunctionFragment.getSelector(functionName, params);
-  // return ethers.dataSlice(ethers.id(functionSignature), 0, 4);
 }

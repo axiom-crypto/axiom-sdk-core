@@ -16,7 +16,8 @@ import {
   encodeQueryV2,
   encodeReceiptSubquery,  
   encodeStorageSubquery,
-  encodeTxSubquery
+  encodeTxSubquery,
+  encodeComputeQuery
 } from '@axiom-crypto/codec';
 import { InternalConfig } from "../../core/internalConfig";
 import { BuiltQueryV2, DataQueryRequestV2, QueryBuilderV2Options, CallbackRequestV2 } from "../types";
@@ -49,12 +50,10 @@ export class QueryBuilderV2 {
     }
 
     if (computeQuery !== undefined) {
-      this.computeQuery = computeQuery;
       this.handleComputeQueryRequest(computeQuery);
     }
 
     if (callback !== undefined) {
-      this.callback = callback;
       this.handleCallback(callback);
     }
   }
@@ -123,7 +122,7 @@ export class QueryBuilderV2 {
     }
   }
 
-  async submitOnchainQuery(refundee: string, paymentEth: string, cb?: (receipt: ethers.TransactionReceipt) => void) {
+  async submitOnchainQuery(refundee: string, paymentAmountEth: string, cb?: (receipt: ethers.TransactionReceipt) => void) {
     if (this.config.privateKey === undefined) {
       throw new Error("Private key required for sending transactions.");
     }
@@ -137,14 +136,14 @@ export class QueryBuilderV2 {
       wallet
     );
     const tx = await axiomV2Query.submitQuery(
-      this.builtQuery?.dataQueryHash,
-      this.computeQuery ?? ConstantsV2.EmptyComputeQuery,
-      this.callback?.callbackAddr ?? ethers.ZeroAddress,
-      this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
-      this.callback?.callbackExtraData ?? ethers.ZeroHash,
+      this.builtQuery.dataQueryHash,
+      this.builtQuery.computeQuery,
+      this.builtQuery.callback.callbackAddr,
+      this.builtQuery.callback.callbackFunctionSelector,
+      this.builtQuery.callback.callbackExtraData,
       refundee,
       this.builtQuery?.dataQuery ?? ethers.ZeroHash,
-      { value: paymentEth }
+      { value: paymentAmountEth }
     );
     const receipt = tx.wait();
     if (cb !== undefined) {
@@ -152,7 +151,7 @@ export class QueryBuilderV2 {
     }
   }
 
-  async submitOffchainQuery(refundee: string, paymentEth: string, cb?: (receipt: ethers.TransactionReceipt) => void) {
+  async submitOffchainQuery(refundee: string, paymentAmountEth: string, cb?: (receipt: ethers.TransactionReceipt) => void) {
     if (this.config.privateKey === undefined) {
       throw new Error("Private key required for sending transactions.");
     }
@@ -176,7 +175,7 @@ export class QueryBuilderV2 {
       this.callback?.callbackExtraData ?? ethers.ZeroHash,
       refundee,
       ipfsHash,
-      { value: paymentEth }
+      { value: paymentAmountEth }
     );
     const receipt = tx.wait();
     if (cb !== undefined) {
@@ -194,34 +193,52 @@ export class QueryBuilderV2 {
 
   async build(): Promise<BuiltQueryV2> {
     // Encode data
-    const encodedSubqueries = this.encodeDataSubqueries();
+    let encodedSubqueries = this.encodeDataSubqueries();
+    console.log(encodedSubqueries);
+    if (encodedSubqueries.length === 0) {
+      encodedSubqueries = ethers.ZeroHash;
+    }
     const dataQuery = ethers.solidityPacked(
       ["uint32", "bytes"],
       [this.config.chainId, encodedSubqueries]
     );
     const dataQueryHash = ethers.keccak256(dataQuery);
-    const encodedComputeQuery = this.computeQuery ?? ConstantsV2.EmptyComputeQueryObject;
-    const callback = this.callback ?? ConstantsV2.EmptyCallbackObject;
+    let encodedComputeQuery: string = ConstantsV2.EmptyComputeQuery;
+    if (this.computeQuery !== undefined) {
+      encodedComputeQuery = encodeComputeQuery(
+        this.computeQuery.k,
+        this.computeQuery.omega,
+        this.computeQuery.vkey,
+        this.computeQuery.resultLen,
+        this.computeQuery.computeProof
+      );
+    }
+    const callback = {
+      callbackAddr: this.callback?.callbackAddr ?? ethers.ZeroAddress,
+      callbackFunctionSelector: this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
+      callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
+    }
+    // const encodedQuery = encodeQueryV2(
+    //   this.config.chainId,
+    //   dataQueryHash,
+    //   encodedComputeQuery,
+    //   callback.callbackAddr,
+    //   callback.callbackFunctionSelector,
+    //   callback.callbackExtraData,
+    // );
 
-    const encodedQuery = encodeQueryV2(
-      this.config.chainId,
-      dataQueryHash,
-      encodedComputeQuery,
-      callback.callbackAddr,
-      callback.callbackFunctionSelector,
-      callback.callbackExtraData,
-    );
-
-    // Hash the encoded data
-
-    return {
+    this.builtQuery = {
       dataQueryHash,
       dataQuery,
-    }
+      computeQuery: encodedComputeQuery,
+      callback,
+    };
+
+    return this.builtQuery;
   }
 
   private encodeDataSubqueries() {
-    let encodedSubqueries = "";
+    let encodedSubqueries = "0x";
     for (const sq of this.dataQuery?.headerSubqueries ?? []) {
       const encoded = encodeHeaderSubquery(sq.blockNumber, sq.fieldIdx);
       encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
@@ -307,8 +324,10 @@ export class QueryBuilderV2 {
   }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
+    this.computeQuery = computeQuery;
   }
 
   private handleCallback(callback: CallbackRequestV2) {
+    this.callback = callback;
   }
 }

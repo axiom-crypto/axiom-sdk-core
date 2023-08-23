@@ -7,7 +7,7 @@ import {
   SolidityBlockResponse,
   SolidityStorageResponse,
   ValidationWitnessResponse,
-  decodePackedQuery
+  decodeQuery,
 } from "../..";
 import { ethers } from "ethers";
 import { encodeRowHash } from "./encoder";
@@ -280,7 +280,7 @@ export class QueryV1 extends Query {
   async getResponseTreeFromTxHash(txHash: string): Promise<ResponseTree> {
     let decodedTx = await this.getTxDecodedForTxHash(txHash);
     let query = decodedTx?.args.query;
-    let decodedQuery = decodePackedQuery(query);
+    let decodedQuery = decodeQuery(query);
     if (!decodedQuery) {
       throw new Error(
         "Could not find query in transaction (ensure you are using the tx hash of the `sendQuery` transaction)"

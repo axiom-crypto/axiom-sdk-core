@@ -30,6 +30,8 @@ export interface QueryBuilderV2Options {
 export interface BuiltQueryV2 {
   dataQueryHash: string;
   dataQuery: string;
+  computeQuery: string;
+  callback: CallbackRequestV2;
 }
 
 export type { QueryBuilderV2 } from './query/queryBuilderV2';
