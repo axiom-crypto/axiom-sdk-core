@@ -6,7 +6,7 @@ export let versionDataGoerli: any = {
       Axiom: "",
     },
     Urls: {
-      ApiBaseUrl: "https://axiom-api-staging.vercel.app/v0",
+      ApiBaseUrl: "https://api.axiom.xyz/v0",
     },
     Endpoints: {
       GetBlockHashWitness: Endpoints.GetBlockHashWitness,
@@ -24,7 +24,7 @@ export let versionDataGoerli: any = {
       Axiom: "",
     },
     Urls: {
-      ApiBaseUrl: "https://axiom-api-staging.vercel.app/v0_2",
+      ApiBaseUrl: "https://api.axiom.xyz/v0_2",
     },
     Endpoints: {
       GetBlockHashWitness: Endpoints.GetBlockHashWitness,
@@ -44,7 +44,7 @@ export let versionDataGoerli: any = {
       AxiomQuery: "0x82842F7a41f695320CC255B34F18769D68dD8aDF",
     },
     Urls: {
-      ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
+      ApiBaseUrl: "https://api.axiom.xyz/v1",
     },
     Endpoints: {
       GetBlockHashWitness: Path.Block + Endpoints.GetBlockHashWitness,
