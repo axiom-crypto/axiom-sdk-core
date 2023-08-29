@@ -17,7 +17,7 @@ export function getAxiomAbiForVersion(version: string): ethers.InterfaceAbi {
     case "v2":
       return AxiomV2Abi;
     default:
-      throw new Error("Invalid ABI");
+      throw new Error(`Version ${version} does not have an ABI`);
   }
 }
 
@@ -30,6 +30,6 @@ export function getAxiomQueryAbiForVersion(
     case "v2":
       return AxiomV2QueryAbi;
     default:
-      throw new Error("Current version does not have a Query ABI");
+      throw new Error(`Version ${version} does not have a Query ABI`);
   }
 }

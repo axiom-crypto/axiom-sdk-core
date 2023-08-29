@@ -30,6 +30,7 @@ import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
 import { resizeArray } from "../../shared/utils";
+import { PaymentCalc } from "./paymentCalc";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -54,8 +55,7 @@ export class QueryBuilderV2 {
     }
 
     if (dataQuery !== undefined) {
-      this.dataQuery = this.handleDataQueryRequest(dataQuery);;
-      
+      this.dataQuery = this.handleDataQueryRequest(dataQuery);
     }
 
     if (computeQuery !== undefined) {
@@ -67,18 +67,71 @@ export class QueryBuilderV2 {
     }
   }
 
+  getDataQuery(): DataQueryRequestV2 | undefined {
+    return this.dataQuery;
+  }
+
+  getComputeQuery(): AxiomV2ComputeQuery | undefined {
+    return this.computeQuery;
+  }
+
+  getCallback(): AxiomV2Callback | undefined {
+    return this.callback;
+  }
+
+  getOptions(): QueryBuilderV2Options {
+    return this.options;
+  }
+
   setDataQuery(dataQuery: DataQueryRequestV2) {
-    this.dataQuery = dataQuery;
+    this.dataQuery = this.handleDataQueryRequest(dataQuery);;
   }
 
   setComputeQuery(computeQuery: AxiomV2ComputeQuery) {
-    this.computeQuery = computeQuery;
+    this.computeQuery = this.handleComputeQueryRequest(computeQuery);
   }
 
   setCallback(callback: AxiomV2Callback) {
-    this.callback = callback;
+    this.callback = this.handleCallback(callback);
   }
 
+  setOptions(options: QueryBuilderV2Options) {
+    this.options = options;
+  }
+
+  /**
+   * Append a `DataQueryRequestV2` object to the current dataQuery
+   * @param dataQuery A `DataQueryRequestV2` object to append 
+   */
+  append(dataQuery: DataQueryRequestV2) {
+    for (const sq of dataQuery.headerSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.Header, sq);
+    }
+    for (const sq of dataQuery.accountSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.Account, sq);
+    }
+    for (const sq of dataQuery.storageSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.Storage, sq);
+    }
+    for (const sq of dataQuery.txSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.Transaction, sq);
+    }
+    for (const sq of dataQuery.receiptSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.Receipt, sq);
+    }
+    for (const sq of dataQuery.solidityNestedMappingSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.SolidityNestedMapping, sq);
+    }
+    for (const sq of dataQuery.beaconSubqueries ?? []) {
+      this.appendDataSubquery(DataSubqueryType.BeaconValidator, sq);
+    }
+  }
+
+  /**
+   * Appends a single subquery to the current dataQuery
+   * @param type The type of subquery to append
+   * @param dataSubquery The data of the subquery to append
+   */
   appendDataSubquery(type: DataSubqueryType, dataSubquery: SubqueryResponse) {
     if (this.dataQuery === undefined) {
       this.dataQuery = {} as DataQueryRequestV2;
@@ -225,18 +278,21 @@ export class QueryBuilderV2 {
   }
 
   async build(): Promise<BuiltQueryV2> {
-    // Encode data
+    // Encode data query
     let encodedSubqueries = this.encodeDataSubqueries();
     console.log(encodedSubqueries);
     if (encodedSubqueries.length === 0) {
       encodedSubqueries = ethers.ZeroHash;
     }
+
+    // Handle data query
     const dataQuery = ethers.solidityPacked(
       ["uint32", "bytes"],
       [this.config.chainId, encodedSubqueries]
     );
     const dataQueryHash = ethers.keccak256(dataQuery);
-    let encodedComputeQuery: string = ConstantsV2.EmptyComputeQuery;
+
+    // Handle compute query
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
     if (this.computeQuery !== undefined) {
       computeQuery.k = this.computeQuery.k;
@@ -265,6 +321,11 @@ export class QueryBuilderV2 {
     };
 
     return this.builtQuery;
+  }
+
+  calculateFee(): string {
+    const payment = PaymentCalc.calculatePaymentGwei(this);
+    return ethers.formatUnits(payment, "gwei");
   }
 
   private encodeDataSubqueries() {
