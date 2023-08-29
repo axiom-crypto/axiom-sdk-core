@@ -1,7 +1,9 @@
 // Functions that are to be run before the typescript compiler runs
 
-const fs = require('fs');
-const packageJson = require('../package.json');
+import fs from 'fs'
+
+const loadJSON = (path) => JSON.parse(fs.readFileSync(new URL(path, import.meta.url)));
+const packageJson = loadJSON('../package.json');
 
 // Copies the version number from package.json to src/version.ts
 function copyVersion() {

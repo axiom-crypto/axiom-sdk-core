@@ -5,7 +5,7 @@ const packageJson = require('../package.json');
 
 // Copies a modified version of package.json to the /dist folder
 function copyPackageJson() {
-  const packageJsonCopy: any = { ...packageJson };
+  const packageJsonCopy = { ...packageJson };
   delete packageJsonCopy.scripts;
   delete packageJsonCopy.devDependencies;
   delete packageJsonCopy.publishConfig;
