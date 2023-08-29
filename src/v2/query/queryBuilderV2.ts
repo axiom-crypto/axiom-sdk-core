@@ -239,8 +239,7 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQuery,
       { value: paymentAmountWei }
     );
-    console.log(tx);
-    const receipt = tx.wait();
+    const receipt = await tx.wait();
 
     if (cb !== undefined) {
       cb(receipt);
@@ -265,6 +264,7 @@ export class QueryBuilderV2 {
       getAxiomQueryAbiForVersion(this.config.version),
       this.config.signer
     );
+    
     const tx = await axiomV2Query.sendOffchainQuery(
       this.builtQuery.dataQueryHash,
       ipfsHash,
@@ -273,7 +273,7 @@ export class QueryBuilderV2 {
       this.builtQuery.callbackGasLimit,
       { value: paymentAmountWei }
     );
-    const receipt = tx.wait();
+    const receipt = await tx.wait();
 
     if (cb !== undefined) {
       cb(receipt);

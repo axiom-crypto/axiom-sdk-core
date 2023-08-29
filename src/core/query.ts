@@ -6,6 +6,4 @@ export abstract class Query {
   constructor(config: InternalConfig) {
     this.config = config;
   }
-
-  // abstract new(): QueryBuilder;
 }

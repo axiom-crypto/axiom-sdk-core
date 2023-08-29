@@ -23,13 +23,6 @@ export interface DataQueryRequestV2 {
   beaconSubqueries?: BeaconValidatorSubquery[];
 }
 
-// export interface CallbackRequestV2 {
-//   callbackAddr: string;
-//   callbackFunctionSelector: string;
-//   resultLen: number;
-//   callbackExtraData: string;
-// }
-
 export interface QueryBuilderV2Options {
   maxFeePerGas?: string;
   callbackGasLimit?: number;
@@ -61,19 +54,4 @@ export enum HeaderField {
   ExtraData,
   MixHash,
   Nonce,
-}
-
-export enum AccountField {
-  Nonce,
-  Balance,
-  StorageRoot,
-  CodeHash,
-}
-
-export enum TxField {
-
-}
-
-export enum ReceiptField {
-
 }

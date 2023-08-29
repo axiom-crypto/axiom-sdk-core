@@ -28,6 +28,8 @@ describe("QueryV2", () => {
     version: "v2",
     chainId: 1,
   };
+
+  // Override w/ your local anvil address
   const overrides = {
     Addresses: {
       Axiom: "0xf201fFeA8447AB3d43c98Da3349e0749813C9009",
