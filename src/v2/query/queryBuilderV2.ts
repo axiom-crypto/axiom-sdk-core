@@ -34,10 +34,10 @@ import { PaymentCalc } from "./paymentCalc";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
+  private builtQuery?: BuiltQueryV2;
   private dataQuery?: DataQueryRequestV2;
   private computeQuery?: AxiomV2ComputeQuery;
   private callback?: AxiomV2Callback;
-  private builtQuery?: BuiltQueryV2;
   private options: QueryBuilderV2Options;
 
   constructor(
@@ -83,19 +83,32 @@ export class QueryBuilderV2 {
     return this.options;
   }
 
+  getBuiltQuery(): BuiltQueryV2 | undefined {
+    return this.builtQuery;
+  }
+
+  unsetBuiltQuery() {
+    // Reset built query if any data is changed
+    this.builtQuery = undefined;
+  }
+
   setDataQuery(dataQuery: DataQueryRequestV2) {
+    this.unsetBuiltQuery();
     this.dataQuery = this.handleDataQueryRequest(dataQuery);;
   }
 
   setComputeQuery(computeQuery: AxiomV2ComputeQuery) {
+    this.unsetBuiltQuery();
     this.computeQuery = this.handleComputeQueryRequest(computeQuery);
   }
 
   setCallback(callback: AxiomV2Callback) {
+    this.unsetBuiltQuery();
     this.callback = this.handleCallback(callback);
   }
 
   setOptions(options: QueryBuilderV2Options) {
+    this.unsetBuiltQuery();
     this.options = options;
   }
 
@@ -104,6 +117,8 @@ export class QueryBuilderV2 {
    * @param dataQuery A `DataQueryRequestV2` object to append 
    */
   append(dataQuery: DataQueryRequestV2) {
+    this.unsetBuiltQuery();
+
     for (const sq of dataQuery.headerSubqueries ?? []) {
       this.appendDataSubquery(DataSubqueryType.Header, sq);
     }
@@ -133,6 +148,8 @@ export class QueryBuilderV2 {
    * @param dataSubquery The data of the subquery to append
    */
   appendDataSubquery(type: DataSubqueryType, dataSubquery: SubqueryResponse) {
+    this.unsetBuiltQuery();
+
     if (this.dataQuery === undefined) {
       this.dataQuery = {} as DataQueryRequestV2;
     }
@@ -196,23 +213,20 @@ export class QueryBuilderV2 {
   }
 
   async sendOnchainQuery(
-    paymentAmountEth: string,
+    paymentAmountWei: string,
     cb?: (receipt: ethers.TransactionReceipt) => void
   ) {
-    if (this.config.privateKey === undefined) {
-      throw new Error("Private key required for sending transactions.");
+    if (this.config.signer === undefined) {
+      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error("Query must be built with `.build()` before sending.");
     }
-    const wallet = new ethers.Wallet(
-      this.config.privateKey,
-      this.config.provider
-    );
+
     const axiomV2Query = new ethers.Contract(
       this.config.getConstants().Addresses.AxiomQuery,
       getAxiomQueryAbiForVersion(this.config.version),
-      wallet
+      this.config.signer
     );
 
     const tx = await axiomV2Query.sendQuery(
@@ -223,8 +237,9 @@ export class QueryBuilderV2 {
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
       this.builtQuery.dataQuery,
-      { value: paymentAmountEth }
+      { value: paymentAmountWei }
     );
+    console.log(tx);
     const receipt = tx.wait();
 
     if (cb !== undefined) {
@@ -233,11 +248,11 @@ export class QueryBuilderV2 {
   }
 
   async sendOffchainQuery(
-    paymentAmountEth: string,
+    paymentAmountWei: string,
     cb?: (receipt: ethers.TransactionReceipt) => void
   ) {
-    if (this.config.privateKey === undefined) {
-      throw new Error("Private key required for sending transactions.");
+    if (this.config.signer === undefined) {
+      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error("Query must be built with `.build()` before sending.");
@@ -245,14 +260,10 @@ export class QueryBuilderV2 {
     // WIP: Get IPFS hash for encoded QueryV2
     const ipfsHash = ethers.ZeroHash;
 
-    const wallet = new ethers.Wallet(
-      this.config.privateKey,
-      this.config.provider
-    );
     const axiomV2Query = new ethers.Contract(
       this.config.getConstants().Addresses.AxiomQuery,
       getAxiomQueryAbiForVersion(this.config.version),
-      wallet
+      this.config.signer
     );
     const tx = await axiomV2Query.sendOffchainQuery(
       this.builtQuery.dataQueryHash,
@@ -260,7 +271,7 @@ export class QueryBuilderV2 {
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
-      { value: paymentAmountEth }
+      { value: paymentAmountWei }
     );
     const receipt = tx.wait();
 
@@ -280,7 +291,6 @@ export class QueryBuilderV2 {
   async build(): Promise<BuiltQueryV2> {
     // Encode data query
     let encodedSubqueries = this.encodeDataSubqueries();
-    console.log(encodedSubqueries);
     if (encodedSubqueries.length === 0) {
       encodedSubqueries = ethers.ZeroHash;
     }
@@ -324,8 +334,7 @@ export class QueryBuilderV2 {
   }
 
   calculateFee(): string {
-    const payment = PaymentCalc.calculatePaymentGwei(this);
-    return ethers.formatUnits(payment, "gwei");
+    return PaymentCalc.calculatePayment(this);
   }
 
   private encodeDataSubqueries() {
@@ -436,9 +445,11 @@ export class QueryBuilderV2 {
   }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
+    computeQuery.vkey = computeQuery.vkey.map((x) => ethers.toBeHex(x, 32));
     if (computeQuery.vkey.length < ConstantsV2.VkeyLen) {
       computeQuery.vkey = resizeArray(computeQuery.vkey, ConstantsV2.VkeyLen, ethers.ZeroHash);
     }
+    computeQuery.computeProof = computeQuery.computeProof.map((x) => ethers.toBeHex(x, 32));
     if (computeQuery.computeProof.length < ConstantsV2.ProofLen) {
       computeQuery.computeProof = resizeArray(computeQuery.computeProof, ConstantsV2.ProofLen, ethers.ZeroHash);
     }

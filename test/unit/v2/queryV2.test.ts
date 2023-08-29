@@ -23,7 +23,7 @@ describe("QueryV2", () => {
   ];
 
   const config: AxiomConfig = {
-    apiKey: "demo",
+    privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
   };
@@ -165,5 +165,53 @@ describe("QueryV2", () => {
       resultLen: 32,
       callbackFunctionSelector: "0x70a08231",
     });
+  });
+
+  test("Can send on-chain Query", async () => {
+    const dataQuery = {
+      headerSubqueries: [
+        {
+          blockNumber: BLOCK_NUMBER,
+          fieldIdx: 0,
+        },
+        {
+          blockNumber: BLOCK_NUMBER + 1,
+          fieldIdx: 1,
+        },
+      ],
+      receiptSubqueries: [
+        {
+          txHash:
+            "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
+          fieldOrLogIdx: 5,
+          topicOrDataIdx: 10,
+          eventSchema: ethers.ZeroHash,
+        },
+      ],
+    };
+    const computeQueryReq: AxiomV2ComputeQuery = {
+      k: 8,
+      omega: "0x1234",
+      vkey,
+      computeProof,
+    };
+    const callbackQuery = {
+      callbackAddr: WETH_ADDR,
+      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
+      resultLen: 5,
+      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    const options = {};
+    const query = axiom.query as QueryV2;
+    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
+    await qb.build();
+    
+    const payment = qb.calculateFee();
+    await qb.sendOnchainQuery(
+      payment,
+      (receipt: any) => {
+        console.log("receipt", receipt);
+      }
+    );
   });
 });

@@ -10,6 +10,9 @@ import {
   TxSubquery,
 } from "@axiom-crypto/codec";
 
+export type { QueryV2 } from "./query/queryV2";
+export type { QueryBuilderV2 } from "./query/queryBuilderV2";
+
 export interface DataQueryRequestV2 {
   headerSubqueries?: HeaderSubquery[];
   accountSubqueries?: AccountSubquery[];
@@ -42,4 +45,35 @@ export interface BuiltQueryV2 {
   callbackGasLimit: number,
 }
 
-export type { QueryBuilderV2 } from "./query/queryBuilderV2";
+export enum HeaderField {
+  ParentHash,
+  OmmersHash,
+  Beneficiary,
+  StateRoot,
+  TransactionsRoot,
+  ReceiptsRoot,
+  LogsBloom,
+  Difficulty,
+  Number,
+  GasLimit,
+  GasUsed,
+  Timestamp,
+  ExtraData,
+  MixHash,
+  Nonce,
+}
+
+export enum AccountField {
+  Nonce,
+  Balance,
+  StorageRoot,
+  CodeHash,
+}
+
+export enum TxField {
+
+}
+
+export enum ReceiptField {
+
+}

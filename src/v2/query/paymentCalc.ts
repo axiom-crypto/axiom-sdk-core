@@ -2,10 +2,11 @@ import { AxiomV2Callback, AxiomV2ComputeQuery } from "@axiom-crypto/codec";
 import { ConstantsV2 } from "../constants";
 import { DataQueryRequestV2 } from "../types";
 import { QueryBuilderV2 } from "./queryBuilderV2";
+import { ethers } from "ethers";
 
 export class PaymentCalc {
-  static calculatePaymentGwei(query: QueryBuilderV2) {
-    let payment = ConstantsV2.QueryBaseFeeGwei;
+  static calculatePayment(query: QueryBuilderV2): string {
+    let paymentGwei = ConstantsV2.QueryBaseFeeGwei;
     
     let dataQueryPayment = 0;
     const dataQuery = query.getDataQuery()
@@ -25,8 +26,8 @@ export class PaymentCalc {
       callbackPayment = this.calculateCallbackPayment(callback);
     }
 
-    payment += dataQueryPayment + computeQueryPayment + callbackPayment;
-    return payment;
+    paymentGwei += dataQueryPayment + computeQueryPayment + callbackPayment;
+    return ethers.parseUnits(paymentGwei.toString(), "gwei").toString();
   }
 
   static calculateDataQueryPayment(dataQuery: DataQueryRequestV2) {
