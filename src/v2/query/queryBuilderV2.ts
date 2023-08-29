@@ -252,14 +252,6 @@ export class QueryBuilderV2 {
       resultLen: this.callback?.resultLen ?? MAX_OUTPUTS,
       callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
     };
-    // const encodedQuery = encodeQueryV2(
-    //   this.config.chainId,
-    //   dataQueryHash,
-    //   encodedComputeQuery,
-    //   callback.callbackAddr,
-    //   callback.callbackFunctionSelector,
-    //   callback.callbackExtraData,
-    // );
 
     this.builtQuery = {
       dataQueryHash,
