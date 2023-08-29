@@ -1,5 +1,7 @@
 import {
   AccountSubquery,
+  AxiomV2Callback,
+  AxiomV2ComputeQuery,
   BeaconValidatorSubquery,
   HeaderSubquery,
   ReceiptSubquery,
@@ -18,20 +20,26 @@ export interface DataQueryRequestV2 {
   beaconSubqueries?: BeaconValidatorSubquery[];
 }
 
-export interface CallbackRequestV2 {
-  callbackAddr: string;
-  callbackFunctionSelector: string;
-  resultLen: number;
-  callbackExtraData: string;
+// export interface CallbackRequestV2 {
+//   callbackAddr: string;
+//   callbackFunctionSelector: string;
+//   resultLen: number;
+//   callbackExtraData: string;
+// }
+
+export interface QueryBuilderV2Options {
+  maxFeePerGas?: string;
+  callbackGasLimit?: number;
 }
 
-export interface QueryBuilderV2Options {}
-
 export interface BuiltQueryV2 {
+  sourceChainId: number;
   dataQueryHash: string;
   dataQuery: string;
-  computeQuery: string;
-  callback: CallbackRequestV2;
+  computeQuery: AxiomV2ComputeQuery;
+  callback: AxiomV2Callback;
+  maxFeePerGas: string;
+  callbackGasLimit: number,
 }
 
 export type { QueryBuilderV2 } from "./query/queryBuilderV2";

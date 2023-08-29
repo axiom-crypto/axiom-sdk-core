@@ -1,13 +1,11 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "author": "Intrinsic Technologies",
   "license": "MIT",
   "main": "index.js",
-  "module": "index.js",
   "types": "index.d.ts",
-  "type": "module",
   "scripts": {
     "build": "ts-node scripts/preTsc.js && rm -rf ./dist/* && tsc && ts-node scripts/postTsc.js",
     "build:staging": "ts-node scripts/preTsc.js && rm -rf ./dist/* && ENV=staging tsc && ts-node scripts/postTsc.js",

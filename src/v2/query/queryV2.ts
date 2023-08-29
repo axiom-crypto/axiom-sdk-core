@@ -1,9 +1,11 @@
-import { AxiomV2ComputeQuery } from "@axiom-crypto/codec";
+import { 
+  AxiomV2Callback,
+  AxiomV2ComputeQuery
+} from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import { Query } from "../../core/query";
 import {
   DataQueryRequestV2,
-  CallbackRequestV2,
   QueryBuilderV2Options,
 } from "../types";
 import { QueryBuilderV2 } from './queryBuilderV2';
@@ -24,7 +26,7 @@ export class QueryV2 extends Query {
   async new(
     dataQuery: DataQueryRequestV2,
     computeQuery?: AxiomV2ComputeQuery,
-    callback?: CallbackRequestV2,
+    callback?: AxiomV2Callback,
     options?: QueryBuilderV2Options
   ): Promise<QueryBuilderV2> {
     return new QueryBuilderV2(this.config, dataQuery, computeQuery, callback, options);

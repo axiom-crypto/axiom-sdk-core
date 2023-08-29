@@ -1,5 +1,6 @@
 import {
   AccountSubquery,
+  AxiomV2Callback,
   AxiomV2ComputeQuery,
   BeaconValidatorSubquery,
   DataSubqueryType,
@@ -24,43 +25,45 @@ import {
   BuiltQueryV2,
   DataQueryRequestV2,
   QueryBuilderV2Options,
-  CallbackRequestV2,
 } from "../types";
 import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
-import { MAX_OUTPUTS } from "../../shared/constants";
+import { resizeArray } from "../../shared/utils";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
   private dataQuery?: DataQueryRequestV2;
   private computeQuery?: AxiomV2ComputeQuery;
-  private callback?: CallbackRequestV2;
+  private callback?: AxiomV2Callback;
   private builtQuery?: BuiltQueryV2;
+  private options: QueryBuilderV2Options;
 
   constructor(
     config: InternalConfig,
     dataQuery?: DataQueryRequestV2,
     computeQuery?: AxiomV2ComputeQuery,
-    callback?: CallbackRequestV2,
+    callback?: AxiomV2Callback,
     options?: QueryBuilderV2Options
   ) {
     this.config = config;
-    if (options) {
-      // WIP: Handle options
+    
+    this.options = {
+      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
+      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
     }
 
     if (dataQuery !== undefined) {
-      this.dataQuery = dataQuery;
-      this.handleDataQueryRequest(dataQuery);
+      this.dataQuery = this.handleDataQueryRequest(dataQuery);;
+      
     }
 
     if (computeQuery !== undefined) {
-      this.handleComputeQueryRequest(computeQuery);
+      this.computeQuery = this.handleComputeQueryRequest(computeQuery);
     }
 
     if (callback !== undefined) {
-      this.handleCallback(callback);
+      this.callback = this.handleCallback(callback);
     }
   }
 
@@ -72,7 +75,7 @@ export class QueryBuilderV2 {
     this.computeQuery = computeQuery;
   }
 
-  setCallback(callback: CallbackRequestV2) {
+  setCallback(callback: AxiomV2Callback) {
     this.callback = callback;
   }
 
@@ -139,8 +142,7 @@ export class QueryBuilderV2 {
     }
   }
 
-  async submitOnchainQuery(
-    refundee: string,
+  async sendOnchainQuery(
     paymentAmountEth: string,
     cb?: (receipt: ethers.TransactionReceipt) => void
   ) {
@@ -148,7 +150,7 @@ export class QueryBuilderV2 {
       throw new Error("Private key required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
-      throw new Error("Query must be built with `.build()` before submitting.");
+      throw new Error("Query must be built with `.build()` before sending.");
     }
     const wallet = new ethers.Wallet(
       this.config.privateKey,
@@ -159,25 +161,25 @@ export class QueryBuilderV2 {
       getAxiomQueryAbiForVersion(this.config.version),
       wallet
     );
-    // TODO: fix sendQuery
-    const tx = await axiomV2Query.submitQuery(
+
+    const tx = await axiomV2Query.sendQuery(
+      this.builtQuery.sourceChainId,
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
-      this.builtQuery.callback.callbackAddr,
-      this.builtQuery.callback.callbackFunctionSelector,
-      this.builtQuery.callback.callbackExtraData,
-      refundee,
-      this.builtQuery?.dataQuery ?? ethers.ZeroHash,
+      this.builtQuery.callback,
+      this.builtQuery.maxFeePerGas,
+      this.builtQuery.callbackGasLimit,
+      this.builtQuery.dataQuery,
       { value: paymentAmountEth }
     );
     const receipt = tx.wait();
+
     if (cb !== undefined) {
       cb(receipt);
     }
   }
 
-  async submitOffchainQuery(
-    refundee: string,
+  async sendOffchainQuery(
     paymentAmountEth: string,
     cb?: (receipt: ethers.TransactionReceipt) => void
   ) {
@@ -185,7 +187,7 @@ export class QueryBuilderV2 {
       throw new Error("Private key required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
-      throw new Error("Query must be built with `.build()` before submitting.");
+      throw new Error("Query must be built with `.build()` before sending.");
     }
     // WIP: Get IPFS hash for encoded QueryV2
     const ipfsHash = ethers.ZeroHash;
@@ -199,17 +201,16 @@ export class QueryBuilderV2 {
       getAxiomQueryAbiForVersion(this.config.version),
       wallet
     );
-    const tx = await axiomV2Query.submitOffchainQuery(
-      this.builtQuery?.dataQueryHash,
-      this.computeQuery ?? ConstantsV2.EmptyComputeQuery,
-      this.callback?.callbackAddr ?? ethers.ZeroAddress,
-      this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
-      this.callback?.callbackExtraData ?? ethers.ZeroHash,
-      refundee,
+    const tx = await axiomV2Query.sendOffchainQuery(
+      this.builtQuery.dataQueryHash,
       ipfsHash,
+      this.builtQuery.callback,
+      this.builtQuery.maxFeePerGas,
+      this.builtQuery.callbackGasLimit,
       { value: paymentAmountEth }
     );
     const receipt = tx.wait();
+
     if (cb !== undefined) {
       cb(receipt);
     }
@@ -236,28 +237,31 @@ export class QueryBuilderV2 {
     );
     const dataQueryHash = ethers.keccak256(dataQuery);
     let encodedComputeQuery: string = ConstantsV2.EmptyComputeQuery;
+    let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
     if (this.computeQuery !== undefined) {
-      encodedComputeQuery = encodeComputeQuery(
-        this.computeQuery.k,
-        this.computeQuery.omega,
-        this.computeQuery.vkey,
-        this.computeQuery.computeProof
-      );
+      computeQuery.k = this.computeQuery.k;
+      computeQuery.omega = this.computeQuery.omega;
+      computeQuery.vkey = this.computeQuery.vkey;
+      computeQuery.computeProof = this.computeQuery.computeProof;
     }
+
+    // Handle callback
     const callback = {
       callbackAddr: this.callback?.callbackAddr ?? ethers.ZeroAddress,
       callbackFunctionSelector:
         this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
-      // TODO: should we use max_outputs as the default value
-      resultLen: this.callback?.resultLen ?? MAX_OUTPUTS,
+      resultLen: this.callback?.resultLen ?? ConstantsV2.MaxOutputs,
       callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
     };
 
     this.builtQuery = {
+      sourceChainId: this.config.chainId,
       dataQueryHash,
       dataQuery,
-      computeQuery: encodedComputeQuery,
+      computeQuery,
       callback,
+      maxFeePerGas: this.options.maxFeePerGas!,
+      callbackGasLimit: this.options.callbackGasLimit!,
     };
 
     return this.builtQuery;
@@ -312,53 +316,75 @@ export class QueryBuilderV2 {
   }
 
   private handleDataQueryRequest(dataQuery: DataQueryRequestV2) {
+    let parsedDataQuery = {} as DataQueryRequestV2;
     // Handle all of the queryReuquest subquery types
     if (dataQuery.headerSubqueries) {
-      this.handleHeaderSubqueries(dataQuery.headerSubqueries);
+      parsedDataQuery.headerSubqueries = this.handleHeaderSubqueries(dataQuery.headerSubqueries);
     }
     if (dataQuery.accountSubqueries) {
-      this.handleAccountSubqueries(dataQuery.accountSubqueries);
+      parsedDataQuery.accountSubqueries = this.handleAccountSubqueries(dataQuery.accountSubqueries);
     }
     if (dataQuery.storageSubqueries) {
-      this.handleStorageSubqueries(dataQuery.storageSubqueries);
+      parsedDataQuery.storageSubqueries = this.handleStorageSubqueries(dataQuery.storageSubqueries);
     }
     if (dataQuery.txSubqueries) {
-      this.handleTxSubqueries(dataQuery.txSubqueries);
+      parsedDataQuery.txSubqueries = this.handleTxSubqueries(dataQuery.txSubqueries);
     }
     if (dataQuery.receiptSubqueries) {
-      this.handleReceiptSubqueries(dataQuery.receiptSubqueries);
+      parsedDataQuery.receiptSubqueries = this.handleReceiptSubqueries(dataQuery.receiptSubqueries);
     }
     if (dataQuery.solidityNestedMappingSubqueries) {
-      this.handleSolidityNestedMappingSubqueries(
+      parsedDataQuery.solidityNestedMappingSubqueries = this.handleSolidityNestedMappingSubqueries(
         dataQuery.solidityNestedMappingSubqueries
       );
     }
     if (dataQuery.beaconSubqueries) {
-      this.handleBeaconSubqueries(dataQuery.beaconSubqueries);
+      parsedDataQuery.beaconSubqueries = this.handleBeaconSubqueries(dataQuery.beaconSubqueries);
     }
+    return parsedDataQuery;
   }
 
-  private handleHeaderSubqueries(headerSubqueries: HeaderSubquery[]) {}
+  private handleHeaderSubqueries(headerSubqueries: HeaderSubquery[]) {
+    return headerSubqueries;
+  }
 
-  private handleAccountSubqueries(accountSubqueries: AccountSubquery[]) {}
+  private handleAccountSubqueries(accountSubqueries: AccountSubquery[]) {
+    return accountSubqueries;
+  }
 
-  private handleStorageSubqueries(storageSubqueries: StorageSubquery[]) {}
+  private handleStorageSubqueries(storageSubqueries: StorageSubquery[]) {
+    return storageSubqueries;
+  }
 
-  private handleTxSubqueries(txSubqueries: TxSubquery[]) {}
+  private handleTxSubqueries(txSubqueries: TxSubquery[]) {
+    return txSubqueries;
+  }
 
-  private handleReceiptSubqueries(receiptSubqueries: ReceiptSubquery[]) {}
+  private handleReceiptSubqueries(receiptSubqueries: ReceiptSubquery[]) {
+    return receiptSubqueries;
+  }
 
   private handleSolidityNestedMappingSubqueries(
     solidityNestedMappingSubqueries: SolidityNestedMappingSubquery[]
-  ) {}
-
-  private handleBeaconSubqueries(beaconSubqueries: BeaconValidatorSubquery[]) {}
-
-  private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
-    this.computeQuery = computeQuery;
+  ) {
+    return solidityNestedMappingSubqueries;
   }
 
-  private handleCallback(callback: CallbackRequestV2) {
-    this.callback = callback;
+  private handleBeaconSubqueries(beaconSubqueries: BeaconValidatorSubquery[]) {
+    return beaconSubqueries;
+  }
+
+  private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
+    if (computeQuery.vkey.length < ConstantsV2.VkeyLen) {
+      computeQuery.vkey = resizeArray(computeQuery.vkey, ConstantsV2.VkeyLen, ethers.ZeroHash);
+    }
+    if (computeQuery.computeProof.length < ConstantsV2.ProofLen) {
+      computeQuery.computeProof = resizeArray(computeQuery.computeProof, ConstantsV2.ProofLen, ethers.ZeroHash);
+    }
+    return computeQuery;
+  }
+
+  private handleCallback(callback: AxiomV2Callback) {
+    return callback;
   }
 }

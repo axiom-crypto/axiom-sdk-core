@@ -79,5 +79,3 @@ function updateConstantsRecursive(versionMem: any, updateMem: any): any {
   return versionMem;
 }
 
-// v2 constants
-export const MAX_OUTPUTS = 5;

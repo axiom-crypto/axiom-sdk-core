@@ -80,7 +80,7 @@ describe('Axiom Core tests', () => {
     expect(() => new Axiom(config)).toThrowError("Invalid version number. Valid versions are: " + Versions.join(", "));
   });
 
-  test('should get abi', () => {
+  test('should get a v0.2 abi', () => {
     const config: AxiomConfig = {
       apiKey: "demo",
       providerUri: process.env.PROVIDER_URI as string,
@@ -92,30 +92,43 @@ describe('Axiom Core tests', () => {
     expect(abi[0].type).toEqual("constructor");
   })
 
-  test('should get Axiom contract address', () => {
+  test('should get a v1 abi', () => {
     const config: AxiomConfig = {
-      apiKey: "demo",
       providerUri: process.env.PROVIDER_URI as string,
       version: "v1",
-      chainId: 5,
     }
     const ax = new Axiom(config);
-    const addr = ax.getAxiomAddress();
+    const abi = ax.getAxiomAbi();
 
-    expect(addr).toEqual("0x8eb3a522cab99ed365e450dad696357de8ab7e9d");
+    expect(abi[0].type).toEqual("constructor");
+  })
+
+  test('should get AxiomV1 Mainnet contract addresses', () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v1",
+      chainId: 1,
+    }
+    const ax = new Axiom(config);
+    const axiomV1 = ax.getAxiomAddress();
+    const axiomV1Query = ax.getAxiomQueryAddress();
+
+    expect(axiomV1).toEqual("0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5");
+    expect(axiomV1Query).toEqual("0xd617ab7f787adf64c2b5b920c251ea10cd35a952");
   });
 
-  test('should get AxiomQuery Mock contract address', () => {
+  test('should get AxiomV1QueryMock Goerli contract addresses', () => {
     const config: AxiomConfig = {
-      apiKey: "demo",
       providerUri: process.env.PROVIDER_URI as string,
       version: "v1",
       chainId: 5,
       mock: true,
     }
     const ax = new Axiom(config);
-    const addr = ax.getAxiomQueryAddress();
+    const axiomV1Mock = ax.getAxiomAddress();
+    const axiomV1QueryMock = ax.getAxiomQueryAddress();
     
-    expect(addr).toEqual("0x06E05bbce03eFD739779533D93e4f5ea7c673137");
+    expect(axiomV1Mock?.toLowerCase()).toEqual("0x8d41105949fc6c418dff1a76ff5ae69128ade55a");
+    expect(axiomV1QueryMock).toEqual("0x4Fb202140c5319106F15706b1A69E441c9536306");
   });
 });

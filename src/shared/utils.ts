@@ -101,3 +101,14 @@ export function deepCopyObject(obj: any): any {
 export function getFunctionSelector(functionName: string, params: string[]) {
   return ethers.FunctionFragment.getSelector(functionName, params);
 }
+
+export function fillArray(length: number, value: string) {
+  return Array(length).fill(value);
+}
+
+export function resizeArray(arr: string[], size: number, defaultValue: string) {
+  if (arr.length < size) {
+    return arr.concat(Array(size - arr.length).fill(defaultValue));
+  }
+  return arr.slice(0, size);
+};
