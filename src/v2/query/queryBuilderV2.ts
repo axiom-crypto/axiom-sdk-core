@@ -1,4 +1,4 @@
-import { 
+import {
   AccountSubquery,
   AxiomV2ComputeQuery,
   BeaconValidatorSubquery,
@@ -14,16 +14,22 @@ import {
   encodeBeaconValidatorSubquery,
   encodeHeaderSubquery,
   encodeQueryV2,
-  encodeReceiptSubquery,  
+  encodeReceiptSubquery,
   encodeStorageSubquery,
   encodeTxSubquery,
-  encodeComputeQuery
-} from '@axiom-crypto/codec';
+  encodeComputeQuery,
+} from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
-import { BuiltQueryV2, DataQueryRequestV2, QueryBuilderV2Options, CallbackRequestV2 } from "../types";
-import { ethers } from 'ethers';
-import { getAxiomQueryAbiForVersion } from '../../core/lib/abi';
-import { ConstantsV2 } from '../constants';
+import {
+  BuiltQueryV2,
+  DataQueryRequestV2,
+  QueryBuilderV2Options,
+  CallbackRequestV2,
+} from "../types";
+import { ethers } from "ethers";
+import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
+import { ConstantsV2 } from "../constants";
+import { MAX_OUTPUTS } from "../../shared/constants";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -43,7 +49,7 @@ export class QueryBuilderV2 {
     if (options) {
       // WIP: Handle options
     }
-    
+
     if (dataQuery !== undefined) {
       this.dataQuery = dataQuery;
       this.handleDataQueryRequest(dataQuery);
@@ -74,7 +80,7 @@ export class QueryBuilderV2 {
     if (this.dataQuery === undefined) {
       this.dataQuery = {} as DataQueryRequestV2;
     }
-    switch(type) {
+    switch (type) {
       case DataSubqueryType.Header:
         if (this.dataQuery.headerSubqueries === undefined) {
           this.dataQuery.headerSubqueries = [] as HeaderSubquery[];
@@ -85,13 +91,17 @@ export class QueryBuilderV2 {
         if (this.dataQuery.accountSubqueries === undefined) {
           this.dataQuery.accountSubqueries = [] as AccountSubquery[];
         }
-        this.dataQuery?.accountSubqueries?.push(dataSubquery as AccountSubquery);
+        this.dataQuery?.accountSubqueries?.push(
+          dataSubquery as AccountSubquery
+        );
         break;
       case DataSubqueryType.Storage:
         if (this.dataQuery.storageSubqueries === undefined) {
           this.dataQuery.storageSubqueries = [] as StorageSubquery[];
         }
-        this.dataQuery?.storageSubqueries?.push(dataSubquery as StorageSubquery);
+        this.dataQuery?.storageSubqueries?.push(
+          dataSubquery as StorageSubquery
+        );
         break;
       case DataSubqueryType.Transaction:
         if (this.dataQuery.txSubqueries === undefined) {
@@ -103,38 +113,53 @@ export class QueryBuilderV2 {
         if (this.dataQuery.receiptSubqueries === undefined) {
           this.dataQuery.receiptSubqueries = [] as ReceiptSubquery[];
         }
-        this.dataQuery?.receiptSubqueries?.push(dataSubquery as ReceiptSubquery);
+        this.dataQuery?.receiptSubqueries?.push(
+          dataSubquery as ReceiptSubquery
+        );
         break;
       case DataSubqueryType.SolidityNestedMapping:
         if (this.dataQuery.solidityNestedMappingSubqueries === undefined) {
-          this.dataQuery.solidityNestedMappingSubqueries = [] as SolidityNestedMappingSubquery[];
+          this.dataQuery.solidityNestedMappingSubqueries =
+            [] as SolidityNestedMappingSubquery[];
         }
-        this.dataQuery?.solidityNestedMappingSubqueries?.push(dataSubquery as SolidityNestedMappingSubquery);
+        this.dataQuery?.solidityNestedMappingSubqueries?.push(
+          dataSubquery as SolidityNestedMappingSubquery
+        );
         break;
       case DataSubqueryType.BeaconValidator:
         if (this.dataQuery.beaconSubqueries === undefined) {
           this.dataQuery.beaconSubqueries = [] as BeaconValidatorSubquery[];
         }
-        this.dataQuery?.beaconSubqueries?.push(dataSubquery as BeaconValidatorSubquery);
+        this.dataQuery?.beaconSubqueries?.push(
+          dataSubquery as BeaconValidatorSubquery
+        );
         break;
       default:
         throw new Error(`Invalid data subquery type: ${type}`);
     }
   }
 
-  async submitOnchainQuery(refundee: string, paymentAmountEth: string, cb?: (receipt: ethers.TransactionReceipt) => void) {
+  async submitOnchainQuery(
+    refundee: string,
+    paymentAmountEth: string,
+    cb?: (receipt: ethers.TransactionReceipt) => void
+  ) {
     if (this.config.privateKey === undefined) {
       throw new Error("Private key required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error("Query must be built with `.build()` before submitting.");
     }
-    const wallet = new ethers.Wallet(this.config.privateKey, this.config.provider);
+    const wallet = new ethers.Wallet(
+      this.config.privateKey,
+      this.config.provider
+    );
     const axiomV2Query = new ethers.Contract(
-      this.config.getConstants().Addresses.AxiomQuery, 
-      getAxiomQueryAbiForVersion(this.config.version), 
+      this.config.getConstants().Addresses.AxiomQuery,
+      getAxiomQueryAbiForVersion(this.config.version),
       wallet
     );
+    // TODO: fix sendQuery
     const tx = await axiomV2Query.submitQuery(
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
@@ -151,7 +176,11 @@ export class QueryBuilderV2 {
     }
   }
 
-  async submitOffchainQuery(refundee: string, paymentAmountEth: string, cb?: (receipt: ethers.TransactionReceipt) => void) {
+  async submitOffchainQuery(
+    refundee: string,
+    paymentAmountEth: string,
+    cb?: (receipt: ethers.TransactionReceipt) => void
+  ) {
     if (this.config.privateKey === undefined) {
       throw new Error("Private key required for sending transactions.");
     }
@@ -161,10 +190,13 @@ export class QueryBuilderV2 {
     // WIP: Get IPFS hash for encoded QueryV2
     const ipfsHash = ethers.ZeroHash;
 
-    const wallet = new ethers.Wallet(this.config.privateKey, this.config.provider);
+    const wallet = new ethers.Wallet(
+      this.config.privateKey,
+      this.config.provider
+    );
     const axiomV2Query = new ethers.Contract(
-      this.config.getConstants().Addresses.AxiomQuery, 
-      getAxiomQueryAbiForVersion(this.config.version), 
+      this.config.getConstants().Addresses.AxiomQuery,
+      getAxiomQueryAbiForVersion(this.config.version),
       wallet
     );
     const tx = await axiomV2Query.submitOffchainQuery(
@@ -185,7 +217,7 @@ export class QueryBuilderV2 {
 
   /**
    * @returns {boolean} Whether the query is valid or not
-   */  
+   */
   async validate(): Promise<boolean> {
     // WIP
     return true;
@@ -209,15 +241,17 @@ export class QueryBuilderV2 {
         this.computeQuery.k,
         this.computeQuery.omega,
         this.computeQuery.vkey,
-        this.computeQuery.resultLen,
         this.computeQuery.computeProof
       );
     }
     const callback = {
       callbackAddr: this.callback?.callbackAddr ?? ethers.ZeroAddress,
-      callbackFunctionSelector: this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
+      callbackFunctionSelector:
+        this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
+      // TODO: should we use max_outputs as the default value
+      resultLen: this.callback?.resultLen ?? MAX_OUTPUTS,
       callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
-    }
+    };
     // const encodedQuery = encodeQueryV2(
     //   this.config.chainId,
     //   dataQueryHash,
@@ -244,7 +278,11 @@ export class QueryBuilderV2 {
       encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
     }
     for (const sq of this.dataQuery?.accountSubqueries ?? []) {
-      const encoded = encodeAccountSubquery(sq.blockNumber, sq.addr, sq.fieldIdx);
+      const encoded = encodeAccountSubquery(
+        sq.blockNumber,
+        sq.addr,
+        sq.fieldIdx
+      );
       encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
     }
     for (const sq of this.dataQuery?.storageSubqueries ?? []) {
@@ -256,11 +294,22 @@ export class QueryBuilderV2 {
       encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
     }
     for (const sq of this.dataQuery?.receiptSubqueries ?? []) {
-      const encoded = encodeReceiptSubquery(sq.txHash, sq.fieldOrLogIdx, sq.topicOrDataIdx, sq.eventSchema);
+      const encoded = encodeReceiptSubquery(
+        sq.txHash,
+        sq.fieldOrLogIdx,
+        sq.topicOrDataIdx,
+        sq.eventSchema
+      );
       encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
     }
     for (const sq of this.dataQuery?.solidityNestedMappingSubqueries ?? []) {
-      const encoded = encodeSolidityNestedMappingSubquery(sq.blockNumber, sq.addr, sq.mappingSlot, sq.mappingDepth, sq.keys);
+      const encoded = encodeSolidityNestedMappingSubquery(
+        sq.blockNumber,
+        sq.addr,
+        sq.mappingSlot,
+        sq.mappingDepth,
+        sq.keys
+      );
       encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
     }
     for (const sq of this.dataQuery?.beaconSubqueries ?? []) {
@@ -288,40 +337,30 @@ export class QueryBuilderV2 {
       this.handleReceiptSubqueries(dataQuery.receiptSubqueries);
     }
     if (dataQuery.solidityNestedMappingSubqueries) {
-      this.handleSolidityNestedMappingSubqueries(dataQuery.solidityNestedMappingSubqueries);
+      this.handleSolidityNestedMappingSubqueries(
+        dataQuery.solidityNestedMappingSubqueries
+      );
     }
     if (dataQuery.beaconSubqueries) {
       this.handleBeaconSubqueries(dataQuery.beaconSubqueries);
     }
   }
 
-  private handleHeaderSubqueries(headerSubqueries: HeaderSubquery[]) {
-    
-  }
+  private handleHeaderSubqueries(headerSubqueries: HeaderSubquery[]) {}
 
-  private handleAccountSubqueries(accountSubqueries: AccountSubquery[]) {
+  private handleAccountSubqueries(accountSubqueries: AccountSubquery[]) {}
 
-  }
+  private handleStorageSubqueries(storageSubqueries: StorageSubquery[]) {}
 
-  private handleStorageSubqueries(storageSubqueries: StorageSubquery[]) {
+  private handleTxSubqueries(txSubqueries: TxSubquery[]) {}
 
-  }
+  private handleReceiptSubqueries(receiptSubqueries: ReceiptSubquery[]) {}
 
-  private handleTxSubqueries(txSubqueries: TxSubquery[]) {
+  private handleSolidityNestedMappingSubqueries(
+    solidityNestedMappingSubqueries: SolidityNestedMappingSubquery[]
+  ) {}
 
-  }
-
-  private handleReceiptSubqueries(receiptSubqueries: ReceiptSubquery[]) {
-
-  }
-
-  private handleSolidityNestedMappingSubqueries(solidityNestedMappingSubqueries: SolidityNestedMappingSubquery[]) {
-
-  }
-
-  private handleBeaconSubqueries(beaconSubqueries: BeaconValidatorSubquery[]) {
-
-  }
+  private handleBeaconSubqueries(beaconSubqueries: BeaconValidatorSubquery[]) {}
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
     this.computeQuery = computeQuery;

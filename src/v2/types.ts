@@ -1,12 +1,12 @@
-import { 
+import {
   AccountSubquery,
   BeaconValidatorSubquery,
   HeaderSubquery,
   ReceiptSubquery,
   SolidityNestedMappingSubquery,
   StorageSubquery,
-  TxSubquery
-} from '@axiom-crypto/codec';
+  TxSubquery,
+} from "@axiom-crypto/codec";
 
 export interface DataQueryRequestV2 {
   headerSubqueries?: HeaderSubquery[];
@@ -19,13 +19,13 @@ export interface DataQueryRequestV2 {
 }
 
 export interface CallbackRequestV2 {
-  callbackAddr: string,
-  callbackFunctionSelector: string,
-  callbackExtraData: string,
+  callbackAddr: string;
+  callbackFunctionSelector: string;
+  resultLen: number;
+  callbackExtraData: string;
 }
 
-export interface QueryBuilderV2Options {
-}
+export interface QueryBuilderV2Options {}
 
 export interface BuiltQueryV2 {
   dataQueryHash: string;
@@ -34,4 +34,4 @@ export interface BuiltQueryV2 {
   callback: CallbackRequestV2;
 }
 
-export type { QueryBuilderV2 } from './query/queryBuilderV2';
+export type { QueryBuilderV2 } from "./query/queryBuilderV2";
