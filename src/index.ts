@@ -9,6 +9,8 @@ export {
   getFunctionSelector,
 } from './shared/utils';
 
+export * from './v2/templates';
+
 export {
   decodeQuery,
   encodeQueryV1,

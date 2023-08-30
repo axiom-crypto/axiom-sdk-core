@@ -1,10 +1,12 @@
-import { Axiom, AxiomConfig, QueryV2 } from "../../../src";
+import { Axiom, AxiomConfig, QueryV2, getArrayIndexValues } from "../../../src";
 import { getMappingValues } from "../../../src/v2/templates/getMappingValues";
+import { getSlotOverBlockRange } from "../../../src/v2/templates/getSlotOverBlockRange";
 
 describe("Templates", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const MATIC_ADDR = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
+  const PUDGY_PENGUINS_ADDR = "0xBd3531dA5CF5857e7CfAA92426877b022e612cf8";
 
   const config: AxiomConfig = {
     privateKey: process.env.PRIVATE_KEY as string,
@@ -30,7 +32,7 @@ describe("Templates", () => {
 
     const query = axiom.query as QueryV2;
     const qb = await query.new(dataQuery);
-    
+
     const processedDq = qb.getDataQuery();
     // console.log(processedDq);
     expect(processedDq?.storageSubqueries!.length).toEqual(10);
@@ -71,5 +73,29 @@ describe("Templates", () => {
     const processedDq = qb.getDataQuery();
     // console.log(processedDq);
     expect(processedDq?.storageSubqueries!.length).toEqual(20);
+  });
+
+  test("getSlotOverBlockRange", async () => {
+    const dataQuery = getSlotOverBlockRange(15537394, 15537394 + 500, 32, WETH_ADDR, "2");
+    const qb = await (axiom.query as QueryV2).new(dataQuery);
+    const processedDq = qb.getDataQuery();
+    console.log(processedDq);
+    expect(processedDq?.storageSubqueries!.length).toEqual(15);
+  });
+
+  test("getArrayIndexValues", async () => {
+    const dataQuery = getArrayIndexValues(
+      15537394,
+      PUDGY_PENGUINS_ADDR,
+      "8",  // _allTokens[]
+      "1000",
+      "2000",
+      "30",
+      "uint256"
+    );
+    const qb = await (axiom.query as QueryV2).new(dataQuery);
+    const processedDq = qb.getDataQuery();
+    console.log(processedDq);
+    expect(processedDq?.storageSubqueries!.length).toEqual(34);
   });
 });
