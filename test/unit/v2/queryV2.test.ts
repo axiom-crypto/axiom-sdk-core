@@ -150,10 +150,10 @@ describe("QueryV2", () => {
       callback,
     } = await qb.build();
     expect(dataQueryHash).toEqual(
-      "0x32141524b1e90c66ec7cb6de2473e7f3cba0b2d99cc0adeae18f4ec6279081fc"
+      "0xaecab023eee2b8ad396ad23c6ccb4e9cef41f8b1a359262878a0c9fe3ca40b93"
     );
     expect(dataQueryStr).toEqual(
-      "0x0000000100ed14f20000000000ed14f30000000147082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000050000000a0000000000000000000000000000000000000000000000000000000000000000"
+      "0x00000001000100ed14f200000000000100ed14f300000001000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000050000000a0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);
     expect(computeQuery.omega).toEqual(computeQueryReq.omega);
@@ -165,53 +165,5 @@ describe("QueryV2", () => {
       resultLen: 32,
       callbackFunctionSelector: "0x70a08231",
     });
-  });
-
-  test("Can send on-chain Query", async () => {
-    const dataQuery = {
-      headerSubqueries: [
-        {
-          blockNumber: BLOCK_NUMBER,
-          fieldIdx: 0,
-        },
-        {
-          blockNumber: BLOCK_NUMBER + 1,
-          fieldIdx: 1,
-        },
-      ],
-      receiptSubqueries: [
-        {
-          txHash:
-            "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-          fieldOrLogIdx: 5,
-          topicOrDataIdx: 10,
-          eventSchema: ethers.ZeroHash,
-        },
-      ],
-    };
-    const computeQueryReq: AxiomV2ComputeQuery = {
-      k: 8,
-      omega: "0x1234",
-      vkey,
-      computeProof,
-    };
-    const callbackQuery = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 5,
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-    };
-    const options = {};
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
-    await qb.build();
-    
-    const payment = qb.calculateFee();
-    await qb.sendOnchainQuery(
-      payment,
-      (receipt: any) => {
-        console.log("receipt", receipt);
-      }
-    );
   });
 });

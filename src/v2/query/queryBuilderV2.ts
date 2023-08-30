@@ -19,6 +19,9 @@ import {
   encodeStorageSubquery,
   encodeTxSubquery,
   encodeComputeQuery,
+  encodeDataQuery,
+  DataSubquery,
+  Subquery,
 } from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -290,16 +293,8 @@ export class QueryBuilderV2 {
 
   async build(): Promise<BuiltQueryV2> {
     // Encode data query
-    let encodedSubqueries = this.encodeDataSubqueries();
-    if (encodedSubqueries.length === 0) {
-      encodedSubqueries = ethers.ZeroHash;
-    }
-
-    // Handle data query
-    const dataQuery = ethers.solidityPacked(
-      ["uint32", "bytes"],
-      [this.config.chainId, encodedSubqueries]
-    );
+    const dataQuery = this.encodeBuilderDataQuery();
+    console.log(dataQuery);
     const dataQueryHash = ethers.keccak256(dataQuery);
 
     // Handle compute query
@@ -337,52 +332,104 @@ export class QueryBuilderV2 {
     return PaymentCalc.calculatePayment(this);
   }
 
-  private encodeDataSubqueries() {
-    let encodedSubqueries = "0x";
-    for (const sq of this.dataQuery?.headerSubqueries ?? []) {
-      const encoded = encodeHeaderSubquery(sq.blockNumber, sq.fieldIdx);
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    for (const sq of this.dataQuery?.accountSubqueries ?? []) {
-      const encoded = encodeAccountSubquery(
-        sq.blockNumber,
-        sq.addr,
-        sq.fieldIdx
-      );
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    for (const sq of this.dataQuery?.storageSubqueries ?? []) {
-      const encoded = encodeStorageSubquery(sq.blockNumber, sq.addr, sq.slot);
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    for (const sq of this.dataQuery?.txSubqueries ?? []) {
-      const encoded = encodeTxSubquery(sq.txHash, sq.fieldOrCalldataIdx);
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    for (const sq of this.dataQuery?.receiptSubqueries ?? []) {
-      const encoded = encodeReceiptSubquery(
-        sq.txHash,
-        sq.fieldOrLogIdx,
-        sq.topicOrDataIdx,
-        sq.eventSchema
-      );
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    for (const sq of this.dataQuery?.solidityNestedMappingSubqueries ?? []) {
-      const encoded = encodeSolidityNestedMappingSubquery(
-        sq.blockNumber,
-        sq.addr,
-        sq.mappingSlot,
-        sq.mappingDepth,
-        sq.keys
-      );
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    for (const sq of this.dataQuery?.beaconSubqueries ?? []) {
-      const encoded = encodeBeaconValidatorSubquery();
-      encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    }
-    return encodedSubqueries;
+  private concatenateDataSubqueriesWithType(): DataSubquery[] {
+    return [
+      ...this.dataQuery?.headerSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.Header,
+          subqueryData: data,
+        }
+      }) ?? [],
+      ...this.dataQuery?.accountSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.Account,
+          subqueryData: data,
+        }
+      }) ?? [],
+      ...this.dataQuery?.storageSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.Storage,
+          subqueryData: data,
+        }
+      }) ?? [],
+      ...this.dataQuery?.txSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.Transaction,
+          subqueryData: data,
+        }
+      }) ?? [],
+      ...this.dataQuery?.receiptSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.Receipt,
+          subqueryData: data,
+        }
+      }) ?? [],
+      ...this.dataQuery?.solidityNestedMappingSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.SolidityNestedMapping,
+          subqueryData: data,
+        }
+      }) ?? [],
+      ...this.dataQuery?.beaconSubqueries?.map((data) => { 
+        return {
+          type: DataSubqueryType.BeaconValidator,
+          subqueryData: data,
+        }
+      }) ?? [],
+    ];
+  }
+
+  private encodeBuilderDataQuery(): string {
+    return encodeDataQuery(
+      this.config.chainId, 
+      this.concatenateDataSubqueriesWithType()
+    );
+
+    // let encodedSubqueries = "0x";
+    // for (const sq of this.dataQuery?.headerSubqueries ?? []) {
+    //   const encoded = encodeHeaderSubquery(sq.blockNumber, sq.fieldIdx);
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // for (const sq of this.dataQuery?.accountSubqueries ?? []) {
+    //   const encoded = encodeAccountSubquery(
+    //     sq.blockNumber,
+    //     sq.addr,
+    //     sq.fieldIdx
+    //   );
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // for (const sq of this.dataQuery?.storageSubqueries ?? []) {
+    //   const encoded = encodeStorageSubquery(sq.blockNumber, sq.addr, sq.slot);
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // for (const sq of this.dataQuery?.txSubqueries ?? []) {
+    //   const encoded = encodeTxSubquery(sq.txHash, sq.fieldOrCalldataIdx);
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // for (const sq of this.dataQuery?.receiptSubqueries ?? []) {
+    //   const encoded = encodeReceiptSubquery(
+    //     sq.txHash,
+    //     sq.fieldOrLogIdx,
+    //     sq.topicOrDataIdx,
+    //     sq.eventSchema
+    //   );
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // for (const sq of this.dataQuery?.solidityNestedMappingSubqueries ?? []) {
+    //   const encoded = encodeSolidityNestedMappingSubquery(
+    //     sq.blockNumber,
+    //     sq.addr,
+    //     sq.mappingSlot,
+    //     sq.mappingDepth,
+    //     sq.keys
+    //   );
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // for (const sq of this.dataQuery?.beaconSubqueries ?? []) {
+    //   const encoded = encodeBeaconValidatorSubquery();
+    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
+    // }
+    // return encodedSubqueries;
   }
 
   private handleDataQueryRequest(dataQuery: DataQueryRequestV2) {

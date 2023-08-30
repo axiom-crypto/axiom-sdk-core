@@ -86,4 +86,8 @@ describe("QueryV2", () => {
       }
     );
   });
+
+  test("Can send off-chain Query", async () => {
+    
+  });
 });
