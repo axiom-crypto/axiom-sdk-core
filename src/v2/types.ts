@@ -37,21 +37,3 @@ export interface BuiltQueryV2 {
   maxFeePerGas: string;
   callbackGasLimit: number,
 }
-
-export enum HeaderField {
-  ParentHash,
-  OmmersHash,
-  Beneficiary,
-  StateRoot,
-  TransactionsRoot,
-  ReceiptsRoot,
-  LogsBloom,
-  Difficulty,
-  Number,
-  GasLimit,
-  GasUsed,
-  Timestamp,
-  ExtraData,
-  MixHash,
-  Nonce,
-}

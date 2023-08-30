@@ -1,4 +1,4 @@
-import { AxiomV2ComputeQuery } from "@axiom-crypto/codec";
+import { AccountField, AxiomV2ComputeQuery, getAccountFieldIdx } from "@axiom-crypto/codec";
 import { Axiom, AxiomConfig } from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
@@ -7,7 +7,7 @@ import { ConstantsV2 } from "../../../src/v2/constants";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537394;
-  const WETH_ADDR = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+  const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
 
   const vkey = ["1","2","3","4","5"];
@@ -116,6 +116,13 @@ describe("QueryV2", () => {
           fieldIdx: 1,
         },
       ],
+      accountSubqueries: [
+        {
+          blockNumber: BLOCK_NUMBER,
+          addr: WETH_WHALE,
+          fieldIdx: getAccountFieldIdx(AccountField.Nonce),
+        }
+      ],
       receiptSubqueries: [
         {
           txHash:
@@ -141,7 +148,9 @@ describe("QueryV2", () => {
     const options = {};
     const query = axiom.query as QueryV2;
     const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
-    expect(typeof query).toEqual("object");
+    
+    const processedDq = qb.getDataQuery();
+    expect(processedDq?.accountSubqueries?.[0].addr).toEqual(WETH_WHALE.toLowerCase());
 
     const {
       dataQueryHash,
@@ -150,17 +159,17 @@ describe("QueryV2", () => {
       callback,
     } = await qb.build();
     expect(dataQueryHash).toEqual(
-      "0xaecab023eee2b8ad396ad23c6ccb4e9cef41f8b1a359262878a0c9fe3ca40b93"
+      "0x3312ad0a554819de93c71cf5c484a326642f8c797ad2f94f6901c4a89a3d14e6"
     );
     expect(dataQueryStr).toEqual(
-      "0x00000001000100ed14f200000000000100ed14f300000001000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000050000000a0000000000000000000000000000000000000000000000000000000000000000"
+      "0x00000001000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae139200000000000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000050000000a0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);
     expect(computeQuery.omega).toEqual(computeQueryReq.omega);
     expect(computeQuery.vkey).toEqual(resizeArray(computeQueryReq.vkey, ConstantsV2.VkeyLen, ethers.ZeroHash));
     expect(computeQuery.computeProof).toEqual(resizeArray(computeQueryReq.computeProof, ConstantsV2.ProofLen, ethers.ZeroHash));
     expect(callback).toEqual({
-      callbackAddr: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      callbackAddr: WETH_ADDR.toLowerCase(),
       callbackExtraData: "0x2e15d7aa0650de1009710fdd45c3468d75ae1392",
       resultLen: 32,
       callbackFunctionSelector: "0x70a08231",

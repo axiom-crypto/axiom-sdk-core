@@ -58,7 +58,8 @@ export class QueryBuilderV2 {
     }
 
     if (dataQuery !== undefined) {
-      this.dataQuery = this.handleDataQueryRequest(dataQuery);
+      // this.dataQuery = this.handleDataQueryRequest(dataQuery);
+      this.append(dataQuery);
     }
 
     if (computeQuery !== undefined) {
@@ -97,7 +98,8 @@ export class QueryBuilderV2 {
 
   setDataQuery(dataQuery: DataQueryRequestV2) {
     this.unsetBuiltQuery();
-    this.dataQuery = this.handleDataQueryRequest(dataQuery);;
+    this.dataQuery = undefined;
+    this.append(dataQuery);
   }
 
   setComputeQuery(computeQuery: AxiomV2ComputeQuery) {
@@ -156,19 +158,31 @@ export class QueryBuilderV2 {
     if (this.dataQuery === undefined) {
       this.dataQuery = {} as DataQueryRequestV2;
     }
+
+    // Cast subquery to new type in order to lowercase all string value fields
+    const subqueryCast = dataSubquery as {[key: string]: any};
+    for (const key of Object.keys(subqueryCast)) {
+      if (typeof subqueryCast[key] === "string") {
+        subqueryCast[key] = subqueryCast[key].toLowerCase();
+      }
+    }
+
+    // Append based on type
     switch (type) {
       case DataSubqueryType.Header:
         if (this.dataQuery.headerSubqueries === undefined) {
           this.dataQuery.headerSubqueries = [] as HeaderSubquery[];
         }
-        this.dataQuery?.headerSubqueries?.push(dataSubquery as HeaderSubquery);
+        this.dataQuery?.headerSubqueries?.push(
+          subqueryCast as HeaderSubquery
+        );
         break;
       case DataSubqueryType.Account:
         if (this.dataQuery.accountSubqueries === undefined) {
           this.dataQuery.accountSubqueries = [] as AccountSubquery[];
         }
         this.dataQuery?.accountSubqueries?.push(
-          dataSubquery as AccountSubquery
+          subqueryCast as AccountSubquery
         );
         break;
       case DataSubqueryType.Storage:
@@ -176,21 +190,23 @@ export class QueryBuilderV2 {
           this.dataQuery.storageSubqueries = [] as StorageSubquery[];
         }
         this.dataQuery?.storageSubqueries?.push(
-          dataSubquery as StorageSubquery
+          subqueryCast as StorageSubquery
         );
         break;
       case DataSubqueryType.Transaction:
         if (this.dataQuery.txSubqueries === undefined) {
           this.dataQuery.txSubqueries = [] as TxSubquery[];
         }
-        this.dataQuery?.txSubqueries?.push(dataSubquery as TxSubquery);
+        this.dataQuery?.txSubqueries?.push(
+          subqueryCast as TxSubquery
+        );
         break;
       case DataSubqueryType.Receipt:
         if (this.dataQuery.receiptSubqueries === undefined) {
           this.dataQuery.receiptSubqueries = [] as ReceiptSubquery[];
         }
         this.dataQuery?.receiptSubqueries?.push(
-          dataSubquery as ReceiptSubquery
+          subqueryCast as ReceiptSubquery
         );
         break;
       case DataSubqueryType.SolidityNestedMapping:
@@ -199,7 +215,7 @@ export class QueryBuilderV2 {
             [] as SolidityNestedMappingSubquery[];
         }
         this.dataQuery?.solidityNestedMappingSubqueries?.push(
-          dataSubquery as SolidityNestedMappingSubquery
+          subqueryCast as SolidityNestedMappingSubquery
         );
         break;
       case DataSubqueryType.BeaconValidator:
@@ -207,7 +223,7 @@ export class QueryBuilderV2 {
           this.dataQuery.beaconSubqueries = [] as BeaconValidatorSubquery[];
         }
         this.dataQuery?.beaconSubqueries?.push(
-          dataSubquery as BeaconValidatorSubquery
+          subqueryCast as BeaconValidatorSubquery
         );
         break;
       default:
@@ -294,7 +310,6 @@ export class QueryBuilderV2 {
   async build(): Promise<BuiltQueryV2> {
     // Encode data query
     const dataQuery = this.encodeBuilderDataQuery();
-    console.log(dataQuery);
     const dataQueryHash = ethers.keccak256(dataQuery);
 
     // Handle compute query
@@ -384,111 +399,6 @@ export class QueryBuilderV2 {
       this.config.chainId, 
       this.concatenateDataSubqueriesWithType()
     );
-
-    // let encodedSubqueries = "0x";
-    // for (const sq of this.dataQuery?.headerSubqueries ?? []) {
-    //   const encoded = encodeHeaderSubquery(sq.blockNumber, sq.fieldIdx);
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // for (const sq of this.dataQuery?.accountSubqueries ?? []) {
-    //   const encoded = encodeAccountSubquery(
-    //     sq.blockNumber,
-    //     sq.addr,
-    //     sq.fieldIdx
-    //   );
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // for (const sq of this.dataQuery?.storageSubqueries ?? []) {
-    //   const encoded = encodeStorageSubquery(sq.blockNumber, sq.addr, sq.slot);
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // for (const sq of this.dataQuery?.txSubqueries ?? []) {
-    //   const encoded = encodeTxSubquery(sq.txHash, sq.fieldOrCalldataIdx);
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // for (const sq of this.dataQuery?.receiptSubqueries ?? []) {
-    //   const encoded = encodeReceiptSubquery(
-    //     sq.txHash,
-    //     sq.fieldOrLogIdx,
-    //     sq.topicOrDataIdx,
-    //     sq.eventSchema
-    //   );
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // for (const sq of this.dataQuery?.solidityNestedMappingSubqueries ?? []) {
-    //   const encoded = encodeSolidityNestedMappingSubquery(
-    //     sq.blockNumber,
-    //     sq.addr,
-    //     sq.mappingSlot,
-    //     sq.mappingDepth,
-    //     sq.keys
-    //   );
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // for (const sq of this.dataQuery?.beaconSubqueries ?? []) {
-    //   const encoded = encodeBeaconValidatorSubquery();
-    //   encodedSubqueries = ethers.concat([encodedSubqueries, encoded]);
-    // }
-    // return encodedSubqueries;
-  }
-
-  private handleDataQueryRequest(dataQuery: DataQueryRequestV2) {
-    let parsedDataQuery = {} as DataQueryRequestV2;
-    // Handle all of the queryReuquest subquery types
-    if (dataQuery.headerSubqueries) {
-      parsedDataQuery.headerSubqueries = this.handleHeaderSubqueries(dataQuery.headerSubqueries);
-    }
-    if (dataQuery.accountSubqueries) {
-      parsedDataQuery.accountSubqueries = this.handleAccountSubqueries(dataQuery.accountSubqueries);
-    }
-    if (dataQuery.storageSubqueries) {
-      parsedDataQuery.storageSubqueries = this.handleStorageSubqueries(dataQuery.storageSubqueries);
-    }
-    if (dataQuery.txSubqueries) {
-      parsedDataQuery.txSubqueries = this.handleTxSubqueries(dataQuery.txSubqueries);
-    }
-    if (dataQuery.receiptSubqueries) {
-      parsedDataQuery.receiptSubqueries = this.handleReceiptSubqueries(dataQuery.receiptSubqueries);
-    }
-    if (dataQuery.solidityNestedMappingSubqueries) {
-      parsedDataQuery.solidityNestedMappingSubqueries = this.handleSolidityNestedMappingSubqueries(
-        dataQuery.solidityNestedMappingSubqueries
-      );
-    }
-    if (dataQuery.beaconSubqueries) {
-      parsedDataQuery.beaconSubqueries = this.handleBeaconSubqueries(dataQuery.beaconSubqueries);
-    }
-    return parsedDataQuery;
-  }
-
-  private handleHeaderSubqueries(headerSubqueries: HeaderSubquery[]) {
-    return headerSubqueries;
-  }
-
-  private handleAccountSubqueries(accountSubqueries: AccountSubquery[]) {
-    return accountSubqueries;
-  }
-
-  private handleStorageSubqueries(storageSubqueries: StorageSubquery[]) {
-    return storageSubqueries;
-  }
-
-  private handleTxSubqueries(txSubqueries: TxSubquery[]) {
-    return txSubqueries;
-  }
-
-  private handleReceiptSubqueries(receiptSubqueries: ReceiptSubquery[]) {
-    return receiptSubqueries;
-  }
-
-  private handleSolidityNestedMappingSubqueries(
-    solidityNestedMappingSubqueries: SolidityNestedMappingSubquery[]
-  ) {
-    return solidityNestedMappingSubqueries;
-  }
-
-  private handleBeaconSubqueries(beaconSubqueries: BeaconValidatorSubquery[]) {
-    return beaconSubqueries;
   }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
@@ -504,6 +414,9 @@ export class QueryBuilderV2 {
   }
 
   private handleCallback(callback: AxiomV2Callback) {
+    callback.callbackAddr = callback.callbackAddr.toLowerCase();
+    callback.callbackExtraData = callback.callbackExtraData.toLowerCase();
+    callback.callbackFunctionSelector = callback.callbackFunctionSelector.toLowerCase();
     return callback;
   }
 }
