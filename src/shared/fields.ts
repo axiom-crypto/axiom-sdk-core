@@ -9,3 +9,5 @@ export {
   getTxFieldIdx,
   getReceiptFieldIdx,
 } from '@axiom-crypto/codec';
+
+export * from '../v2/fields';

@@ -8,7 +8,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param interval Interval between block numbers
  * @param address Contract address
  * @param slot Slot number to query
- * @returns 
+ * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
  */
 export function getSlotOverBlockRange(
   startBlock: number,

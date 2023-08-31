@@ -8,5 +8,7 @@ describe("Utils", () => {
     expect(selector).toEqual("0xa9059cbb");
     selector = getFunctionSelector("transfer", ["address"," uint256"]);
     expect(selector).toEqual("0xa9059cbb");
+    selector = getFunctionSelector("validate", ["address"]);
+    expect(selector).toEqual("0x207c64fb");
   });
 });
