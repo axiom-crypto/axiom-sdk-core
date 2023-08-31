@@ -5,7 +5,8 @@ const packageJson = require('../package.json');
 
 // Copies a modified version of package.json to the /dist folder
 function copyPackageJson() {
-  const packageJsonCopy = { ...packageJson };
+  let packageJsonCopy = { ...packageJson };
+  packageJsonCopy.name = "@axiom-crypto/experimental";
   delete packageJsonCopy.scripts;
   delete packageJsonCopy.devDependencies;
   delete packageJsonCopy.publishConfig;

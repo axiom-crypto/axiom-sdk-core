@@ -13,21 +13,6 @@ export function shortenedHex(num: number) {
   return stripZerosLeft(ethers.toBeHex(num));
 }
 
-export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
-  const fullBlock = await provider.send(
-    'eth_getBlockByNumber',
-    [shortenedHex(blockNumber), true]
-  );
-  return fullBlock;
-}
-
-export async function getAccountData(blockNumber: number, address: string, slots: ethers.BigNumberish[], provider: ethers.JsonRpcProvider) {
-  const accountData = await provider.send(
-    'eth_getProof',
-    [address, slots, shortenedHex(blockNumber)]
-  );
-  return accountData;
-}
 
 export function concatHexStrings(...args: string[]) {
   return `0x${args.map((s) => {
