@@ -1,6 +1,7 @@
 export {
   HeaderField,
   AccountField,
+  TxType,
   TxField,
   ReceiptField,
   getHeaderFieldIdx,

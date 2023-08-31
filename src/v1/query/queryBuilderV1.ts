@@ -9,11 +9,11 @@ import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
 import { InternalConfig } from "../../core/internalConfig";
 import { 
   concatHexStrings,
-  getAccountData, 
   sortAddress,
   sortBlockNumber,
   sortSlot 
 } from "../../shared/utils";
+import { getAccountData } from "../../shared/blockData";
 import { validateQueryRow } from "./validate";
 import MerkleTree from "merkletreejs";
 
