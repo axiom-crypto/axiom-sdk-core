@@ -7,6 +7,11 @@ import {
   TxField,
   TxType,
   ByteStringReader,
+  HeaderSubquery,
+  AccountSubquery,
+  StorageSubquery,
+  TxSubquery,
+  ReceiptSubquery,
 } from "@axiom-crypto/codec";
 
 export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
@@ -27,14 +32,13 @@ export async function getAccountData(blockNumber: number, addr: string, slots: e
 
 export async function getHeaderFieldValue(
   provider: ethers.JsonRpcProvider,
-  blockNumber: number, 
-  field: HeaderField
+  { blockNumber, fieldIdx }: HeaderSubquery
 ): Promise<string | null> {
   const block = await getFullBlock(blockNumber, provider);
   if (!block) {
     return null;
   }
-  switch (field) {
+  switch (fieldIdx) {
     case HeaderField.ParentHash:
       return block.parentHash ?? null;
     case HeaderField.Sha3Uncles:
@@ -76,21 +80,19 @@ export async function getHeaderFieldValue(
     case HeaderField.ParentBeaconBlockRoot:
       return block.parentBeaconBlockRoot ?? null;
     default:
-      throw new Error(`Invalid header field: ${field}`);
+      throw new Error(`Invalid header field: ${fieldIdx}`);
   }
 }
 
 export async function getAccountFieldValue(
   provider: ethers.JsonRpcProvider,
-  blockNumber: number,
-  addr: string,
-  field: AccountField
+  { blockNumber, addr, fieldIdx }: AccountSubquery
 ): Promise<string | null> {
   const account = await getAccountData(blockNumber, addr, [], provider);
   if (!account) {
     return null;
   }
-  switch (field) {
+  switch (fieldIdx) {
     case AccountField.Nonce:
       return account.nonce ?? null;
     case AccountField.Balance:
@@ -100,23 +102,20 @@ export async function getAccountFieldValue(
     case AccountField.CodeHash:
       return account.codeHash ?? null;
     default:
-      throw new Error(`Invalid account field: ${field}`);
+      throw new Error(`Invalid account field: ${fieldIdx}`);
   }
 }
 
 export async function getStorageFieldValue(
   provider: ethers.JsonRpcProvider,
-  blockNumber: number,
-  addr: string,
-  slot: ethers.BigNumberish
+  { blockNumber, addr, slot }: StorageSubquery,
 ): Promise<string | null> {
   return await provider.getStorage(addr, slot, blockNumber);
 }
 
 export async function getTxFieldValue(
   provider: ethers.JsonRpcProvider,
-  txHash: string,
-  fieldOrCalldataIdx: TxField | number
+  { txHash, fieldOrCalldataIdx }: TxSubquery,
 ): Promise<string | ethers.AccessList | null> {
   const tx = await provider.getTransaction(txHash);
   if (!tx) {
@@ -158,7 +157,7 @@ export async function getTxFieldValue(
         return tx.signature.s ? bytes32(tx.signature.s) : null;
     }
   }
-  
+
   if (fieldOrCalldataIdx < 10000) {
     // Parse calldata blob (ignoring function selector) to get calldata at specified idx
     const calldata = tx.data;
@@ -180,9 +179,7 @@ export async function getTxFieldValue(
 
 export async function getReceiptFieldValue(
   provider: ethers.JsonRpcProvider,
-  txHash: string,
-  fieldOrLogIdx: ReceiptField | number,
-  topicOrDataIdx?: number,
+  { txHash, fieldOrLogIdx, topicOrDataIdx }: ReceiptSubquery,
 ): Promise<string | ethers.Log | null> {
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt) {
