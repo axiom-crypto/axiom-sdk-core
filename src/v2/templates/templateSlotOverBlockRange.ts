@@ -10,7 +10,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param slot Slot number to query
  * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
  */
-export function getSlotOverBlockRange(
+export function templateSlotOverBlockRange(
   startBlock: number,
   endBlock: number,
   interval: number,

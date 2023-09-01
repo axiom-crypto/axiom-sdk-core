@@ -1,3 +1,3 @@
-export * from "./getMappingValues";
-export * from "./getArrayIndexValues";
-export * from "./getSlotOverBlockRange";
+export * from "./templateMappingValues";
+export * from "./templateArrayIndexValues";
+export * from "./templateSlotOverBlockRange";

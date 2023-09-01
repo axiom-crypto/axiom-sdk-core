@@ -1,6 +1,6 @@
 import { BigNumberish, ethers } from "ethers";
 import { AccountState, QueryRow } from "../../shared/types";
-import { getAccountData, getFullBlock } from "../../shared/blockData";
+import { getAccountData, getFullBlock } from "../../shared/chainData";
 
 // Ported from axiom-proving-service/services/query/responseValidation.ts
 export async function validateQueryRow(

@@ -13,7 +13,7 @@ import {
   sortBlockNumber,
   sortSlot 
 } from "../../shared/utils";
-import { getAccountData } from "../../shared/blockData";
+import { getAccountData } from "../../shared/chainData";
 import { validateQueryRow } from "./validate";
 import MerkleTree from "merkletreejs";
 

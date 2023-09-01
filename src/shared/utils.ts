@@ -78,6 +78,10 @@ export function sortByHex(a: string, b: string) {
   return parseInt(a, 16) - parseInt(b, 16);
 }
 
+export function bytes32(data: string | number | ethers.BigNumberish) {
+  return ethers.toBeHex(data, 32);
+}
+
 // Deep copy any object with nested objects. Will not deep copy functions inside the object.
 export function deepCopyObject(obj: any): any {
   return JSON.parse(JSON.stringify(obj));

@@ -12,7 +12,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param arrayType Data type of the array
  * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
  */
-export function getArrayIndexValues(
+export function templateArrayIndexValues(
   blockNumber: number,
   address: string,
   arraySlot: string,

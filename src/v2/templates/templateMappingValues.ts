@@ -13,7 +13,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param keys Array of keys to query
  * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
  */
-export function getMappingValues(
+export function templateMappingValues(
   blockNumber: number,
   address: string,
   mappingSlot: string,
