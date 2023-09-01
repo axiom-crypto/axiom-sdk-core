@@ -4,6 +4,7 @@ export {
 
 export * from './shared/types';
 export * from './shared/fields';
+export * from './shared/chainData';
 
 export {
   getFunctionSelector,
