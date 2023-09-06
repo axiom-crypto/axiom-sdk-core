@@ -10,15 +10,6 @@ import {
   StorageSubquery,
   SubqueryResponse,
   TxSubquery,
-  encodeAccountSubquery,
-  encodeSolidityNestedMappingSubquery,
-  encodeBeaconValidatorSubquery,
-  encodeHeaderSubquery,
-  encodeQueryV2,
-  encodeReceiptSubquery,
-  encodeStorageSubquery,
-  encodeTxSubquery,
-  encodeComputeQuery,
   encodeDataQuery,
   DataSubquery,
   Subquery,
@@ -34,6 +25,16 @@ import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
 import { resizeArray } from "../../shared/utils";
 import { PaymentCalc } from "./paymentCalc";
+import {
+  getSubqueryTypeFromKey,
+  validateAccountSubquery,
+  validateHeaderSubquery,
+  validateStorageSubquery,
+  validateTxSubquery,
+  validateReceiptSubquery,
+  validateSolidityNestedMappingSubquery,
+  validateBeaconSubquery,
+} from "./dataSubquery";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -58,7 +59,6 @@ export class QueryBuilderV2 {
     }
 
     if (dataQuery !== undefined) {
-      // this.dataQuery = this.handleDataQueryRequest(dataQuery);
       this.append(dataQuery);
     }
 
@@ -124,27 +124,14 @@ export class QueryBuilderV2 {
   append(dataQuery: DataQueryRequestV2) {
     this.unsetBuiltQuery();
 
-    for (const sq of dataQuery.headerSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.Header, sq);
-    }
-    for (const sq of dataQuery.accountSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.Account, sq);
-    }
-    for (const sq of dataQuery.storageSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.Storage, sq);
-    }
-    for (const sq of dataQuery.txSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.Transaction, sq);
-    }
-    for (const sq of dataQuery.receiptSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.Receipt, sq);
-    }
-    for (const sq of dataQuery.solidityNestedMappingSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.SolidityNestedMapping, sq);
-    }
-    for (const sq of dataQuery.beaconSubqueries ?? []) {
-      this.appendDataSubquery(DataSubqueryType.BeaconValidator, sq);
-    }
+    Object.keys(dataQuery).forEach((key) => {
+      const subqueries = dataQuery[key as keyof DataQueryRequestV2];
+      if (subqueries) {
+        for (const subquery of subqueries) {
+          this.appendDataSubquery(getSubqueryTypeFromKey(key), subquery);
+        }
+      }
+    });
   }
 
   /**
@@ -152,11 +139,11 @@ export class QueryBuilderV2 {
    * @param type The type of subquery to append
    * @param dataSubquery The data of the subquery to append
    */
-  appendDataSubquery(type: DataSubqueryType, dataSubquery: SubqueryResponse) {
+  appendDataSubquery(type: DataSubqueryType, dataSubquery: Subquery) {
     this.unsetBuiltQuery();
 
     if (this.dataQuery === undefined) {
-      this.dataQuery = {} as DataQueryRequestV2;
+      this.dataQuery = this.newEmptyDataQuery();
     }
 
     // Cast subquery to new type in order to lowercase all string value fields
@@ -168,67 +155,11 @@ export class QueryBuilderV2 {
     }
 
     // Append based on type
-    switch (type) {
-      case DataSubqueryType.Header:
-        if (this.dataQuery.headerSubqueries === undefined) {
-          this.dataQuery.headerSubqueries = [] as HeaderSubquery[];
-        }
-        this.dataQuery?.headerSubqueries?.push(
-          subqueryCast as HeaderSubquery
-        );
-        break;
-      case DataSubqueryType.Account:
-        if (this.dataQuery.accountSubqueries === undefined) {
-          this.dataQuery.accountSubqueries = [] as AccountSubquery[];
-        }
-        this.dataQuery?.accountSubqueries?.push(
-          subqueryCast as AccountSubquery
-        );
-        break;
-      case DataSubqueryType.Storage:
-        if (this.dataQuery.storageSubqueries === undefined) {
-          this.dataQuery.storageSubqueries = [] as StorageSubquery[];
-        }
-        this.dataQuery?.storageSubqueries?.push(
-          subqueryCast as StorageSubquery
-        );
-        break;
-      case DataSubqueryType.Transaction:
-        if (this.dataQuery.txSubqueries === undefined) {
-          this.dataQuery.txSubqueries = [] as TxSubquery[];
-        }
-        this.dataQuery?.txSubqueries?.push(
-          subqueryCast as TxSubquery
-        );
-        break;
-      case DataSubqueryType.Receipt:
-        if (this.dataQuery.receiptSubqueries === undefined) {
-          this.dataQuery.receiptSubqueries = [] as ReceiptSubquery[];
-        }
-        this.dataQuery?.receiptSubqueries?.push(
-          subqueryCast as ReceiptSubquery
-        );
-        break;
-      case DataSubqueryType.SolidityNestedMapping:
-        if (this.dataQuery.solidityNestedMappingSubqueries === undefined) {
-          this.dataQuery.solidityNestedMappingSubqueries =
-            [] as SolidityNestedMappingSubquery[];
-        }
-        this.dataQuery?.solidityNestedMappingSubqueries?.push(
-          subqueryCast as SolidityNestedMappingSubquery
-        );
-        break;
-      case DataSubqueryType.BeaconValidator:
-        if (this.dataQuery.beaconSubqueries === undefined) {
-          this.dataQuery.beaconSubqueries = [] as BeaconValidatorSubquery[];
-        }
-        this.dataQuery?.beaconSubqueries?.push(
-          subqueryCast as BeaconValidatorSubquery
-        );
-        break;
-      default:
-        throw new Error(`Invalid data subquery type: ${type}`);
-    }
+    Object.keys(this.dataQuery).forEach((key) => {
+      if (type === getSubqueryTypeFromKey(key)) {
+        (this.dataQuery?.[key as keyof DataQueryRequestV2] as Subquery[])?.push(dataSubquery);
+      }
+    });
   }
 
   async sendOnchainQuery(
@@ -303,8 +234,18 @@ export class QueryBuilderV2 {
    * @returns {boolean} Whether the query is valid or not
    */
   async validate(): Promise<boolean> {
+    // Check if data subqueries are valid
+    const sq = await this.validateDataSubqueries();
+
+    // Check if compute query is valid
     // WIP
-    return true;
+    const cq = true;
+
+    // Check if callback is valid
+    // WIP
+    const cb = true;
+
+    return (sq || cq || cb);
   }
 
   async build(): Promise<BuiltQueryV2> {
@@ -418,5 +359,67 @@ export class QueryBuilderV2 {
     callback.callbackExtraData = callback.callbackExtraData.toLowerCase();
     callback.callbackFunctionSelector = callback.callbackFunctionSelector.toLowerCase();
     return callback;
+  }
+
+  private newEmptyDataQuery(): DataQueryRequestV2 {
+    return {
+      headerSubqueries: [],
+      accountSubqueries: [],
+      storageSubqueries: [],
+      txSubqueries: [],
+      receiptSubqueries: [],
+      solidityNestedMappingSubqueries: [],
+      beaconSubqueries: [],
+    }
+  }
+
+  private async validateDataSubqueries(): Promise<boolean> {
+    if (!this.dataQuery) {
+      return true;
+    }
+    const provider = this.config.provider;
+    for (const subquery of this.dataQuery.headerSubqueries ?? [] as HeaderSubquery[]) {
+      const valid = await validateHeaderSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    for (const subquery of this.dataQuery.accountSubqueries ?? [] as AccountSubquery[]) {
+      const valid = await validateAccountSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    for (const subquery of this.dataQuery.storageSubqueries ?? [] as StorageSubquery[]) {
+      const valid = await validateStorageSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    for (const subquery of this.dataQuery.txSubqueries ?? [] as TxSubquery[]) {
+      const valid = await validateTxSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    for (const subquery of this.dataQuery.receiptSubqueries ?? [] as ReceiptSubquery[]) {
+      const valid = await validateReceiptSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    for (const subquery of this.dataQuery.solidityNestedMappingSubqueries ?? [] as SolidityNestedMappingSubquery[]) {
+      const valid = await validateSolidityNestedMappingSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    for (const subquery of this.dataQuery.beaconSubqueries ?? [] as BeaconValidatorSubquery[]) {
+      const valid = await validateBeaconSubquery(provider, subquery);
+      if (!valid) {
+        return false;
+      }
+    }
+    return true;
   }
 }

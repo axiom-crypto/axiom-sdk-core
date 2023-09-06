@@ -78,7 +78,7 @@ export function sortByHex(a: string, b: string) {
   return parseInt(a, 16) - parseInt(b, 16);
 }
 
-export function bytes32(data: string | number | ethers.BigNumberish) {
+export function bytes32(data: string | number | ethers.BigNumberish): string {
   return ethers.toBeHex(data, 32);
 }
 
