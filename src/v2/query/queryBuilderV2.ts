@@ -13,6 +13,7 @@ import {
   encodeDataQuery,
   DataSubquery,
   Subquery,
+  bytes32,
 } from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -257,7 +258,7 @@ export class QueryBuilderV2 {
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
     if (this.computeQuery !== undefined) {
       computeQuery.k = this.computeQuery.k;
-      computeQuery.omega = this.computeQuery.omega;
+      computeQuery.vkeyLen = this.computeQuery.vkeyLen;
       computeQuery.vkey = this.computeQuery.vkey;
       computeQuery.computeProof = this.computeQuery.computeProof;
     }
@@ -343,13 +344,9 @@ export class QueryBuilderV2 {
   }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
-    computeQuery.vkey = computeQuery.vkey.map((x) => ethers.toBeHex(x, 32));
-    if (computeQuery.vkey.length < ConstantsV2.VkeyLen) {
-      computeQuery.vkey = resizeArray(computeQuery.vkey, ConstantsV2.VkeyLen, ethers.ZeroHash);
-    }
-    computeQuery.computeProof = computeQuery.computeProof.map((x) => ethers.toBeHex(x, 32));
-    if (computeQuery.computeProof.length < ConstantsV2.ProofLen) {
-      computeQuery.computeProof = resizeArray(computeQuery.computeProof, ConstantsV2.ProofLen, ethers.ZeroHash);
+    computeQuery.vkey = computeQuery.vkey.map((x) => bytes32(x));
+    if (computeQuery.vkey.length < computeQuery.vkeyLen) {
+      computeQuery.vkey = resizeArray(computeQuery.vkey, computeQuery.vkeyLen, ethers.ZeroHash);
     }
     return computeQuery;
   }

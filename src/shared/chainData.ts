@@ -12,7 +12,9 @@ import {
   StorageSubquery,
   TxSubquery,
   ReceiptSubquery,
+  SolidityNestedMappingSubquery,
 } from "@axiom-crypto/codec";
+import { SharedConstants } from "./constants";
 
 export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
   const fullBlock = await provider.send(
@@ -218,20 +220,34 @@ export async function getReceiptFieldValue(
   return log;
 }
 
+export async function getSolidityNestedMappingValue(
+  provider: ethers.JsonRpcProvider,
+  { blockNumber, addr, mappingSlot, mappingDepth, keys }: SolidityNestedMappingSubquery,
+): Promise<string | null> {
+  let slot = bytes32(mappingSlot);
+  for (let i = 0; i < mappingDepth; i++) {
+    const key = bytes32(keys[i]);
+    slot = ethers.keccak256(ethers.concat([key, slot]));
+  }
+  const value = await provider.getStorage(addr, slot, blockNumber);
+  if (!value) {
+    return null;
+  }
+  return value;
+}
+
 export async function getTxTypeForTxHash(
   provider: ethers.JsonRpcProvider,
   txHash: string
 ): Promise<TxType | null> {
-  const EIP2930_BLOCK = 12244000;
-  const EIP1559_BLOCK = 12965000;
   const tx = await provider.getTransaction(txHash);
   if (!tx || !tx.blockNumber) {
     return null;
   }
   const blockNumber = tx.blockNumber;
-  if (blockNumber < EIP2930_BLOCK) {
+  if (blockNumber < SharedConstants.EIP2930_BLOCK) {
     return TxType.Legacy;
-  } else if (blockNumber < EIP1559_BLOCK) {
+  } else if (blockNumber < SharedConstants.EIP1559_BLOCK) {
     return TxType.Eip2930;
   } else {
     return TxType.Eip1559;

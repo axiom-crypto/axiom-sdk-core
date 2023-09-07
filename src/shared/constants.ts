@@ -8,6 +8,11 @@ import {
 } from "./chainConfig/goerli";
 import { deepCopyObject } from "./utils";
 
+export const SharedConstants = Object.freeze({
+  EIP2930_BLOCK: 12244000,
+  EIP1559_BLOCK: 12965000,
+});
+
 export const Versions = ["v0", "v0_2", "v1", "v2"];
 
 export type VersionsType = (typeof Versions)[number];

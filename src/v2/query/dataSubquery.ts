@@ -9,7 +9,7 @@ import {
   TxSubquery,
 } from "@axiom-crypto/codec";
 import { ethers } from "ethers";
-import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getStorageFieldValue, getTxFieldValue } from "../../shared/chainData";
+import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getSolidityNestedMappingValue, getStorageFieldValue, getTxFieldValue } from "../../shared/chainData";
 
 export function getSubqueryTypeFromKey(key: string): DataSubqueryType {
   switch (key) {
@@ -96,6 +96,11 @@ export async function validateSolidityNestedMappingSubquery(
   provider: ethers.JsonRpcProvider,
   subquery: SolidityNestedMappingSubquery
 ): Promise<boolean> {
+  const value = await getSolidityNestedMappingValue(provider, subquery);
+  if (value === null) {
+    console.error(`Solidity nested mapping subquery ${JSON.stringify(subquery)} returned null`);
+    return false;
+  }
   return true;
 }
 

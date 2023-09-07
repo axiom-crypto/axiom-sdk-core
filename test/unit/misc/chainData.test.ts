@@ -5,6 +5,7 @@ import {
   getFullBlock,
   getHeaderFieldValue,
   getReceiptFieldValue,
+  getSolidityNestedMappingValue,
   getStorageFieldValue,
   getTxFieldValue,
   getTxTypeForTxHash,
@@ -22,6 +23,7 @@ import { receiptUseLogIdx, txUseCalldataIdx } from "../../../src";
 
 describe("ChainData query tests", () => {
   const MATIC_ADDR = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0";
+  const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI as string);
 
@@ -172,6 +174,21 @@ describe("ChainData query tests", () => {
     expect(receiptValue).toEqual("0x0000000000000000000000000000000000000000000000000000000000000014");
     receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataIdx: 5 });
     expect(receiptValue).toEqual("0xb392448932f6ef430555631f765df0dfae34eff3000000000000000000000000");
+  });
+
+  test("Get solidity nested mapping value", async () => {
+    const blockNumber = 17000000;
+    const addr = UNI_V3_FACTORY_ADDR;
+    const mappingSlot = "5";
+    const mappingDepth = 3;
+    const keys: [string, string, string, string] = [
+      bytes32("0x0000000000085d4780b73119b644ae5ecd22b376"),
+      bytes32("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+      bytes32(3000),
+      "",
+    ];
+    const value = await getSolidityNestedMappingValue(provider, { blockNumber, addr, mappingSlot, mappingDepth, keys });
+    expect(value).toEqual(bytes32("0xf5148fbdae394c553d019b4caeffc5f845dcd12c"));
   });
 
   test("Get TxType for hash", async () => {
