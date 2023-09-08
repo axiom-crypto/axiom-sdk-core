@@ -107,6 +107,40 @@ describe("QueryV2", () => {
   ];
   const computeProof = ethers.concat(computeProofRaw);
 
+  const dataQuery = {
+    headerSubqueries: [
+      {
+        blockNumber: BLOCK_NUMBER,
+        fieldIdx: 0,
+      },
+      {
+        blockNumber: BLOCK_NUMBER + 1,
+        fieldIdx: 1,
+      },
+    ],
+    receiptSubqueries: [
+      {
+        txHash:
+          "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
+        fieldOrLogIdx: 3,
+        topicOrDataIdx: 10,
+        eventSchema: ethers.ZeroHash,
+      },
+    ],
+  };
+  const computeQueryReq: AxiomV2ComputeQuery = {
+    k: 14,
+    vkeyLen,
+    vkey,
+    computeProof,
+  };
+  const callbackQuery = {
+    callbackAddr: WETH_ADDR,
+    callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
+    resultLen: 32,
+    callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+  };
+
   const config: AxiomConfig = {
     privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
@@ -118,61 +152,38 @@ describe("QueryV2", () => {
   const overrides = {
     Addresses: {
       Axiom: "0xf201fFeA8447AB3d43c98Da3349e0749813C9009",
-      AxiomQuery: "0x837a41023CF81234f89F956C94D676918b4791c1",
+      AxiomQuery: "0x92b0d1Cc77b84973B7041CB9275d41F09840eaDd",
     },
   };
   const axiom = new Axiom(config, overrides);
 
   test("Can send on-chain Query", async () => {
-    const dataQuery = {
-      headerSubqueries: [
-        {
-          blockNumber: BLOCK_NUMBER,
-          fieldIdx: 0,
-        },
-        {
-          blockNumber: BLOCK_NUMBER + 1,
-          fieldIdx: 1,
-        },
-      ],
-      receiptSubqueries: [
-        {
-          txHash:
-            "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-          fieldOrLogIdx: 3,
-          topicOrDataIdx: 10,
-          eventSchema: ethers.ZeroHash,
-        },
-      ],
-    };
-    const computeQueryReq: AxiomV2ComputeQuery = {
-      k: 14,
-      vkeyLen,
-      vkey,
-      computeProof,
-    };
-    const callbackQuery = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 32,
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-    };
     const options = {};
     const query = axiom.query as QueryV2;
     const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
     await qb.build();
     
     const payment = qb.calculateFee();
-    console.log(payment);
     await qb.sendOnchainQuery(
       payment,
       (receipt: any) => {
         console.log("receipt", receipt);
       }
     );
-  });
+  }, 20000);
 
   test("Can send off-chain Query", async () => {
+    const options = {};
+    const query = axiom.query as QueryV2;
+    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
+    await qb.build();
     
-  });
+    const payment = qb.calculateFee();
+    await qb.sendOffchainQuery(
+      payment,
+      (receipt: any) => {
+        console.log("receipt", receipt);
+      }
+    );
+  }, 20000);
 });

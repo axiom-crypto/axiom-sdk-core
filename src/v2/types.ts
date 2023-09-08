@@ -2,6 +2,7 @@ import {
   AccountSubquery,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
+  AxiomV2DataQuery,
   BeaconValidatorSubquery,
   HeaderSubquery,
   ReceiptSubquery,
@@ -41,9 +42,11 @@ export interface QueryBuilderV2Options {
 
 export interface BuiltQueryV2 {
   sourceChainId: number;
+  dataQueryEncoded: string;
   dataQueryHash: string;
-  dataQuery: string;
+  dataQuery: AxiomV2DataQuery;
   computeQuery: AxiomV2ComputeQuery;
+  querySchema: string;
   callback: AxiomV2Callback;
   maxFeePerGas: string;
   callbackGasLimit: number,

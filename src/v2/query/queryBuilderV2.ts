@@ -8,12 +8,14 @@ import {
   ReceiptSubquery,
   SolidityNestedMappingSubquery,
   StorageSubquery,
-  SubqueryResponse,
   TxSubquery,
   encodeDataQuery,
   DataSubquery,
   Subquery,
   bytes32,
+  encodeQueryV2,
+  AxiomV2DataQuery,
+  getQuerySchemaHash,
 } from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -36,6 +38,7 @@ import {
   validateSolidityNestedMappingSubquery,
   validateBeaconSubquery,
 } from "./dataSubquery";
+import { convertIpfsCidToBytes32, writeStringIpfs } from "../../shared/ipfs";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -183,11 +186,15 @@ export class QueryBuilderV2 {
     const tx = await axiomV2Query.sendQuery(
       this.builtQuery.sourceChainId,
       this.builtQuery.dataQueryHash,
-      this.builtQuery.computeQuery,
+      [
+        this.builtQuery.computeQuery.k,
+        this.builtQuery.computeQuery.vkey,
+        this.builtQuery.computeQuery.computeProof,
+      ],
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
-      this.builtQuery.dataQuery,
+      this.builtQuery.dataQueryEncoded,
       { value: paymentAmountWei }
     );
     const receipt = await tx.wait();
@@ -207,8 +214,22 @@ export class QueryBuilderV2 {
     if (this.builtQuery === undefined) {
       throw new Error("Query must be built with `.build()` before sending.");
     }
-    // WIP: Get IPFS hash for encoded QueryV2
-    const ipfsHash = ethers.ZeroHash;
+    
+    // Handle encoding data and uploading to IPFS
+    const encodedQuery = encodeQueryV2(
+      this.builtQuery.sourceChainId,
+      this.builtQuery.dataQuery,
+      this.builtQuery.computeQuery,
+      this.builtQuery.callback,
+      this.builtQuery.maxFeePerGas,
+      this.builtQuery.callbackGasLimit,
+    );
+    const ipfsHash = await writeStringIpfs(encodedQuery);
+    if (!ipfsHash) {
+      throw new Error("Failed to write Query to IPFS.");
+    }
+    const ipfsHashBytes32 = convertIpfsCidToBytes32(ipfsHash);
+    console.log(ipfsHashBytes32);
 
     const axiomV2Query = new ethers.Contract(
       this.config.getConstants().Addresses.AxiomQuery,
@@ -218,7 +239,8 @@ export class QueryBuilderV2 {
     
     const tx = await axiomV2Query.sendOffchainQuery(
       this.builtQuery.dataQueryHash,
-      ipfsHash,
+      this.builtQuery.querySchema,
+      ipfsHashBytes32,
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
@@ -251,8 +273,9 @@ export class QueryBuilderV2 {
 
   async build(): Promise<BuiltQueryV2> {
     // Encode data query
-    const dataQuery = this.encodeBuilderDataQuery();
-    const dataQueryHash = ethers.keccak256(dataQuery);
+    const dataQueryEncoded = this.encodeBuilderDataQuery();
+    const dataQueryHash = ethers.keccak256(dataQueryEncoded);
+    const dataQuery = this.buildDataQuery();
 
     // Handle compute query
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
@@ -262,6 +285,11 @@ export class QueryBuilderV2 {
       computeQuery.vkey = this.computeQuery.vkey;
       computeQuery.computeProof = this.computeQuery.computeProof;
     }
+    const querySchema = getQuerySchemaHash(
+      computeQuery.k,
+      computeQuery.vkeyLen,
+      computeQuery.vkey
+    );
 
     // Handle callback
     const callback = {
@@ -274,9 +302,11 @@ export class QueryBuilderV2 {
 
     this.builtQuery = {
       sourceChainId: this.config.chainId,
+      dataQueryEncoded,
       dataQueryHash,
       dataQuery,
       computeQuery,
+      querySchema,
       callback,
       maxFeePerGas: this.options.maxFeePerGas!,
       callbackGasLimit: this.options.callbackGasLimit!,
@@ -341,6 +371,15 @@ export class QueryBuilderV2 {
       this.config.chainId, 
       this.concatenateDataSubqueriesWithType()
     );
+  }
+
+  private buildDataQuery(): AxiomV2DataQuery {
+    const sourceChainId = this.config.chainId;
+    const subqueries = this.concatenateDataSubqueriesWithType();
+    return {
+      sourceChainId,
+      subqueries,
+    }
   }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
