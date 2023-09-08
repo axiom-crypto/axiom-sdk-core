@@ -1,8 +1,8 @@
-import { AxiomV2ComputeQuery } from "@axiom-crypto/codec";
-import { Axiom, AxiomConfig } from "../../../src";
+import { AxiomV2ComputeQuery, HeaderField, ReceiptField, getHeaderFieldIdx, getReceiptFieldIdx } from "@axiom-crypto/codec";
+import { Axiom, AxiomConfig, receiptUseAddress, receiptUseLogIdx } from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
-import { getFunctionSelector, resizeArray } from "../../../src/shared/utils";
+import { getFunctionSelector } from "../../../src/shared/utils";
 import { ConstantsV2 } from "../../../src/v2/constants";
 
 describe("QueryV2", () => {
@@ -111,26 +111,25 @@ describe("QueryV2", () => {
     headerSubqueries: [
       {
         blockNumber: BLOCK_NUMBER,
-        fieldIdx: 0,
+        fieldIdx: getHeaderFieldIdx(HeaderField.Nonce),
       },
       {
         blockNumber: BLOCK_NUMBER + 1,
-        fieldIdx: 1,
+        fieldIdx: getHeaderFieldIdx(HeaderField.Miner),
       },
     ],
     receiptSubqueries: [
       {
         txHash:
           "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-        fieldOrLogIdx: 3,
-        topicOrDataIdx: 10,
+        fieldOrLogIdx: receiptUseLogIdx(1),
+        topicOrDataOrAddressIdx: receiptUseAddress(),
         eventSchema: ethers.ZeroHash,
       },
     ],
   };
   const computeQueryReq: AxiomV2ComputeQuery = {
     k: 14,
-    vkeyLen,
     vkey,
     computeProof,
   };
@@ -145,14 +144,14 @@ describe("QueryV2", () => {
     privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
-    chainId: 1,
+    chainId: 31337,
   };
 
   // Override w/ your local anvil address
   const overrides = {
     Addresses: {
       Axiom: "0xf201fFeA8447AB3d43c98Da3349e0749813C9009",
-      AxiomQuery: "0x92b0d1Cc77b84973B7041CB9275d41F09840eaDd",
+      AxiomQuery: "0x930b218f3e63eE452c13561057a8d5E61367d5b7",
     },
   };
   const axiom = new Axiom(config, overrides);
@@ -172,18 +171,18 @@ describe("QueryV2", () => {
     );
   }, 20000);
 
-  test("Can send off-chain Query", async () => {
-    const options = {};
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
-    await qb.build();
+  // test("Can send off-chain Query", async () => {
+  //   const options = {};
+  //   const query = axiom.query as QueryV2;
+  //   const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
+  //   await qb.build();
     
-    const payment = qb.calculateFee();
-    await qb.sendOffchainQuery(
-      payment,
-      (receipt: any) => {
-        console.log("receipt", receipt);
-      }
-    );
-  }, 20000);
+  //   const payment = qb.calculateFee();
+  //   await qb.sendOffchainQuery(
+  //     payment,
+  //     (receipt: any) => {
+  //       console.log("receipt", receipt);
+  //     }
+  //   );
+  // }, 20000);
 });

@@ -1,4 +1,4 @@
-import { AccessList, ethers } from "ethers";
+import { ethers } from "ethers";
 import { bytes32, shortenedHex } from "./utils";
 import {
   AccountField,
@@ -118,7 +118,7 @@ export async function getStorageFieldValue(
 export async function getTxFieldValue(
   provider: ethers.JsonRpcProvider,
   { txHash, fieldOrCalldataIdx }: TxSubquery,
-): Promise<string | ethers.AccessList | null> {
+): Promise<string | null> {
   const tx = await provider.getTransaction(txHash);
   if (!tx) {
     return null;
@@ -142,7 +142,7 @@ export async function getTxFieldValue(
       case TxField.Data:
         return tx.data ? bytes32(tx.data) : null;
       case TxField.AccessList:
-        return tx.accessList;
+        throw new Error("Access Lists are currently unsupported.")
       case TxField.SignatureYParity:
         return tx.signature.yParity ? bytes32(tx.signature.yParity) : null;
       case TxField.SignatureR:
@@ -181,7 +181,7 @@ export async function getTxFieldValue(
 
 export async function getReceiptFieldValue(
   provider: ethers.JsonRpcProvider,
-  { txHash, fieldOrLogIdx, topicOrDataIdx }: ReceiptSubquery,
+  { txHash, fieldOrLogIdx, topicOrDataOrAddressIdx }: ReceiptSubquery,
 ): Promise<string | ethers.Log | null> {
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt) {
@@ -205,11 +205,11 @@ export async function getReceiptFieldValue(
 
   const logIdx = fieldOrLogIdx - 100;
   const log = receipt.logs[logIdx] ?? null;
-  if (topicOrDataIdx && log) {
-    if (topicOrDataIdx < log.topics.length) {
-      return log.topics[topicOrDataIdx];
+  if (topicOrDataOrAddressIdx && log) {
+    if (topicOrDataOrAddressIdx < log.topics.length) {
+      return log.topics[topicOrDataOrAddressIdx];
     }
-    const dataIdx = topicOrDataIdx - log.topics.length;
+    const dataIdx = topicOrDataOrAddressIdx - log.topics.length;
     const reader = new ByteStringReader(log.data);
     for (let i = 0; i < dataIdx; i++) {
       reader.readBytes("bytes32");

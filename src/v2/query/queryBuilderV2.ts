@@ -26,7 +26,6 @@ import {
 import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
-import { resizeArray } from "../../shared/utils";
 import { PaymentCalc } from "./paymentCalc";
 import {
   getSubqueryTypeFromKey,
@@ -186,11 +185,7 @@ export class QueryBuilderV2 {
     const tx = await axiomV2Query.sendQuery(
       this.builtQuery.sourceChainId,
       this.builtQuery.dataQueryHash,
-      [
-        this.builtQuery.computeQuery.k,
-        this.builtQuery.computeQuery.vkey,
-        this.builtQuery.computeQuery.computeProof,
-      ],
+      this.builtQuery.computeQuery,
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
@@ -229,7 +224,6 @@ export class QueryBuilderV2 {
       throw new Error("Failed to write Query to IPFS.");
     }
     const ipfsHashBytes32 = convertIpfsCidToBytes32(ipfsHash);
-    console.log(ipfsHashBytes32);
 
     const axiomV2Query = new ethers.Contract(
       this.config.getConstants().Addresses.AxiomQuery,
@@ -281,13 +275,11 @@ export class QueryBuilderV2 {
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
     if (this.computeQuery !== undefined) {
       computeQuery.k = this.computeQuery.k;
-      computeQuery.vkeyLen = this.computeQuery.vkeyLen;
       computeQuery.vkey = this.computeQuery.vkey;
       computeQuery.computeProof = this.computeQuery.computeProof;
     }
     const querySchema = getQuerySchemaHash(
       computeQuery.k,
-      computeQuery.vkeyLen,
       computeQuery.vkey
     );
 
@@ -384,9 +376,6 @@ export class QueryBuilderV2 {
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
     computeQuery.vkey = computeQuery.vkey.map((x) => bytes32(x));
-    if (computeQuery.vkey.length < computeQuery.vkeyLen) {
-      computeQuery.vkey = resizeArray(computeQuery.vkey, computeQuery.vkeyLen, ethers.ZeroHash);
-    }
     return computeQuery;
   }
 

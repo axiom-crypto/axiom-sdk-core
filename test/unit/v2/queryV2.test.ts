@@ -135,7 +135,6 @@ describe("QueryV2", () => {
     };
     const computeQuery: AxiomV2ComputeQuery = {
       k: 14,
-      vkeyLen,
       vkey,
       computeProof,
     };
@@ -151,7 +150,6 @@ describe("QueryV2", () => {
     };
     const computeQuery: AxiomV2ComputeQuery = {
       k: 14,
-      vkeyLen,
       vkey,
       computeProof,
     };
@@ -173,7 +171,6 @@ describe("QueryV2", () => {
     };
     const computeQuery: AxiomV2ComputeQuery = {
       k: 14,
-      vkeyLen,
       vkey,
       computeProof,
     };
@@ -213,7 +210,7 @@ describe("QueryV2", () => {
           txHash:
             "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
           fieldOrLogIdx: 5,
-          topicOrDataIdx: 10,
+          topicOrDataOrAddressIdx: 10,
           eventSchema: ethers.ZeroHash,
         },
       ],
@@ -234,7 +231,6 @@ describe("QueryV2", () => {
     };
     const computeQueryReq: AxiomV2ComputeQuery = {
       k: 14,
-      vkeyLen: 27,
       vkey,
       computeProof,
     };
@@ -273,14 +269,13 @@ describe("QueryV2", () => {
           txHash:
             "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
           fieldOrLogIdx: 5,
-          topicOrDataIdx: 10,
+          topicOrDataOrAddressIdx: 10,
           eventSchema: ethers.ZeroHash,
         },
       ],
     };
     const computeQueryReq: AxiomV2ComputeQuery = {
       k: 14,
-      vkeyLen,
       vkey,
       computeProof,
     };
@@ -299,19 +294,19 @@ describe("QueryV2", () => {
 
     const {
       dataQueryHash,
-      dataQuery: dataQueryStr,
+      dataQueryEncoded,
       computeQuery,
       callback,
     } = await qb.build();
     expect(dataQueryHash).toEqual(
       "0xc86d72bb3a07468583324d88059b854f581d0c47404667dfa7c7254aca5a4fe9"
     );
-    expect(dataQueryStr).toEqual(
+    expect(dataQueryEncoded).toEqual(
       "0x000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae139200000000000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000050000000a0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);
-    expect(computeQuery.vkeyLen).toEqual(computeQueryReq.vkeyLen);
-    expect(computeQuery.vkey).toEqual(resizeArray(computeQueryReq.vkey, computeQueryReq.vkeyLen, ethers.ZeroHash));
+    expect(computeQuery.vkey.length).toEqual(computeQueryReq.vkey.length);
+    expect(computeQuery.vkey).toEqual(resizeArray(computeQueryReq.vkey, computeQueryReq.vkey.length, ethers.ZeroHash));
     expect(computeQuery.computeProof).toEqual(computeProof);
     expect(callback).toEqual({
       callbackAddr: WETH_ADDR.toLowerCase(),

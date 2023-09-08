@@ -157,22 +157,22 @@ describe("ChainData query tests", () => {
 
   test("get receipt field value", async () => {
     const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
-    const value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: ReceiptField.Status, eventSchema: "0x", topicOrDataIdx: 0 });
+    const value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: ReceiptField.Status, eventSchema: "0x", topicOrDataOrAddressIdx: 0 });
     expect(value).toEqual(bytes32(1));
   });
 
   test("get receipt logIdx value", async () => {
     const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
     const eventSchema = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-    let receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataIdx: 1 });
+    let receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataOrAddressIdx: 1 });
     expect(receiptValue).toEqual("0x7610115e31b8be283a240f1b8ea09ca53abfdfaa17c79175efd8cfef62b37ab9");
-    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataIdx: 2 });
+    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataOrAddressIdx: 2 });
     expect(receiptValue).toEqual("0x000000000000000000000000000000000000000000000000000000000000003c");
-    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataIdx: 3 });
+    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataOrAddressIdx: 3 });
     expect(receiptValue).toEqual("0x0000000000000000000000000000000000000000000000000000000000000040");
-    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataIdx: 4 });
+    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataOrAddressIdx: 4 });
     expect(receiptValue).toEqual("0x0000000000000000000000000000000000000000000000000000000000000014");
-    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataIdx: 5 });
+    receiptValue = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseLogIdx(7), eventSchema, topicOrDataOrAddressIdx: 5 });
     expect(receiptValue).toEqual("0xb392448932f6ef430555631f765df0dfae34eff3000000000000000000000000");
   });
 

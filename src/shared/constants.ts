@@ -25,6 +25,7 @@ export function setVersionData(
   let versionData;
   switch (chainId) {
     case 1:
+    case 31337:
       versionData = deepCopyObject(versionDataMainnet);
       if (mock) {
         updateConstants(
@@ -35,6 +36,7 @@ export function setVersionData(
       }
       break;
     case 5:
+    case 31341:
       versionData = deepCopyObject(versionDataGoerli);
       if (mock) {
         updateConstants(

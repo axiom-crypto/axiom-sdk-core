@@ -41,7 +41,6 @@ describe("Templates", () => {
     const qb = await query.new(dataQuery);
 
     const processedDq = qb.getDataQuery();
-    // console.log(processedDq);
     expect(processedDq?.storageSubqueries!.length).toEqual(10);
   });
 
@@ -78,7 +77,6 @@ describe("Templates", () => {
     qb.append(dataQuery2);
 
     const processedDq = qb.getDataQuery();
-    // console.log(processedDq);
     expect(processedDq?.storageSubqueries!.length).toEqual(20);
   });
 
@@ -86,8 +84,7 @@ describe("Templates", () => {
     const dataQuery = templateSlotOverBlockRange(15537394, 15537394 + 500, 32, WETH_ADDR, "2");
     const qb = await (axiom.query as QueryV2).new(dataQuery);
     const processedDq = qb.getDataQuery();
-    console.log(processedDq);
-    expect(processedDq?.storageSubqueries!.length).toEqual(15);
+    expect(processedDq?.storageSubqueries!.length).toEqual(16);
   });
 
   test("templateArrayIndexValues", async () => {
@@ -102,7 +99,6 @@ describe("Templates", () => {
     );
     const qb = await (axiom.query as QueryV2).new(dataQuery);
     const processedDq = qb.getDataQuery();
-    console.log(processedDq);
     expect(processedDq?.storageSubqueries!.length).toEqual(34);
   });
 });

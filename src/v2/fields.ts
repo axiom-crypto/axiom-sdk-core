@@ -10,6 +10,14 @@ export function receiptUseLogIdx(idx: number) {
   return 100 + idx;
 }
 
-export function receiptUseTopicOrDataIdx(idx: number) {
+export function receiptUseTopic(idx: number) {
+  return idx;
+}
+
+export function receiptUseAddress() {
+  return 50;
+}
+
+export function receiptUseDataIdx(idx: number) {
   return 100 + idx;
 }
