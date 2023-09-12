@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { DataQueryRequestV2 } from "./types";
 
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGas: "0x05d21dba00",
@@ -15,7 +16,7 @@ export const ConstantsV2 = Object.freeze({
     k: 0,
     vkeyLen: 0,
     vkey: [] as string[],
-    computeProof: "",
+    computeProof: "0x00",
   },
   EmptyCallbackObject: {
     callbackAddr: ethers.ZeroAddress,
@@ -33,3 +34,15 @@ export const ConstantsV2 = Object.freeze({
   ReceiptAddressOffset: 50,
   ReceiptDataIdxOffset: 100,
 });
+
+export function newEmptyDataQuery(): DataQueryRequestV2 {
+  return {
+    headerSubqueries: [],
+    accountSubqueries: [],
+    storageSubqueries: [],
+    txSubqueries: [],
+    receiptSubqueries: [],
+    solidityNestedMappingSubqueries: [],
+    beaconSubqueries: [],
+  }
+}

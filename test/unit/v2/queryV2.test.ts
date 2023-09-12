@@ -6,6 +6,7 @@ import {
   TxField,
   TxType,
   getAccountFieldIdx,
+  getHeaderFieldIdx,
   getReceiptFieldIdx,
   getSlotForMapping,
   getTxFieldIdx
@@ -179,7 +180,7 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 32,
+      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const query = aq.new(dataQuery, computeQuery, callbackQuery);
@@ -199,7 +200,7 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 32,
+      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
@@ -257,7 +258,7 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 32,
+      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
@@ -266,7 +267,41 @@ describe("QueryV2", () => {
     expect(isValid).toEqual(true);
   });
 
-  test("should initialize QueryBuilderV2 and build Query", async () => {
+  test("should initialize build QueryV2 with dataQuery", async () => {
+    const dataQuery = {
+      headerSubqueries: [
+        {
+          blockNumber: BLOCK_NUMBER,
+          fieldIdx: getHeaderFieldIdx(HeaderField.GasUsed),
+        },
+        {
+          blockNumber: BLOCK_NUMBER + 1,
+          fieldIdx: getHeaderFieldIdx(HeaderField.GasUsed),
+        },
+      ],
+    };
+    const query = aq.new(dataQuery);
+    const {
+      queryHash,
+      dataQueryHash,
+      dataQueryEncoded,
+      computeQuery,
+      callback,
+    } = await query.build();
+    expect(queryHash).toEqual("0x23f494c21aeb4620684820375959c8c3079b28cba38646096294adef081f86ce");
+    expect(dataQueryHash).toEqual(
+      "0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49"
+    );
+    expect(dataQueryEncoded).toEqual(
+      "0x00000000000000010002000100ed14f20000000a000100ed14f30000000a"
+    );
+    expect(computeQuery.k).toEqual(0);
+    expect(computeQuery.vkey.length).toEqual(0);
+    expect(computeQuery.vkey).toEqual([]);
+    expect(computeQuery.computeProof).toEqual("0x00");
+  });
+
+  test("should initialize build QueryV2 with dataQuery, computeQuery, and callback", async () => {
     const dataQuery = {
       headerSubqueries: [
         {
@@ -303,7 +338,7 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 32,
+      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
@@ -333,7 +368,7 @@ describe("QueryV2", () => {
     expect(callback).toEqual({
       callbackAddr: WETH_ADDR.toLowerCase(),
       callbackExtraData: "0x2e15d7aa0650de1009710fdd45c3468d75ae1392",
-      resultLen: 32,
+      resultLen: 1,
       callbackFunctionSelector: "0x70a08231",
     });
   });

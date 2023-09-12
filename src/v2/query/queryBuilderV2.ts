@@ -42,7 +42,7 @@ import {
 } from "../types";
 import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
-import { ConstantsV2 } from "../constants";
+import { ConstantsV2, newEmptyDataQuery } from "../constants";
 import { PaymentCalc } from "./paymentCalc";
 import {
   getSubqueryTypeFromKey,
@@ -112,6 +112,29 @@ export class QueryBuilderV2 {
     return this.builtQuery;
   }
 
+  getQuerySchema(): string {
+    return getQuerySchemaHash(
+      this.computeQuery?.k ?? 0,
+      this.computeQuery?.vkey ?? []
+    );
+  }
+  
+  getDataQueryHash(): string {
+    return getDataQueryHashFromSubqueries(
+      this.config.chainId.toString(),
+      this.concatenateDataSubqueriesWithType()
+    );
+  }
+
+  getQueryHash(): string {
+    const computeQuery = this.computeQuery ?? ConstantsV2.EmptyComputeQueryObject;
+    return getQueryHashV2(
+      this.config.chainId.toString(),
+      this.getDataQueryHash(),
+      computeQuery
+    );
+  }
+
   unsetBuiltQuery() {
     // Reset built query if any data is changed
     this.builtQuery = undefined;
@@ -164,7 +187,7 @@ export class QueryBuilderV2 {
     this.unsetBuiltQuery();
 
     if (this.dataQuery === undefined) {
-      this.dataQuery = this.newEmptyDataQuery();
+      this.dataQuery = newEmptyDataQuery();
     }
 
     // Cast subquery to new type in order to lowercase all string value fields
@@ -400,7 +423,7 @@ export class QueryBuilderV2 {
       throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
-      throw new Error("Query must be built with `.build()` before sending.");
+      throw new Error("Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.");
     }
 
     const axiomV2Query = new ethers.Contract(
@@ -434,7 +457,7 @@ export class QueryBuilderV2 {
       throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
-      throw new Error("Query must be built with `.build()` before sending.");
+      throw new Error("Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.");
     }
     
     // Handle encoding data and uploading to IPFS
@@ -621,18 +644,6 @@ export class QueryBuilderV2 {
     callback.callbackExtraData = callback.callbackExtraData.toLowerCase();
     callback.callbackFunctionSelector = callback.callbackFunctionSelector.toLowerCase();
     return callback;
-  }
-
-  private newEmptyDataQuery(): DataQueryRequestV2 {
-    return {
-      headerSubqueries: [],
-      accountSubqueries: [],
-      storageSubqueries: [],
-      txSubqueries: [],
-      receiptSubqueries: [],
-      solidityNestedMappingSubqueries: [],
-      beaconSubqueries: [],
-    }
   }
 
   private async validateDataSubqueries(): Promise<boolean> {

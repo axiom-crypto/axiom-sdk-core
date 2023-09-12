@@ -1,4 +1,5 @@
 import {
+  AxiomV2Callback,
   AxiomV2ComputeQuery,
   HeaderField,
   ReceiptField,
@@ -118,40 +119,6 @@ describe("QueryV2", () => {
   ];
   const computeProof = ethers.concat(computeProofRaw);
 
-  const dataQuery = {
-    headerSubqueries: [
-      {
-        blockNumber: BLOCK_NUMBER,
-        fieldIdx: getHeaderFieldIdx(HeaderField.Nonce),
-      },
-      {
-        blockNumber: BLOCK_NUMBER + 3,
-        fieldIdx: getHeaderFieldIdx(HeaderField.Miner),
-      },
-    ],
-    receiptSubqueries: [
-      {
-        txHash:
-          "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-        fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.Status),
-        topicOrDataOrAddressIdx: 0,
-        eventSchema: ethers.ZeroHash,
-      },
-    ],
-    solidityNestedMappingSubqueries: [
-      {
-        blockNumber: 17000000,
-        addr: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-        mappingSlot: "5",
-        mappingDepth: 3,
-        keys: [
-          bytes32("0x0000000000085d4780b73119b644ae5ecd22b376"),
-          bytes32("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-          bytes32(3000),
-        ],
-      },
-    ],
-  };
   const computeQueryReq: AxiomV2ComputeQuery = {
     k: 14,
     vkey,
@@ -160,45 +127,95 @@ describe("QueryV2", () => {
   const callbackQuery = {
     callbackAddr: WETH_ADDR,
     callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-    resultLen: 32,
+    resultLen: 1,
     callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
   };
 
-  const config: AxiomConfig = {
-    privateKey: process.env.PRIVATE_KEY as string,
-    providerUri: process.env.PROVIDER_URI as string,
-    version: "v2",
-    chainId: 1,
-  };
-
-  // Override w/ your local anvil address
-  const overrides = {
-    Addresses: {
-      Axiom: "0xf201fFeA8447AB3d43c98Da3349e0749813C9009",
-      AxiomQuery: "0x930b218f3e63eE452c13561057a8d5E61367d5b7",
-    },
-  };
-  const axiom = new Axiom(config, overrides);
-
-  test("Can send on-chain Query", async () => {
-    const options = {};
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
-    await qb.build();
+  // test("Can send mainnet on-chain Query", async () => {
+  //   const dataQuery = {
+  //     headerSubqueries: [
+  //       {
+  //         blockNumber: BLOCK_NUMBER,
+  //         fieldIdx: getHeaderFieldIdx(HeaderField.Nonce),
+  //       },
+  //       {
+  //         blockNumber: BLOCK_NUMBER + 3,
+  //         fieldIdx: getHeaderFieldIdx(HeaderField.Miner),
+  //       },
+  //     ],
+  //     receiptSubqueries: [
+  //       {
+  //         txHash:
+  //           "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
+  //         fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.Status),
+  //         topicOrDataOrAddressIdx: 0,
+  //         eventSchema: ethers.ZeroHash,
+  //       },
+  //     ],
+  //     solidityNestedMappingSubqueries: [
+  //       {
+  //         blockNumber: 17000000,
+  //         addr: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+  //         mappingSlot: "5",
+  //         mappingDepth: 3,
+  //         keys: [
+  //           bytes32("0x0000000000085d4780b73119b644ae5ecd22b376"),
+  //           bytes32("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+  //           bytes32(3000),
+  //         ],
+  //       },
+  //     ],
+  //   };
     
-    const payment = qb.calculateFee();
-    await qb.sendOnchainQuery(
-      payment,
-      (receipt: any) => {
-        console.log("receipt", receipt);
-      }
-    );
-  }, 20000);
+  
+  //   const config: AxiomConfig = {
+  //     privateKey: process.env.PRIVATE_KEY as string,
+  //     providerUri: process.env.PROVIDER_URI as string,
+  //     version: "v2",
+  //     chainId: 1,
+  //   };
+  
+  //   // Override w/ your local anvil address
+  //   const overrides = {
+  //     Addresses: {
+  //       Axiom: "0xf201fFeA8447AB3d43c98Da3349e0749813C9009",
+  //       AxiomQuery: "0x930b218f3e63eE452c13561057a8d5E61367d5b7",
+  //     },
+  //   };
+  //   const axiom = new Axiom(config, overrides);
 
-  // test("Can send off-chain Query", async () => {
   //   const options = {};
   //   const query = axiom.query as QueryV2;
-  //   const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
+  //   const qb = query.new(dataQuery, computeQueryReq, callbackQuery, options);
+  //   await qb.build();
+    
+  //   const payment = qb.calculateFee();
+  //   await qb.sendOnchainQuery(
+  //     payment,
+  //     (receipt: any) => {
+  //       console.log("receipt", receipt);
+  //     }
+  //   );
+  // }, 40000);
+
+  // test("Can send off-chain Query", async () => {
+  //   const config: AxiomConfig = {
+  //     privateKey: process.env.PRIVATE_KEY as string,
+  //     providerUri: process.env.PROVIDER_URI as string,
+  //     version: "v2",
+  //     chainId: 1,
+  //   };
+
+  //   // Override w/ your local anvil address
+  //   const overrides = {
+  //     Addresses: {
+  //       Axiom: "0xf201fFeA8447AB3d43c98Da3349e0749813C9009",
+  //       AxiomQuery: "0x930b218f3e63eE452c13561057a8d5E61367d5b7",
+  //     },
+  //   };
+  //   const axiom = new Axiom(config, overrides);
+  //   const query = axiom.query as QueryV2;
+  //   const qb = query.new();
   //   await qb.build();
     
   //   const payment = qb.calculateFee();
@@ -208,5 +225,53 @@ describe("QueryV2", () => {
   //       console.log("receipt", receipt);
   //     }
   //   );
-  // }, 20000);
+  // }, 40000);
+
+  test("Can send Goerli on-chain Query", async () => {
+    const config: AxiomConfig = {
+      privateKey: process.env.PRIVATE_KEY_GOERLI as string,
+      providerUri: process.env.PROVIDER_URI_GOERLI as string,
+      version: "v2",
+      chainId: 5,
+    };
+
+    const axiom = new Axiom(config);
+    const query = (axiom.query as QueryV2).new();
+
+    const axiomV2ExampleClientCb: AxiomV2Callback = {
+      callbackAddr: "0xc4708a36027e167e16176c637a4730496612f757",
+      callbackFunctionSelector: getFunctionSelector("callback", ["uint64","address","bytes32","bytes32","bytes32[]","bytes"]),
+      resultLen: 0,
+      callbackExtraData: ethers.solidityPacked(
+        ["uint64","address","bytes32","bytes32","bytes32[]","bytes"], 
+        [
+          5,  // sourceChainId
+          "0xB392448932F6ef430555631f765Df0dfaE34efF3", 
+          query.getQuerySchema(), // querySchema
+          query.getQueryHash(), // queryHash
+          [bytes32(0)], // axiomResults
+          "0x00", // callbackExtraData
+        ]
+      ),
+    }
+
+    query.appendHeaderSubquery(
+      8200006,
+      HeaderField.ParentHash,
+    );
+    query.setCallback(callbackQuery);
+    
+    const isValid = await query.validate();
+    expect(isValid).toEqual(true);
+
+    await query.build();
+    console.log("queryHash:", query.getBuiltQuery()?.queryHash);
+    const payment = query.calculateFee();
+    await query.sendOnchainQuery(
+      payment,
+      (receipt: ethers.TransactionReceipt) => {
+        console.log("receipt", receipt);        
+      }
+    );
+  }, 40000);
 });
