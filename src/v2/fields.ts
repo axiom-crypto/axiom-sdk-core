@@ -1,23 +1,25 @@
+import { ConstantsV2 } from "./constants";
+
 export function txUseCalldataIdx(idx: number) {
-  return 100 + idx;
+  return ConstantsV2.TxCalldataIdxOffset + idx;
 }
 
 export function txUseContractDataIdx(idx: number) {
-  return 100000 + idx;
+  return ConstantsV2.TxContractDataIdxOffset + idx;
 }
 
 export function receiptUseLogIdx(idx: number) {
-  return 100 + idx;
+  return ConstantsV2.ReceiptLogIdxOffset + idx;
 }
 
-export function receiptUseTopic(idx: number) {
+export function receiptUseTopicIdx(idx: number) {
   return idx;
 }
 
 export function receiptUseAddress() {
-  return 50;
+  return ConstantsV2.ReceiptAddressOffset;
 }
 
 export function receiptUseDataIdx(idx: number) {
-  return 100 + idx;
+  return ConstantsV2.ReceiptDataIdxOffset + idx;
 }

@@ -87,8 +87,13 @@ export function deepCopyObject(obj: any): any {
   return JSON.parse(JSON.stringify(obj));
 }
 
-export function getFunctionSelector(functionName: string, params: string[]) {
+export function getFunctionSelector(functionName: string, params: string[]): string {
   return ethers.FunctionFragment.getSelector(functionName, params);
+}
+
+export function getEventSchema(functionName: string, params: string[]): string {
+  const concatFunction = `${functionName}(${params.join(',')})`;
+  return ethers.id(concatFunction);
 }
 
 export function fillArray(length: number, value: string) {

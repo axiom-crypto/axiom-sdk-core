@@ -15,6 +15,7 @@ import {
   SolidityNestedMappingSubquery,
 } from "@axiom-crypto/codec";
 import { SharedConstants } from "./constants";
+import { ConstantsV2 } from "../v2/constants";
 
 export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
   const fullBlock = await provider.send(
@@ -123,7 +124,7 @@ export async function getTxFieldValue(
   if (!tx) {
     return null;
   }
-  if (fieldOrCalldataIdx < 100) {
+  if (fieldOrCalldataIdx < ConstantsV2.TxCalldataIdxOffset) {
     switch (fieldOrCalldataIdx) {
       case TxField.ChainId:
         return tx.chainId ? bytes32(tx.chainId) : null;
@@ -160,10 +161,10 @@ export async function getTxFieldValue(
     }
   }
 
-  if (fieldOrCalldataIdx < 10000) {
+  if (fieldOrCalldataIdx < ConstantsV2.TxContractDataIdxOffset) {
     // Parse calldata blob (ignoring function selector) to get calldata at specified idx
     const calldata = tx.data;
-    const calldataIdx = fieldOrCalldataIdx - 100;
+    const calldataIdx = fieldOrCalldataIdx - ConstantsV2.TxCalldataIdxOffset;
     const reader = new ByteStringReader(calldata);
     const _functionSignature = reader.readBytes("bytes4");
     for (let i = 0; i < calldataIdx; i++) {
@@ -173,10 +174,15 @@ export async function getTxFieldValue(
     return calldataValue;
   }
 
-  // WIP
-  const contractDataIdx = fieldOrCalldataIdx - 10000;
-  // const contractData = await provider.call(tx, tx.blockNumber);
-  return "";
+  // Get contractData Idx
+  const contractDataIdx = fieldOrCalldataIdx - ConstantsV2.TxContractDataIdxOffset;
+  const contractData = tx.data;
+  const reader = new ByteStringReader(contractData);
+  for (let i = 0; i < contractDataIdx; i++) {
+    reader.readBytes("bytes32");
+  }
+  const contractDataValue = reader.readBytes("bytes32");
+  return contractDataValue;
 }
 
 export async function getReceiptFieldValue(
@@ -188,7 +194,7 @@ export async function getReceiptFieldValue(
     return null;
   }
 
-  if (fieldOrLogIdx < 100) {
+  if (fieldOrLogIdx < ConstantsV2.ReceiptLogIdxOffset) {
     switch (fieldOrLogIdx) {
       case ReceiptField.Status:
         return receipt.status ? bytes32(receipt.status) : null;
@@ -203,7 +209,7 @@ export async function getReceiptFieldValue(
     }
   }
 
-  const logIdx = fieldOrLogIdx - 100;
+  const logIdx = fieldOrLogIdx - ConstantsV2.ReceiptLogIdxOffset;
   const log = receipt.logs[logIdx] ?? null;
   if (topicOrDataOrAddressIdx && log) {
     if (topicOrDataOrAddressIdx < log.topics.length) {

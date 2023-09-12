@@ -1,9 +1,20 @@
-import { AxiomV2ComputeQuery, HeaderField, ReceiptField, getHeaderFieldIdx, getReceiptFieldIdx } from "@axiom-crypto/codec";
-import { Axiom, AxiomConfig, receiptUseAddress, receiptUseLogIdx } from "../../../src";
+import {
+  AxiomV2ComputeQuery,
+  HeaderField,
+  ReceiptField,
+  bytes32,
+  getHeaderFieldIdx,
+  getReceiptFieldIdx
+} from "@axiom-crypto/codec";
+import { Axiom,
+  AxiomConfig,
+  receiptUseAddress,
+  receiptUseLogIdx,
+  receiptUseTopicIdx
+} from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
 import { getFunctionSelector } from "../../../src/shared/utils";
-import { ConstantsV2 } from "../../../src/v2/constants";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537400;
@@ -114,7 +125,7 @@ describe("QueryV2", () => {
         fieldIdx: getHeaderFieldIdx(HeaderField.Nonce),
       },
       {
-        blockNumber: BLOCK_NUMBER + 1,
+        blockNumber: BLOCK_NUMBER + 3,
         fieldIdx: getHeaderFieldIdx(HeaderField.Miner),
       },
     ],
@@ -122,9 +133,22 @@ describe("QueryV2", () => {
       {
         txHash:
           "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-        fieldOrLogIdx: receiptUseLogIdx(1),
-        topicOrDataOrAddressIdx: receiptUseAddress(),
+        fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.Status),
+        topicOrDataOrAddressIdx: 0,
         eventSchema: ethers.ZeroHash,
+      },
+    ],
+    solidityNestedMappingSubqueries: [
+      {
+        blockNumber: 17000000,
+        addr: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+        mappingSlot: "5",
+        mappingDepth: 3,
+        keys: [
+          bytes32("0x0000000000085d4780b73119b644ae5ecd22b376"),
+          bytes32("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
+          bytes32(3000),
+        ],
       },
     ],
   };
@@ -144,7 +168,7 @@ describe("QueryV2", () => {
     privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
-    chainId: 31337,
+    chainId: 1,
   };
 
   // Override w/ your local anvil address
@@ -178,7 +202,7 @@ describe("QueryV2", () => {
   //   await qb.build();
     
   //   const payment = qb.calculateFee();
-  //   await qb.sendOffchainQuery(
+  //   await qb.sendQueryWithIpfs(
   //     payment,
   //     (receipt: any) => {
   //       console.log("receipt", receipt);

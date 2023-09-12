@@ -16,7 +16,7 @@ export class InternalConfig {
   /**
    * The Chain ID to use for the Axiom SDK
    */
-  readonly chainId: number;
+  readonly chainId: BigInt;
 
   /**
    * Axiom contract version number to use
@@ -56,7 +56,7 @@ export class InternalConfig {
   constructor(config: AxiomConfig, overrides?: any) {
     this.apiKey = config.apiKey ?? "no-api-key";
     this.providerUri = this.parseProviderUri(config.providerUri);
-    this.chainId = config.chainId ?? 1;
+    this.chainId = this.parseChainId(config.chainId);
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs ?? 10000;
     this.mock = this.parseMock(config.mock, this.chainId);
@@ -78,7 +78,7 @@ export class InternalConfig {
     return this.versionData[this.version];
   }
 
-  parseProviderUri(providerUri: string): string {
+  private parseProviderUri(providerUri: string): string {
     if (providerUri === undefined || providerUri === "") {
       throw new Error("providerUri is required in AxiomConfig");
     }
@@ -97,7 +97,14 @@ export class InternalConfig {
     }
   }
 
-  parseVersion(version?: string): string {
+  private parseChainId(chainId?: number | string | BigInt): BigInt {
+    if (chainId === undefined) {
+      return BigInt(1);
+    }
+    return BigInt(chainId.valueOf());
+  }
+
+  private parseVersion(version?: string): string {
     if (version === undefined) {
       return Versions[Versions.length - 1];
     }
@@ -116,10 +123,10 @@ export class InternalConfig {
     );
   }
 
-  parseMock(mock: boolean | undefined, chainId: number): boolean {
-    if (chainId === 1) {
+  private parseMock(mock: boolean | undefined, chainId: BigInt): boolean {
+    if (chainId === 1n) {
       return false;
-    } else if (chainId === 5) {
+    } else if (chainId === 5n) {
       return true;
     } else if (mock === undefined) {
       return false;

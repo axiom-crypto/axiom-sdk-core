@@ -18,7 +18,7 @@ export class Block {
         params: {
           blockNumber,
           mock: this.config.mock,
-          chainId: this.config.chainId,
+          chainId: this.config.chainId.toString(),
         },
         headers: {
           "x-axiom-api-key": this.config.apiKey,

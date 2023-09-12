@@ -23,4 +23,13 @@ export const ConstantsV2 = Object.freeze({
     resultLen: 0,
     callbackExtraData: ethers.ZeroHash,
   },
+
+  TxFieldIdxOffset: 0,
+  TxCalldataIdxOffset: 100,
+  TxContractDataIdxOffset: 100000,
+  ReceiptFieldIdxOffset: 0,
+  ReceiptLogIdxOffset: 100,
+  ReceiptTopicIdxOffset: 0,
+  ReceiptAddressOffset: 50,
+  ReceiptDataIdxOffset: 100,
 });

@@ -65,14 +65,14 @@ export class QueryV1 extends Query {
     if (keccakQueryResponse !== undefined) {
       params = {
         keccakQueryResponse,
-        chainId: this.config.chainId,
+        chainId: Number(this.config.chainId),
         contractAddress,
         mock: this.config.mock,
       }
     } else {
       params = {
         queryHash,
-        chainId: this.config.chainId,
+        chainId: Number(this.config.chainId),
         contractAddress,
         mock: this.config.mock,
       }

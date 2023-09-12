@@ -1,14 +1,38 @@
-import { AccountField, AxiomV2ComputeQuery, getAccountFieldIdx } from "@axiom-crypto/codec";
-import { Axiom, AxiomConfig } from "../../../src";
+import {
+  AccountField,
+  AxiomV2ComputeQuery,
+  HeaderField,
+  ReceiptField,
+  TxField,
+  TxType,
+  getAccountFieldIdx,
+  getReceiptFieldIdx,
+  getSlotForMapping,
+  getTxFieldIdx
+} from "@axiom-crypto/codec";
+import {
+  Axiom,
+  AxiomConfig,
+  ReceiptSubqueryLogType,
+  ReceiptSubqueryType,
+  TxSubqueryType,
+  receiptUseLogIdx,
+  receiptUseTopicIdx
+} from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
-import { AbiCoder, ethers } from "ethers";
-import { bytes32, getFunctionSelector, resizeArray } from "../../../src/shared/utils";
-import { ConstantsV2 } from "../../../src/v2/constants";
+import { ethers } from "ethers";
+import {
+  bytes32,
+  getEventSchema,
+  getFunctionSelector,
+  resizeArray
+} from "../../../src/shared/utils";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537394;
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
+  const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
   const vkeyLen = 27;
   const vkey = [
@@ -113,6 +137,7 @@ describe("QueryV2", () => {
     version: "v2",
   };
   const axiom = new Axiom(config);
+  const aq = axiom.query as QueryV2;
 
   test("should initialize QueryV2", () => {
     expect(typeof axiom.query).toEqual("object");
@@ -123,8 +148,7 @@ describe("QueryV2", () => {
       headerSubqueries: [],
       receiptSubqueries: [],
     };
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery);
+    const query = aq.new(dataQuery);
     expect(typeof query).toEqual("object");
   });
 
@@ -138,8 +162,7 @@ describe("QueryV2", () => {
       vkey,
       computeProof,
     };
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQuery);
+    const query = aq.new(dataQuery, computeQuery);
     expect(typeof query).toEqual("object");
   });
 
@@ -159,8 +182,7 @@ describe("QueryV2", () => {
       resultLen: 32,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQuery, callbackQuery);
+    const query = aq.new(dataQuery, computeQuery, callbackQuery);
     expect(typeof query).toEqual("object");
   });
 
@@ -181,8 +203,7 @@ describe("QueryV2", () => {
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQuery, callbackQuery, options);
+    const query = aq.new(dataQuery, computeQuery, callbackQuery, options);
     expect(typeof query).toEqual("object");
   });
 
@@ -209,8 +230,8 @@ describe("QueryV2", () => {
         {
           txHash:
             "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-          fieldOrLogIdx: 5,
-          topicOrDataOrAddressIdx: 10,
+          fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.CumulativeGas),
+          topicOrDataOrAddressIdx: 0,
           eventSchema: ethers.ZeroHash,
         },
       ],
@@ -224,7 +245,6 @@ describe("QueryV2", () => {
             bytes32("0x0000000000085d4780b73119b644ae5ecd22b376"),
             bytes32("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
             bytes32(3000),
-            ""
           ],
         },
       ],
@@ -241,8 +261,9 @@ describe("QueryV2", () => {
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
+    const query = aq.new(dataQuery, computeQueryReq, callbackQuery, options);
+    const isValid = await query.validate();
+    expect(isValid).toEqual(true);
   });
 
   test("should initialize QueryBuilderV2 and build Query", async () => {
@@ -268,7 +289,7 @@ describe("QueryV2", () => {
         {
           txHash:
             "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-          fieldOrLogIdx: 5,
+          fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.CumulativeGas),
           topicOrDataOrAddressIdx: 10,
           eventSchema: ethers.ZeroHash,
         },
@@ -286,23 +307,24 @@ describe("QueryV2", () => {
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
-    const query = axiom.query as QueryV2;
-    const qb = await query.new(dataQuery, computeQueryReq, callbackQuery, options);
+    const query = aq.new(dataQuery, computeQueryReq, callbackQuery, options);
     
-    const processedDq = qb.getDataQuery();
+    const processedDq = query.getDataQuery();
     expect(processedDq?.accountSubqueries?.[0].addr).toEqual(WETH_WHALE.toLowerCase());
 
     const {
+      queryHash,
       dataQueryHash,
       dataQueryEncoded,
       computeQuery,
       callback,
-    } = await qb.build();
+    } = await query.build();
+    expect(queryHash).toEqual("0x21ffa8bf591e4703c8b5cf7867ad9f77e78ba5e3ba3252dc20193d26d688e1da");
     expect(dataQueryHash).toEqual(
-      "0xc86d72bb3a07468583324d88059b854f581d0c47404667dfa7c7254aca5a4fe9"
+      "0x7c9d2ff14ef864fa50bfa2bed97c998a6915058225a94e20803148344946d7b9"
     );
     expect(dataQueryEncoded).toEqual(
-      "0x000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae139200000000000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000050000000a0000000000000000000000000000000000000000000000000000000000000000"
+      "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae139200000000000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000010000000a0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);
     expect(computeQuery.vkey.length).toEqual(computeQueryReq.vkey.length);
@@ -314,5 +336,109 @@ describe("QueryV2", () => {
       resultLen: 32,
       callbackFunctionSelector: "0x70a08231",
     });
+  });
+
+  test("Append a Header subquery", async () => {
+    const query = aq.new();
+    query.appendHeaderSubquery(
+      17000000,
+      HeaderField.GasLimit
+    );
+    await query.build();
+    const dataQuery = query.getDataQuery();
+    expect(dataQuery?.headerSubqueries?.[0].blockNumber).toEqual(17000000);
+    expect(dataQuery?.headerSubqueries?.[0].fieldIdx).toEqual(HeaderField.GasLimit);
+  });
+
+  test("Append an Account subquery", async () => {
+    const query = aq.new();
+    query.appendAccountSubquery(
+      17000000,
+      WETH_WHALE,
+      AccountField.Nonce
+    );
+    await query.build();
+    const dataQuery = query.getDataQuery();
+    expect(dataQuery?.accountSubqueries?.[0].blockNumber).toEqual(17000000);
+    expect(dataQuery?.accountSubqueries?.[0].addr).toEqual(WETH_WHALE.toLowerCase());
+    expect(dataQuery?.accountSubqueries?.[0].fieldIdx).toEqual(AccountField.Nonce);
+  });
+
+  test("Append a Storage subquery", async () => {
+    const query = aq.new();
+    const slot = getSlotForMapping("3", "address", WETH_WHALE);
+    query.appendStorageSubquery(
+      18000000,
+      WETH_ADDR,
+      slot
+    );
+    await query.build();
+    const dataQuery = query.getDataQuery();
+    expect(dataQuery?.storageSubqueries?.[0].blockNumber).toEqual(18000000);
+    expect(dataQuery?.storageSubqueries?.[0].addr).toEqual(WETH_ADDR.toLowerCase());
+    expect(dataQuery?.storageSubqueries?.[0].slot).toEqual(slot);
+  });
+
+  test("Append a Tx subquery", async () => {
+    const query = aq.new();
+    query.appendTxSubquery(
+      "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
+      TxSubqueryType.Field,
+      TxField.To
+    );
+    await query.build();
+    const dataQuery = query.getDataQuery();
+
+    const fieldOrCalldataIdx = getTxFieldIdx(TxType.Eip1559, TxField.To);
+    expect(dataQuery?.txSubqueries?.[0].txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
+    expect(dataQuery?.txSubqueries?.[0].fieldOrCalldataIdx).toEqual(fieldOrCalldataIdx);
+  });
+
+  test("Append a Receipt subquery", async () => {
+    const query = aq.new();
+    const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
+    query.appendReceiptSubquery(
+      "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
+      ReceiptSubqueryType.Log,
+      0,
+      ReceiptSubqueryLogType.Topic,
+      1,
+      eventSchema
+    );
+    await query.build();
+    const dataQuery = query.getDataQuery();
+
+    const fieldOrLogIdx = receiptUseLogIdx(0);
+    const topicOrDataOrAddressIdx = receiptUseTopicIdx(1);
+    expect(dataQuery?.receiptSubqueries?.[0].txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
+    expect(dataQuery?.receiptSubqueries?.[0].fieldOrLogIdx).toEqual(fieldOrLogIdx);
+    expect(dataQuery?.receiptSubqueries?.[0].topicOrDataOrAddressIdx).toEqual(topicOrDataOrAddressIdx);
+    expect(dataQuery?.receiptSubqueries?.[0].eventSchema).toEqual(eventSchema);
+  });
+
+  test("Append a Solidity Nested Mapping subquery", async () => {
+    const query = aq.new();
+
+    // NOTE: Below is *not* a valid mapping subquery; only for testing purposes.
+    query.appendSolidityNestedMappingSubquery(
+      17000000,
+      WETH_ADDR,
+      "3",
+      2,
+      [
+        WETH_ADDR,
+        WETH_WHALE,
+      ]
+    );
+    await query.build();
+    const dataQuery = query.getDataQuery();
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].blockNumber).toEqual(17000000);
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].addr).toEqual(WETH_ADDR.toLowerCase());
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].mappingSlot).toEqual("3");
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].mappingDepth).toEqual(2);
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].keys).toEqual([
+      bytes32(WETH_ADDR),
+      bytes32(WETH_WHALE),
+    ]);
   });
 });

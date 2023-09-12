@@ -17,7 +17,7 @@ export interface AxiomConfig {
    * The chain ID to use
    * (default: 1 (mainnet)))
    */
-  chainId?: number;
+  chainId?: number | string | BigInt;
 
   /**
    * Axiom contract version number that we're targeting

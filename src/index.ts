@@ -9,6 +9,7 @@ export * from './shared/ipfs';
 
 export {
   getFunctionSelector,
+  bytes32,
 } from './shared/utils';
 
 export * from './v2/templates';

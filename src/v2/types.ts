@@ -41,7 +41,8 @@ export interface QueryBuilderV2Options {
 }
 
 export interface BuiltQueryV2 {
-  sourceChainId: number;
+  sourceChainId: string;
+  queryHash: string;
   dataQueryEncoded: string;
   dataQueryHash: string;
   dataQuery: AxiomV2DataQuery;
@@ -50,4 +51,21 @@ export interface BuiltQueryV2 {
   callback: AxiomV2Callback;
   maxFeePerGas: string;
   callbackGasLimit: number,
+}
+
+export enum TxSubqueryType {
+  Field,
+  Calldata,
+  ContractData,
+}
+
+export enum ReceiptSubqueryType {
+  Field,
+  Log,
+}
+
+export enum ReceiptSubqueryLogType {
+  Topic,
+  Data,
+  Address,
 }

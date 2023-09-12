@@ -23,12 +23,12 @@ export class QueryV2 extends Query {
    * @param query A `QueryRequestV2` object to generate a new QueryBuilderV2 instance from
    * @returns 
    */
-  async new(
-    dataQuery: DataQueryRequestV2,
+  new(
+    dataQuery?: DataQueryRequestV2,
     computeQuery?: AxiomV2ComputeQuery,
     callback?: AxiomV2Callback,
     options?: QueryBuilderV2Options
-  ): Promise<QueryBuilderV2> {
+  ): QueryBuilderV2 {
     return new QueryBuilderV2(this.config, dataQuery, computeQuery, callback, options);
   }
 }

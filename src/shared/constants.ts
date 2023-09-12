@@ -18,14 +18,14 @@ export const Versions = ["v0", "v0_2", "v1", "v2"];
 export type VersionsType = (typeof Versions)[number];
 
 export function setVersionData(
-  chainId: number,
+  chainId: BigInt,
   version: string,
   mock: boolean
 ) {
   let versionData;
   switch (chainId) {
-    case 1:
-    case 31337:
+    case 1n:
+    case 31337n:
       versionData = deepCopyObject(versionDataMainnet);
       if (mock) {
         updateConstants(
@@ -35,8 +35,8 @@ export function setVersionData(
         );
       }
       break;
-    case 5:
-    case 31341:
+    case 5n:
+    case 31341n:
       versionData = deepCopyObject(versionDataGoerli);
       if (mock) {
         updateConstants(
