@@ -198,7 +198,7 @@ describe("QueryV2", () => {
   //   );
   // }, 40000);
 
-  // test("Can send off-chain Query", async () => {
+  // test("Can send IPFS Query", async () => {
   //   const config: AxiomConfig = {
   //     privateKey: process.env.PRIVATE_KEY as string,
   //     providerUri: process.env.PROVIDER_URI as string,

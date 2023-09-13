@@ -483,6 +483,7 @@ export class QueryBuilderV2 {
     
     const tx = await axiomV2Query.sendQueryWithIpfsData(
       this.builtQuery.queryHash,
+      this.builtQuery.querySchema,
       ipfsHashBytes32,
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
