@@ -14,8 +14,8 @@ import {
   getNumBytes,
 } from "@axiom-crypto/codec";
 import { ethers } from "ethers";
-import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getSolidityNestedMappingValue, getStorageFieldValue, getTxFieldValue } from "../../shared/chainData";
-import { ConstantsV2 } from "../constants";
+import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getSolidityNestedMappingValue, getStorageFieldValue, getTxFieldValue } from "../../../shared/chainData";
+import { ConstantsV2 } from "../../constants";
 
 export function getSubqueryTypeFromKey(key: string): DataSubqueryType {
   switch (key) {

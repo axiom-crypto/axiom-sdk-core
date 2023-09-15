@@ -33,6 +33,17 @@ export async function getAccountData(blockNumber: number, addr: string, slots: e
   return accountData;
 }
 
+export async function getBlockNumberFromTxHash(
+  provider: ethers.JsonRpcProvider,
+  txHash: string,
+): Promise<number | null> {
+  const tx = await provider.getTransaction(txHash);
+  if (!tx) {
+    return null;
+  }
+  return tx.blockNumber;
+}
+
 export async function getHeaderFieldValue(
   provider: ethers.JsonRpcProvider,
   { blockNumber, fieldIdx }: HeaderSubquery
@@ -242,6 +253,19 @@ export async function getSolidityNestedMappingValue(
   return value;
 }
 
+
+export function getTxTypeForBlockNumber(
+  blockNumber: number,
+): TxType {
+  if (blockNumber < SharedConstants.EIP2930_BLOCK) {
+    return TxType.Legacy;
+  } else if (blockNumber < SharedConstants.EIP1559_BLOCK) {
+    return TxType.Eip2930;
+  } else {
+    return TxType.Eip1559;
+  }
+}
+
 export async function getTxTypeForTxHash(
   provider: ethers.JsonRpcProvider,
   txHash: string
@@ -251,11 +275,5 @@ export async function getTxTypeForTxHash(
     return null;
   }
   const blockNumber = tx.blockNumber;
-  if (blockNumber < SharedConstants.EIP2930_BLOCK) {
-    return TxType.Legacy;
-  } else if (blockNumber < SharedConstants.EIP1559_BLOCK) {
-    return TxType.Eip2930;
-  } else {
-    return TxType.Eip1559;
-  }
+  return getTxTypeForBlockNumber(blockNumber);
 }

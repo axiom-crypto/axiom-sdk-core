@@ -256,7 +256,7 @@ describe("QueryV2", () => {
     }
 
     query.appendHeaderSubquery(
-      8200006,
+      8200007,
       HeaderField.ParentHash,
     );
     query.setCallback(callbackQuery);

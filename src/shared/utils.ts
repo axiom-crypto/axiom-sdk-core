@@ -87,12 +87,39 @@ export function deepCopyObject(obj: any): any {
   return JSON.parse(JSON.stringify(obj));
 }
 
-export function getFunctionSelector(functionName: string, params: string[]): string {
-  return ethers.FunctionFragment.getSelector(functionName, params);
+export function getFunctionSignature(functionString: string): string {
+  const functionName = functionString.split("(")[0].trim();
+  if (functionName === "") {
+    throw new Error(`Invalid function string: ${functionString}`);
+  }
+  const functionParams = functionString.split("(")[1].split(")")[0].trim();
+  if (functionParams === "") {
+    return `${functionName}()`;
+  }
+  const functionParamArray = functionParams.split(",").map((param) => {
+    let type = param.trim().split(" ")[0].trim();
+    if (type === "uint") {
+      type = "uint256";
+    } else if (type === "int") {
+      type = "int256";
+    }
+    return type;
+  });
+  return `${functionName}(${functionParamArray.join(",")})`;
 }
 
-export function getEventSchema(functionName: string, params: string[]): string {
-  const concatFunction = `${functionName}(${params.join(',')})`;
+export function getFunctionSelector(functionNameOrSig: string, params?: string[]): string {
+  if (params === undefined) {
+    return ethers.id(getFunctionSignature(functionNameOrSig)).slice(0, 10);
+  }
+  return ethers.FunctionFragment.getSelector(functionNameOrSig, params);
+}
+
+export function getEventSchema(functionNameOrSig: string, params?: string[]): string {
+  if (params === undefined) {
+    return ethers.id(getFunctionSignature(functionNameOrSig));
+  }
+  const concatFunction = `${functionNameOrSig}(${params.join(',')})`;
   return ethers.id(concatFunction);
 }
 

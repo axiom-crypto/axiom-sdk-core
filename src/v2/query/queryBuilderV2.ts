@@ -53,7 +53,7 @@ import {
   validateReceiptSubquery,
   validateSolidityNestedMappingSubquery,
   validateBeaconSubquery,
-} from "./dataSubquery";
+} from "./dataSubquery/validate";
 import { convertIpfsCidToBytes32, writeStringIpfs } from "../../shared/ipfs";
 import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, txUseCalldataIdx, txUseContractDataIdx } from "../fields";
 

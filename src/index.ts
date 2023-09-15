@@ -2,16 +2,9 @@ export {
   Axiom 
 } from './core/axiom';
 
-export * from './shared/types';
-export * from './shared/fields';
-export * from './shared/chainData';
-export * from './shared/ipfs';
+export * from './shared';
 
-export {
-  getFunctionSelector,
-  bytes32,
-} from './shared/utils';
-
+export * from './v2/query/dataSubquery/build';
 export * from './v2/templates';
 
 export {
