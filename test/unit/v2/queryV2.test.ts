@@ -17,6 +17,12 @@ import {
   ReceiptSubqueryLogType,
   ReceiptSubqueryType,
   TxSubqueryType,
+  buildAccountSubquery,
+  buildHeaderSubquery,
+  buildReceiptSubquery,
+  buildSolidityNestedMappingSubquery,
+  buildStorageSubquery,
+  buildTxSubquery,
   receiptUseLogIdx,
   receiptUseTopicIdx
 } from "../../../src";
@@ -33,6 +39,7 @@ describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537394;
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
+  const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
   const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
   const vkeyLen = 27;
@@ -375,10 +382,9 @@ describe("QueryV2", () => {
 
   test("Append a Header subquery", async () => {
     const query = aq.new();
-    query.appendHeaderSubquery(
-      17000000,
-      HeaderField.GasLimit
-    );
+    const subquery = buildHeaderSubquery(17000000)
+      .field(HeaderField.GasLimit);
+    query.appendHeaderSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
     expect(dataQuery?.headerSubqueries?.[0].blockNumber).toEqual(17000000);
@@ -387,11 +393,10 @@ describe("QueryV2", () => {
 
   test("Append an Account subquery", async () => {
     const query = aq.new();
-    query.appendAccountSubquery(
-      17000000,
-      WETH_WHALE,
-      AccountField.Nonce
-    );
+    const subquery = buildAccountSubquery(17000000)
+      .address(WETH_WHALE)
+      .field(AccountField.Nonce);
+    query.appendAccountSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
     expect(dataQuery?.accountSubqueries?.[0].blockNumber).toEqual(17000000);
@@ -402,11 +407,10 @@ describe("QueryV2", () => {
   test("Append a Storage subquery", async () => {
     const query = aq.new();
     const slot = getSlotForMapping("3", "address", WETH_WHALE);
-    query.appendStorageSubquery(
-      18000000,
-      WETH_ADDR,
-      slot
-    );
+    const subquery = buildStorageSubquery(18000000)
+      .address(WETH_ADDR)
+      .slot(slot);
+    query.appendStorageSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
     expect(dataQuery?.storageSubqueries?.[0].blockNumber).toEqual(18000000);
@@ -416,11 +420,10 @@ describe("QueryV2", () => {
 
   test("Append a Tx subquery", async () => {
     const query = aq.new();
-    query.appendTxSubquery(
-      "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
-      TxSubqueryType.Field,
-      TxField.To
-    );
+    const subquery = buildTxSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+      .field(TxField.To)
+      .type(TxType.Eip1559);
+    query.appendTxSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
 
@@ -432,14 +435,11 @@ describe("QueryV2", () => {
   test("Append a Receipt subquery", async () => {
     const query = aq.new();
     const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
-    query.appendReceiptSubquery(
-      "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
-      ReceiptSubqueryType.Log,
-      0,
-      ReceiptSubqueryLogType.Topic,
-      1,
-      eventSchema
-    );
+    const subquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+      .log(0)
+      .eventSchema("Transfer(address,address,uint256)")
+      .topic(1);
+    query.appendReceiptSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
 
@@ -453,27 +453,25 @@ describe("QueryV2", () => {
 
   test("Append a Solidity Nested Mapping subquery", async () => {
     const query = aq.new();
-
-    // NOTE: Below is *not* a valid mapping subquery; only for testing purposes.
-    query.appendSolidityNestedMappingSubquery(
-      17000000,
-      WETH_ADDR,
-      "3",
-      2,
-      [
+    const subquery = buildSolidityNestedMappingSubquery(17000000)
+      .address(UNI_V3_FACTORY_ADDR)
+      .mappingSlot(5)
+      .keys([
         WETH_ADDR,
-        WETH_WHALE,
-      ]
-    );
+        WSOL_ADDR,
+        10000,
+      ]);
+    query.appendSolidityNestedMappingSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
     expect(dataQuery?.solidityNestedMappingSubqueries?.[0].blockNumber).toEqual(17000000);
-    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].addr).toEqual(WETH_ADDR.toLowerCase());
-    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].mappingSlot).toEqual("3");
-    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].mappingDepth).toEqual(2);
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].addr).toEqual(UNI_V3_FACTORY_ADDR.toLowerCase());
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].mappingSlot).toEqual(bytes32(5));
+    expect(dataQuery?.solidityNestedMappingSubqueries?.[0].mappingDepth).toEqual(3);
     expect(dataQuery?.solidityNestedMappingSubqueries?.[0].keys).toEqual([
       bytes32(WETH_ADDR),
-      bytes32(WETH_WHALE),
+      bytes32(WSOL_ADDR),
+      bytes32(10000),
     ]);
   });
 });

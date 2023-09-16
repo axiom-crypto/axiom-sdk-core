@@ -1,11 +1,12 @@
-import { AccountField, AccountSubquery, ReceiptField, ReceiptSubquery, SolidityNestedMappingSubquery, StorageSubquery, TxField, TxSubquery, TxType, bytes32, getAccountFieldIdx, getReceiptFieldIdx, getTxFieldIdx } from "@axiom-crypto/codec"
+import { AccountField, AccountSubquery, ReceiptField, ReceiptSubquery, SolidityNestedMappingSubquery, StorageSubquery, TxField, TxSubquery, TxType, bytes32, getAccountFieldIdx, getReceiptFieldIdx, getTxFieldIdx, validateAddress, validateBytes32, validateSize } from "@axiom-crypto/codec"
 import { ethers } from "ethers"
-import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseContractDataIdx, txUseContractDeploySelector, txUseFunctionSelector, txUseNoCalldataSelector, txUseTxIndex, txUseTxType } from "../../fields"
+import { receiptUseAddress, receiptUseBlockNumber, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, receiptUseTxIndex, receiptUseTxType, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseContractDataIdx, txUseFunctionSelector, txUseTxIndex, txUseTxType } from "../../fields"
 import { getEventSchema } from "../../../shared/utils"
 import { HeaderField, HeaderSubquery, getHeaderFieldIdx } from "@axiom-crypto/codec"
 import { getTxTypeForBlockNumber } from "../../../shared"
 
 export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
+  validateSize(blockNumber, "uint32");
   const blockNumberNum = Number(blockNumber.toString());
   const field = (field: HeaderField): HeaderSubquery => {
     return {
@@ -20,8 +21,10 @@ export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
 }
 
 export const buildAccountSubquery = (blockNumber: number | string | BigInt) => {
+  validateSize(blockNumber, "uint32");
   const blockNumberNum = Number(blockNumber.toString());
   const address = (address: string) => {
+    validateAddress(address)
     const field = (field: AccountField): AccountSubquery => {
       return {
         blockNumber: blockNumberNum,
@@ -41,10 +44,13 @@ export const buildAccountSubquery = (blockNumber: number | string | BigInt) => {
 }
 
 export const buildStorageSubquery = (blockNumber: number | string | BigInt) => {
+  validateSize(blockNumber, "uint32");
   const blockNumberNum = Number(blockNumber.toString());
   const address = (address: string) => {
+    validateAddress(address)
     const slot = (slot: number | string | BigInt): StorageSubquery => {
-      const slotStr = bytes32(0);
+      validateSize(slot, "uint256");
+      const slotStr = bytes32(slot.toString());
       return {
         blockNumber: blockNumberNum,
         addr: address,
@@ -63,6 +69,7 @@ export const buildStorageSubquery = (blockNumber: number | string | BigInt) => {
 }
 
 export const buildTxSubquery = (txHash: string) => {
+  validateBytes32(txHash);
   const field = (field: TxField) => {
     const type = (type: TxType): TxSubquery => {
       return {
@@ -72,6 +79,7 @@ export const buildTxSubquery = (txHash: string) => {
     }
 
     const blockNumber = (blockNumber: number | string | BigInt): TxSubquery => {
+      validateSize(blockNumber, "uint32");
       const blockNumberNum = Number(blockNumber.toString());
       const txType = getTxTypeForBlockNumber(blockNumberNum);
       return {
@@ -86,19 +94,21 @@ export const buildTxSubquery = (txHash: string) => {
     });
   }
 
-  const calldata = (bytes32Idx: number | string | BigInt): TxSubquery => {
-    const bytes32IdxNum = Number(bytes32Idx.toString());
+  const calldata = (dataIdx: number | string | BigInt): TxSubquery => {
+    validateSize(dataIdx, "uint32");
+    const dataIdxNum = Number(dataIdx.toString());
     return {
       txHash,
-      fieldOrCalldataIdx: txUseCalldataIdx(bytes32IdxNum),
+      fieldOrCalldataIdx: txUseCalldataIdx(dataIdxNum),
     }
   }
 
-  const contractData = (bytes32Idx: number | string | BigInt): TxSubquery => {
-    const bytes32IdxNum = Number(bytes32Idx.toString());
+  const contractData = (dataIdx: number | string | BigInt): TxSubquery => {
+    validateSize(dataIdx, "uint32");
+    const dataIdxNum = Number(dataIdx.toString());
     return {
       txHash,
-      fieldOrCalldataIdx: txUseContractDataIdx(bytes32IdxNum),
+      fieldOrCalldataIdx: txUseContractDataIdx(dataIdxNum),
     }
   }
 
@@ -130,20 +140,6 @@ export const buildTxSubquery = (txHash: string) => {
     }
   }
 
-  const noCalldataSelector = (): TxSubquery => {
-    return {
-      txHash,
-      fieldOrCalldataIdx: txUseNoCalldataSelector(),
-    }
-  }
-
-  const contractDeploySelector = (): TxSubquery => {
-    return {
-      txHash,
-      fieldOrCalldataIdx: txUseContractDeploySelector(),
-    }
-  }
-
   const calldataHash = (): TxSubquery => {
     return {
       txHash,
@@ -155,10 +151,16 @@ export const buildTxSubquery = (txHash: string) => {
     field,
     calldata,
     contractData,
+    txType,
+    blockNumber,
+    txIndex,
+    functionSelector,
+    calldataHash,
   });
 }
 
 export const buildReceiptSubquery = (txHash: string) => {
+  validateBytes32(txHash);
   const field = (field: ReceiptField): ReceiptSubquery => {
     return {
       txHash,
@@ -169,10 +171,15 @@ export const buildReceiptSubquery = (txHash: string) => {
   }
 
   const log = (logIdx: number) => {
+    validateSize(logIdx, "uint32");
     logIdx = receiptUseLogIdx(logIdx);
+
     const eventSchema = (eventSchema: string) => {
       eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
+      validateBytes32(eventSchema);
+
       const topic = (topicIdx: number): ReceiptSubquery => {
+        validateSize(topicIdx, "uint32");
         return {
           txHash,
           fieldOrLogIdx: logIdx,
@@ -182,6 +189,7 @@ export const buildReceiptSubquery = (txHash: string) => {
       }
 
       const data = (dataIdx: number): ReceiptSubquery => {
+        validateSize(dataIdx, "uint32");
         return {
           txHash,
           fieldOrLogIdx: logIdx,
@@ -211,17 +219,53 @@ export const buildReceiptSubquery = (txHash: string) => {
     })
   }
 
+  const txType = (): ReceiptSubquery => {
+    return {
+      txHash,
+      fieldOrLogIdx: receiptUseTxType(),
+      topicOrDataOrAddressIdx: 0,
+      eventSchema: ethers.ZeroHash,
+    }
+  }
+
+  const blockNumber = (): ReceiptSubquery => {
+    return {
+      txHash,
+      fieldOrLogIdx: receiptUseBlockNumber(),
+      topicOrDataOrAddressIdx: 0,
+      eventSchema: ethers.ZeroHash,
+    }
+  }
+
+  const txIndex = (): ReceiptSubquery => {
+    return {
+      txHash,
+      fieldOrLogIdx: receiptUseTxIndex(),
+      topicOrDataOrAddressIdx: 0,
+      eventSchema: ethers.ZeroHash,
+    }
+  }
+
   return Object.freeze({
     field,
     log,
+    txType,
+    blockNumber,
+    txIndex,
   });
 }
 
-export const buildNestedMappingSubquery = (blockNumber: number | string | BigInt) => {
+export const buildSolidityNestedMappingSubquery = (blockNumber: number | string | BigInt) => {
+  validateSize(blockNumber, "uint32");
   const blockNumberNum = Number(blockNumber.toString());
+
   const address = (address: string) => {
+    validateAddress(address);
+    
     const mappingSlot = (mappingSlot: number | string | BigInt) => {
+      validateSize(mappingSlot, "uint256");
       const mappingSlotStr = bytes32(mappingSlot.toString());
+
         const keys = (keys: (number | string | BigInt)[]): SolidityNestedMappingSubquery => {
           if (keys.length > 4) {
             throw new Error("Max mapping depth supported is 4");

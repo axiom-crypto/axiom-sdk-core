@@ -18,7 +18,8 @@ import {
   TxType,
 } from "@axiom-crypto/codec";
 import { bytes32 } from "../../../src/shared/utils";
-import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, txUseCalldataIdx } from "../../../src";
+import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseFunctionSelector, txUseTxIndex, txUseTxType } from "../../../src";
+import { ConstantsV2 } from "../../../src/v2/constants";
 
 
 describe("ChainData query tests", () => {
@@ -153,6 +154,30 @@ describe("ChainData query tests", () => {
     expect(calldataValue).toEqual("0x00000014b392448932f6ef430555631f765df0dfae34eff30000000000000000");
     calldataValue = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseCalldataIdx(18) });
     expect(calldataValue).toEqual("0x0000000000000000000000000000000000000000000000000000000000000000");
+  });
+
+  test("get tx special field values", async () => {
+    const txHash = "0xb5ad2d2802c2c7b910a27438800e32d09284d7870ff10cc8024e4fb449f34015";
+    let value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseTxType() });
+    expect(value).toEqual(2);
+    value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseBlockNumber() });
+    expect(value).toEqual(18000000);
+    value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseTxIndex() });
+    expect(value).toEqual("0x59");
+    value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseFunctionSelector() });
+    expect(value).toEqual("0x5578ceae");
+    value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseCalldataHash() });
+    expect(value).toEqual("0x8f6b4d87910600637e9232bb9035d2d4dc7bf79fdbb4df93ce3bfffd97377e9f");
+
+    // Contract creation
+    const contractCreateTxHash = "0x5a532ae8eb36dad0058b78f00ee459c42d58157dc11cc290e939b8aa91aa59d4";
+    value = await getTxFieldValue(provider, { txHash: contractCreateTxHash, fieldOrCalldataIdx: txUseFunctionSelector() });
+    expect(value).toEqual(ConstantsV2.TxContractDeploySelectorValue);
+
+    // EOA transfer
+    const eoaTransferTxHash = "0xb1257d8484c43929d7bae46b2aecd509e5d9278273063c9bac2a2d9cb4f1c9f1";
+    value = await getTxFieldValue(provider, { txHash: eoaTransferTxHash, fieldOrCalldataIdx: txUseFunctionSelector() });
+    expect(value).toEqual(ConstantsV2.TxNoCalldataSelectorValue);
   });
 
   test("get receipt field value", async () => {

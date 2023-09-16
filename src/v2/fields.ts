@@ -24,14 +24,6 @@ export function txUseFunctionSelector(): number {
   return ConstantsV2.TxFunctionSelectorFieldIdx;
 }
 
-export function txUseNoCalldataSelector(): number {
-  return ConstantsV2.TxNoCalldataSelectorIdx;
-}
-
-export function txUseContractDeploySelector(): number {
-  return ConstantsV2.TxContractDeploySelectorIdx;
-}
-
 export function txUseCalldataHash(): number {
   return ConstantsV2.TxCalldataHashFieldIdx;
 }

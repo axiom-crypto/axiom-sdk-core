@@ -9,6 +9,7 @@ import {
 } from "@axiom-crypto/codec";
 import { Axiom,
   AxiomConfig,
+  buildHeaderSubquery,
   receiptUseAddress,
   receiptUseLogIdx,
   receiptUseTopicIdx
@@ -255,10 +256,9 @@ describe("QueryV2", () => {
       ),
     }
 
-    query.appendHeaderSubquery(
-      8200007,
-      HeaderField.ParentHash,
-    );
+    const headerSubquery = buildHeaderSubquery(8200007)
+      .field(HeaderField.ParentHash)
+    query.appendHeaderSubquery(headerSubquery);
     query.setCallback(callbackQuery);
     
     const isValid = await query.validate();

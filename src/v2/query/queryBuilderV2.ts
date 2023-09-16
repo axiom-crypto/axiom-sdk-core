@@ -208,211 +208,72 @@ export class QueryBuilderV2 {
 
   /**
    * Appends a HeaderSubquery to the DataQuery
-   * @param blockNumber Block number to query
-   * @param fieldIdx Header field index
+   * @param headerSubquery HeaderSubquery to append
    */
   appendHeaderSubquery(
-    blockNumber: number | string | BigInt,
-    field: HeaderField,
+    headerSubquery: HeaderSubquery
   ): void {
-    validateSize(blockNumber, "uint32");
-
-    const subquery: HeaderSubquery = {
-      blockNumber: Number(blockNumber),
-      fieldIdx: getHeaderFieldIdx(field),
-    };
-    this.appendDataSubquery(DataSubqueryType.Header, subquery);
+    this.appendDataSubquery(DataSubqueryType.Header, headerSubquery);
   }
 
   /**
    * Appends a AccountSubquery to the DataQuery
-   * @param blockNumber Block number to query
-   * @param addr Address to query
-   * @param fieldIdx Account field index
+   * @param accountSubquery AccountSubquery to append
    */
   appendAccountSubquery(
-    blockNumber: number | string | BigInt,
-    addr: string,
-    field: AccountField,
+    accountSubquery: AccountSubquery
   ): void {
-    validateSize(blockNumber, "uint32");
-    validateAddress(addr);
-
-    const subquery: AccountSubquery = {
-      blockNumber: Number(blockNumber),
-      addr,
-      fieldIdx: getAccountFieldIdx(field),
-    };
-    this.appendDataSubquery(DataSubqueryType.Account, subquery);
+    this.appendDataSubquery(DataSubqueryType.Account, accountSubquery);
   }
 
   /**
    * Appends a StorageSubquery to the DataQuery
-   * @param blockNumber Block number to query
-   * @param addr Contract address
-   * @param slot Slot number
+   * @param storageSubquery StorageSubquery to append
    */
   appendStorageSubquery(
-    blockNumber: number | string | BigInt,
-    addr: string,
-    slot: number | string | BigInt,
+    headerSubquery: StorageSubquery
   ): void {
-    validateSize(blockNumber, "uint32");
-    validateAddress(addr);
-    validateSize(slot, "uint256");
-
-    const subquery: StorageSubquery = {
-      blockNumber: Number(blockNumber),
-      addr,
-      slot: slot.toString(),
-    };
-    this.appendDataSubquery(DataSubqueryType.Storage, subquery);
+    this.appendDataSubquery(DataSubqueryType.Storage, headerSubquery);
   }
 
   /**
    * Appends a TxSubquery to the DataQuery
-   * @param txHash Transaction hash
-   * @param type The type of TxSubquery
-   * @param idxOrFieldForType Index or TxField enum for the above TxType
-   * @param txFieldType (optional) The type of transaction (default: EIP-1559)
+   * @param txSubquery TxSubquery to append
    */
   appendTxSubquery(
-    txHash: string,
-    type: TxSubqueryType,
-    idxOrFieldForType: number | string | BigInt | TxField,
-    txFieldType?: TxType,
+    txSubquery: TxSubquery
   ): void {
-    validateBytes32(txHash);
-
-    // Use default EIP-1559 Tx field type
-    if (txFieldType === undefined) {
-      txFieldType = TxType.Eip1559;
-    }
-    
-    // Handle the field index based on the TxSubquery type
-    let typedIdx: number;
-    if (type === TxSubqueryType.Field) {
-      typedIdx = getTxFieldIdx(txFieldType, Number(idxOrFieldForType));
-    } else if (type === TxSubqueryType.Calldata) {
-      typedIdx = txUseCalldataIdx(Number(idxOrFieldForType));
-    } else if (type === TxSubqueryType.ContractData) {
-      typedIdx = txUseContractDataIdx(Number(idxOrFieldForType));
-    } else {
-      throw new Error(`Invalid TxSubqueryType: ${type}`);
-    }
-    validateSize(typedIdx, "uint32");
-
-    const subquery: TxSubquery = {
-      txHash,
-      fieldOrCalldataIdx: typedIdx,
-    };
-    this.appendDataSubquery(DataSubqueryType.Transaction, subquery);
+    this.appendDataSubquery(DataSubqueryType.Transaction, txSubquery);
   }
 
   /**
    * Appends a ReceiptSubquery to the DataQuery
-   * @param txHash Transaction hash
-   * @param type The type of ReceiptSubquery
-   * @param idxOrFieldForType Index or ReceiptField enum for the above type
-   * @param logType (optional) The type of data for the log for this subquery
-   * @param idxForLogType (optional) Index of the above log data type
-   * @param eventSchema (optional) The event schema for this log
+   * @param receiptSubquery ReceiptSubquery to append
    */
   appendReceiptSubquery(
-    txHash: string,
-    type: ReceiptSubqueryType,
-    idxOrFieldForType: number | string | BigInt | ReceiptField,
-    logType?: ReceiptSubqueryLogType,
-    idxForLogType?: number | string | BigInt,
-    eventSchema?: string,
+    receiptSubquery: ReceiptSubquery
   ): void {
-    validateBytes32(txHash);
-    validateSize(idxOrFieldForType, "uint32");
-
-    let subquery: ReceiptSubquery = {
-      txHash,
-      fieldOrLogIdx: getReceiptFieldIdx(Number(idxOrFieldForType)),
-      topicOrDataOrAddressIdx: 0,
-      eventSchema: ethers.ZeroHash,
-    };
-
-    if (type === ReceiptSubqueryType.Field) {
-      // Do nothing
-    } else if (type === ReceiptSubqueryType.Log) {
-      if (
-        logType === undefined || 
-        idxForLogType === undefined || 
-        eventSchema === undefined
-      ) {
-        throw new Error(
-          "`logType`, `idxForLogType`, and `eventSchema` must be defined when type is ReceiptSubqueryType.Log"
-        );
-      }
-      validateSize(idxForLogType, "uint32");
-      
-      // Write the index based on field/log
-      subquery.fieldOrLogIdx = receiptUseLogIdx(Number(idxOrFieldForType));
-
-      // Write index based on the log type
-      if (logType === ReceiptSubqueryLogType.Topic) {
-        subquery.topicOrDataOrAddressIdx = receiptUseTopicIdx(Number(idxForLogType));
-      } else if (logType === ReceiptSubqueryLogType.Data) {
-        subquery.topicOrDataOrAddressIdx = receiptUseDataIdx(Number(idxForLogType));
-      } else if (logType === ReceiptSubqueryLogType.Address) {
-        subquery.topicOrDataOrAddressIdx = receiptUseAddress();
-      } else {
-        throw new Error(`Invalid ReceiptSubqueryLogType: ${logType}`);
-      }
-      validateSize(subquery.topicOrDataOrAddressIdx, "uint32");
-
-      // Write the event schema
-      validateBytes32(eventSchema);
-      subquery.eventSchema = eventSchema;
-    } else {
-      throw new Error(`Invalid ReceiptSubqueryType: ${type}`);
-    }
-
-    this.appendDataSubquery(DataSubqueryType.Receipt, subquery);
+    this.appendDataSubquery(DataSubqueryType.Receipt, receiptSubquery);
   }
 
   /**
    * Appends a SolidityNestedMappingSubquery to the DataQuery
-   * @param blockNumber Block number to query
-   * @param addr Contract address containing the mapping
-   * @param mappingSlot Storage slot of the mapping
-   * @param mappingDepth How many mappings deep the value is located (max: 4)
-   * @param keys Array of bytes32 keys of the nested mapping(s) to the value (length of array should match `mappingDepth`)
+   * @param solidityNestedMappingSubquery SolidityNestedMappingSubquery to append
    */
   appendSolidityNestedMappingSubquery(
-    blockNumber: number | string | BigInt,
-    addr: string,
-    mappingSlot: number | string | BigInt,
-    mappingDepth: number | string | BigInt,
-    keys: string[],
+    solidityNestedMappingSubquery: SolidityNestedMappingSubquery
   ): void {
-    validateSize(blockNumber, "uint32");
-    validateAddress(addr);
-    validateSize(mappingSlot, "uint256");
-    validateSize(mappingDepth, "uint8");
-
-    keys = keys.map((key) => bytes32(key));
-    keys.forEach((key) => validateBytes32(key));
-
-    const subquery: SolidityNestedMappingSubquery = {
-      blockNumber: Number(blockNumber),
-      addr,
-      mappingSlot: mappingSlot.toString(),
-      mappingDepth: Number(mappingDepth),
-      keys,
-    };
-    this.appendDataSubquery(DataSubqueryType.SolidityNestedMapping, subquery);
+    this.appendDataSubquery(DataSubqueryType.SolidityNestedMapping, solidityNestedMappingSubquery);
   }
 
   /**
    * Appends a BeaconValidatorSubquery to the DataQuery
+   * @param beaconValidatorSubquery BeaconValidatorSubquery to append
    */
-  appendBeaconValidatorSubquery(): void {
-    // WIP
+  appendBeaconValidatorSubquery(
+    beaconValidatorSubquery: BeaconValidatorSubquery
+  ): void {
+    this.appendDataSubquery(DataSubqueryType.BeaconValidator, beaconValidatorSubquery);
   }
 
   async sendOnchainQuery(

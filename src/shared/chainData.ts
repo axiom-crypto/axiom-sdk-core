@@ -33,6 +33,14 @@ export async function getAccountData(blockNumber: number, addr: string, slots: e
   return accountData;
 }
 
+export async function getTransactionData(txHash: string, provider: ethers.JsonRpcProvider) {
+  const txData = await provider.send(
+    'eth_getTransactionByHash',
+    [txHash]
+  );
+  return txData;
+}
+
 export async function getBlockNumberFromTxHash(
   provider: ethers.JsonRpcProvider,
   txHash: string,
@@ -169,6 +177,27 @@ export async function getTxFieldValue(
         return tx.signature.r ?? null;
       case TxField.s:
         return tx.signature.s ?? null;
+      case ConstantsV2.TxTxTypeFieldIdx:
+        return tx.type ?? null;
+      case ConstantsV2.TxBlockNumberFieldIdx:
+        return tx.blockNumber ?? null;
+      case ConstantsV2.TxTxIndexFieldIdx:
+        const txRaw = await getTransactionData(txHash, provider);
+        return txRaw.transactionIndex ?? null;
+      case ConstantsV2.TxFunctionSelectorFieldIdx:
+        if (!tx.to && !!tx.data) {
+          return ConstantsV2.TxContractDeploySelectorValue;
+        }
+        if (tx.data === "0x") {
+          return ConstantsV2.TxNoCalldataSelectorValue;
+        }
+        const selectorReader = new ByteStringReader(tx.data);
+        const selector = selectorReader.readBytes("bytes4"); // function selector
+        return selector; 
+      case ConstantsV2.TxCalldataHashFieldIdx:
+        return ethers.keccak256(tx.data);
+      default:
+        throw new Error(`Invalid tx field index: ${fieldOrCalldataIdx}`);
     }
   }
 
@@ -233,40 +262,6 @@ export async function getReceiptFieldValue(
   if (!log) {
     return null;
   }
-
-  // TransactionReceipt {
-  //   provider: JsonRpcProvider {},
-  //   to: '0x253553366Da8546fC250F225fe3d25d0C782303b',
-  //   from: '0xB392448932F6ef430555631f765Df0dfaE34efF3',
-  //   contractAddress: null,
-  //   hash: '0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453',
-  //   index: 96,
-  //   blockHash: '0x0ec62b9b2b9dda21ece949b81131815c3f4c65e985837bcd8db25075c1bd084c',
-  //   blockNumber: 17874577,
-  //   logsBloom: '0x0000000000040000000000000010010000000000000000000101000010000000000004000000200008000000000000000000000000801000000000000012a0000000040000000000480000080280000800000000040010000000000000000000000000000300800000000010080008000000002000000800010000100000000000000100000000000000100000000000040000200000002000000000408000000000100000020400088040100420000000040000000000050080000400000022000000060000000000000200000150002008000000080004000000000200280000c0000800040000080000000100000000000040081000000100080200002000',
-  //   gasUsed: 340980n,
-  //   cumulativeGasUsed: 10227326n,
-  //   gasPrice: 16417267766n,
-  //   type: 2,
-  //   status: 1,
-  //   root: undefined
-  // }
-
-  // Log {
-  //   provider: JsonRpcProvider {},
-  //   transactionHash: '0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453',
-  //   blockHash: '0x0ec62b9b2b9dda21ece949b81131815c3f4c65e985837bcd8db25075c1bd084c',
-  //   blockNumber: 17874577,
-  //   removed: undefined,
-  //   address: '0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63',
-  //   data: '0x000000000000000000000000000000000000000000000000000000000000003c00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000014b392448932f6ef430555631f765df0dfae34eff3000000000000000000000000',
-  //   topics: [
-  //     '0x65412581168e88a1e60c6459d7f44ae83ad0832e670826c05a4e2476b57af752',
-  //     '0x7610115e31b8be283a240f1b8ea09ca53abfdfaa17c79175efd8cfef62b37ab9'
-  //   ],
-  //   index: 205,
-  //   transactionIndex: 96
-  // },
 
   if (topicOrDataOrAddressIdx < ConstantsV2.ReceiptDataIdxOffset) {
     // Return topic

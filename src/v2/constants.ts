@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { DataQueryRequestV2 } from "./types";
+import { bytes32 } from "../shared";
 
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGas: "0x05d21dba00",
@@ -32,9 +33,9 @@ export const ConstantsV2 = Object.freeze({
   TxBlockNumberFieldIdx: 52,
   TxTxIndexFieldIdx: 53,
   TxFunctionSelectorFieldIdx: 54,
-  TxNoCalldataSelectorIdx: 55,
-  TxContractDeploySelectorIdx: 56,
-  TxCalldataHashFieldIdx: 57,
+  TxCalldataHashFieldIdx: 55,
+  TxContractDeploySelectorValue: bytes32(60), // returned if contract deployment
+  TxNoCalldataSelectorValue: bytes32(61), // returned if pure EOA transfer
 
   ReceiptFieldIdxOffset: 0,
   ReceiptLogIdxOffset: 100,

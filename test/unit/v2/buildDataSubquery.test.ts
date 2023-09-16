@@ -6,7 +6,7 @@ import {
   buildReceiptSubquery,
   buildTxSubquery,
   buildStorageSubquery,
-  buildNestedMappingSubquery,
+  buildSolidityNestedMappingSubquery,
 } from '../../../src/v2/query/dataSubquery/build';
 
 describe("Build data subquery", () => {
@@ -48,14 +48,14 @@ describe("Build data subquery", () => {
   test("Build and append a storage subquery", () => {
     const storageSubquery: StorageSubquery = buildStorageSubquery(18000000)
       .address(WETH_ADDR)
-      .slot(0);
+      .slot(1);
     query.appendDataSubquery(DataSubqueryType.Storage, storageSubquery);
     const dataQuery = query.getDataQuery();
 
     const subquery = dataQuery?.storageSubqueries?.[0];
     expect(subquery?.blockNumber).toEqual(18000000);
     expect(subquery?.addr).toEqual(WETH_ADDR);
-    expect(subquery?.slot).toEqual(bytes32(0));
+    expect(subquery?.slot).toEqual(bytes32(1));
   });
 
   test("Build and append a tx subquery", () => {
@@ -86,7 +86,7 @@ describe("Build data subquery", () => {
   });
 
   test("Build and append a nested mapping subquery", () => {
-    const nestedMappingSubquery: SolidityNestedMappingSubquery = buildNestedMappingSubquery(18000000)
+    const nestedMappingSubquery: SolidityNestedMappingSubquery = buildSolidityNestedMappingSubquery(18000000)
       .address(WETH_ADDR)
       .mappingSlot(0)
       .keys([

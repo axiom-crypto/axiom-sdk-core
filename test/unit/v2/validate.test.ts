@@ -1,6 +1,5 @@
-import { bytes32 } from "@axiom-crypto/codec";
-import { AccountField, Axiom, AxiomConfig, HeaderField, QueryV2, ReceiptSubqueryLogType, ReceiptSubqueryType, TxField, TxSubqueryType, getHeaderFieldIdx, getSlotForMapping } from "../../../src";
-import { getEventSchema } from "../../../src/shared/utils";
+import { TxType, bytes32 } from "@axiom-crypto/codec";
+import { AccountField, Axiom, AxiomConfig, HeaderField, QueryV2, ReceiptSubqueryLogType, ReceiptSubqueryType, TxField, TxSubqueryType, buildAccountSubquery, buildHeaderSubquery, buildReceiptSubquery, buildSolidityNestedMappingSubquery, buildStorageSubquery, buildTxSubquery, getHeaderFieldIdx, getSlotForMapping } from "../../../src";
 
 describe("Query Validation Tests", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -18,21 +17,19 @@ describe("Query Validation Tests", () => {
   
   test("Validate pass: Header subquery", async () => {
     const query = aq.new();
-    query.appendHeaderSubquery(
-      17000000,
-      HeaderField.GasUsed,
-    );
+    const subquery = buildHeaderSubquery(17000000)
+      .field(HeaderField.GasUsed);
+    query.appendHeaderSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
 
   test("Validate pass: Account subquery", async () => {
     const query = aq.new();
-    query.appendAccountSubquery(
-      18000000,
-      WETH_WHALE,
-      AccountField.Balance,
-    );
+    const subquery = buildAccountSubquery(18000000)
+      .address(WETH_WHALE)
+      .field(AccountField.Balance);
+    query.appendAccountSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -40,65 +37,55 @@ describe("Query Validation Tests", () => {
   test("Validate pass: Storage subquery", async () => {
     const query = aq.new();
     const slot = getSlotForMapping("3", "address", WETH_WHALE);
-    query.appendStorageSubquery(
-      18000000,
-      WETH_ADDR,
-      slot
-    );
+    const subquery = buildStorageSubquery(18000000)
+      .address(WETH_ADDR)
+      .slot(slot);
+    query.appendStorageSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
 
   test("Validate pass: Tx subquery", async () => {
     const query = aq.new();
-    query.appendTxSubquery(
-      "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
-      TxSubqueryType.Field,
-      TxField.To
-    );
+    const subquery = buildTxSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+      .field(TxField.To)
+      .type(TxType.Eip1559);
+    query.appendTxSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
 
   test("Validate pass: Tx subquery calldata", async () => {
     const query = aq.new();
-    query.appendTxSubquery(
-      "0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5", // contract creation tx
-      TxSubqueryType.ContractData,
-      0
-    );
+    const subquery = buildTxSubquery("0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5")
+      .calldata(0);
+    query.appendTxSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
   
   test("Validate pass: Receipt subquery", async () => {
     const query = aq.new();
-    const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
-    query.appendReceiptSubquery(
-      "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
-      ReceiptSubqueryType.Log,
-      0,
-      ReceiptSubqueryLogType.Topic,
-      1,
-      eventSchema
-    );
+    const subquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+      .log(0)
+      .eventSchema("Transfer(address,address,uint256)")
+      .topic(1);
+    query.appendReceiptSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
 
   test("Validate pass: Solidity nested mapping subquery", async () => {
     const query = aq.new();
-    query.appendSolidityNestedMappingSubquery(
-      17000000,
-      UNI_V3_FACTORY_ADDR,
-      "5",
-      3,
-      [
+    const subquery = buildSolidityNestedMappingSubquery(17000000)
+      .address(UNI_V3_FACTORY_ADDR)
+      .mappingSlot(5)
+      .keys([
         WETH_ADDR,
         WSOL_ADDR,
-        bytes32(10000),
-      ]
-    );
+        10000,
+      ]);
+    query.appendSolidityNestedMappingSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -106,10 +93,9 @@ describe("Query Validation Tests", () => {
   test("Validate fail: Header subquery", async () => {
     const query = aq.new();
     const test = () => {
-      query.appendHeaderSubquery(
-        "0x480aa3cf46a1813d543e169314d56831aa002d932444723fee6b9e31d01f8c28",
-        HeaderField.Miner,
-      );
+      const subquery = buildHeaderSubquery("0x480aa3cf46a1813d543e169314d56831aa002d932444723fee6b9e31d01f8c28")
+        .field(HeaderField.Miner);
+      query.appendHeaderSubquery(subquery);
     }
     expect(test).toThrow();
   });
