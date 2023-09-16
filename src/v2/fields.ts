@@ -9,31 +9,31 @@ export function txUseContractDataIdx(idx: number): number {
 }
 
 export function txUseTxType(): number {
-  return ConstantsV2.TxTxTypeFieldOffset;
+  return ConstantsV2.TxTxTypeFieldIdx;
 }
 
 export function txUseBlockNumber(): number {
-  return ConstantsV2.TxBlockNumberFieldOffset;
+  return ConstantsV2.TxBlockNumberFieldIdx;
 }
 
 export function txUseTxIndex(): number {
-  return ConstantsV2.TxTxIndexFieldOffset;
+  return ConstantsV2.TxTxIndexFieldIdx;
 }
 
 export function txUseFunctionSelector(): number {
-  return ConstantsV2.TxFunctionSelectorFieldOffset;
+  return ConstantsV2.TxFunctionSelectorFieldIdx;
 }
 
 export function txUseNoCalldataSelector(): number {
-  return ConstantsV2.TxNoCalldataSelectorOffset;
+  return ConstantsV2.TxNoCalldataSelectorIdx;
 }
 
 export function txUseContractDeploySelector(): number {
-  return ConstantsV2.TxContractDeploySelectorOffset;
+  return ConstantsV2.TxContractDeploySelectorIdx;
 }
 
 export function txUseCalldataHash(): number {
-  return ConstantsV2.TxCalldataHashFieldOffset;
+  return ConstantsV2.TxCalldataHashFieldIdx;
 }
 
 export function receiptUseLogIdx(idx: number): number {
@@ -49,17 +49,17 @@ export function receiptUseDataIdx(idx: number): number {
 }
 
 export function receiptUseAddress(): number {
-  return ConstantsV2.ReceiptAddressOffset;
+  return ConstantsV2.ReceiptAddressIdx;
 }
 
 export function receiptUseTxType(): number {
-  return ConstantsV2.ReceiptTxTypeFieldOffset;
+  return ConstantsV2.ReceiptTxTypeFieldIdx;
 }
 
 export function receiptUseBlockNumber(): number {
-  return ConstantsV2.ReceiptBlockNumberFieldOffset;
+  return ConstantsV2.ReceiptBlockNumberFieldIdx;
 }
 
 export function receiptUseTxIndex(): number {
-  return ConstantsV2.ReceiptTxIndexFieldOffset;
+  return ConstantsV2.ReceiptTxIndexFieldIdx;
 }

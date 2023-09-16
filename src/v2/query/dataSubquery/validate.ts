@@ -149,7 +149,7 @@ export async function validateReceiptSubquery(
   if (
     subquery.topicOrDataOrAddressIdx > 4 && 
     subquery.topicOrDataOrAddressIdx < ConstantsV2.ReceiptLogIdxOffset &&
-    subquery.topicOrDataOrAddressIdx !== ConstantsV2.ReceiptAddressOffset
+    subquery.topicOrDataOrAddressIdx !== ConstantsV2.ReceiptAddressIdx
   ) {
     console.error(`Invalid receipt topic/data/address index index: ${subquery.topicOrDataOrAddressIdx}`);
     return false;

@@ -98,19 +98,19 @@ describe("ChainData query tests", () => {
   test("get tx field value", async () => {
     const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
     const chainId = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.ChainId });
-    expect(chainId).toEqual(bytes32(1));
+    expect(chainId).toEqual(1n);
     const nonce = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.Nonce });
-    expect(nonce).toEqual(bytes32(4));
+    expect(nonce).toEqual(4);
     const maxPriorityFeePerGas = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.MaxPriorityFeePerGas });
-    expect(maxPriorityFeePerGas).toEqual(bytes32(100000000n));
+    expect(maxPriorityFeePerGas).toEqual(100000000n);
     const maxFeePerGas = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.MaxFeePerGas });
-    expect(maxFeePerGas).toEqual(bytes32(23249354679n));
+    expect(maxFeePerGas).toEqual(23249354679n);
     const gasLimit = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.GasLimit });
-    expect(gasLimit).toEqual(bytes32(352692n));
+    expect(gasLimit).toEqual(352692n);
     const to = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.To });
     expect(to).toEqual("0x253553366Da8546fC250F225fe3d25d0C782303b");
     const value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: TxField.Value });
-    expect(value).toEqual(bytes32(2750421866180485n));
+    expect(value).toEqual(2750421866180485n);
   });
 
   test("get tx calldataIdx value", async () => {
@@ -158,7 +158,7 @@ describe("ChainData query tests", () => {
   test("get receipt field value", async () => {
     const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
     const value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: ReceiptField.Status, eventSchema: "0x", topicOrDataOrAddressIdx: 0 });
-    expect(value).toEqual(bytes32(1));
+    expect(value).toEqual(1);
   });
 
   test("get receipt logIdx value", async () => {

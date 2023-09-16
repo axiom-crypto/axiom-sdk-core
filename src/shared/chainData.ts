@@ -47,7 +47,7 @@ export async function getBlockNumberFromTxHash(
 export async function getHeaderFieldValue(
   provider: ethers.JsonRpcProvider,
   { blockNumber, fieldIdx }: HeaderSubquery
-): Promise<string | null> {
+): Promise<number | string | bigint | null> {
   const block = await getFullBlock(blockNumber, provider);
   if (!block) {
     return null;
@@ -130,7 +130,7 @@ export async function getStorageFieldValue(
 export async function getTxFieldValue(
   provider: ethers.JsonRpcProvider,
   { txHash, fieldOrCalldataIdx }: TxSubquery,
-): Promise<string | null> {
+): Promise<number | string | bigint | null> {
   const tx = await provider.getTransaction(txHash);
   if (!tx) {
     return null;
@@ -138,37 +138,37 @@ export async function getTxFieldValue(
   if (fieldOrCalldataIdx < ConstantsV2.TxCalldataIdxOffset) {
     switch (fieldOrCalldataIdx) {
       case TxField.ChainId:
-        return tx.chainId ? bytes32(tx.chainId) : null;
+        return tx.chainId ?? null;
       case TxField.Nonce:
-        return tx.nonce ? bytes32(tx.nonce) : null;
+        return tx.nonce ?? null;
       case TxField.MaxPriorityFeePerGas:
-        return tx.maxPriorityFeePerGas ? bytes32(tx.maxPriorityFeePerGas) : null;
+        return tx.maxPriorityFeePerGas ?? null;
       case TxField.MaxFeePerGas:
-        return tx.maxFeePerGas ? bytes32(tx.maxFeePerGas) : null;
+        return tx.maxFeePerGas ?? null;
       case TxField.GasLimit:
-        return tx.gasLimit ? bytes32(tx.gasLimit) : null;
+        return tx.gasLimit ?? null;
       case TxField.To:
         return tx.to ?? null;
       case TxField.Value:
-        return tx.value ? bytes32(tx.value) : null;
+        return tx.value ?? null;
       case TxField.Data:
-        return tx.data ? bytes32(tx.data) : null;
+        return tx.data ?? null;
       case TxField.AccessList:
         throw new Error("Access Lists are currently unsupported.")
       case TxField.SignatureYParity:
-        return tx.signature.yParity ? bytes32(tx.signature.yParity) : null;
+        return tx.signature.yParity ?? null;
       case TxField.SignatureR:
-        return tx.signature.r ? bytes32(tx.signature.r) : null;
+        return tx.signature.r ?? null;
       case TxField.SignatureS:
-        return tx.signature.s ? bytes32(tx.signature.s) : null;
+        return tx.signature.s ?? null;
       case TxField.GasPrice:
-        return tx.gasPrice ? bytes32(tx.gasPrice) : null;
+        return tx.gasPrice ?? null;
       case TxField.v:
-        return tx.signature.v ? bytes32(tx.signature.v) : null;
+        return tx.signature.v ?? null;
       case TxField.r:
-        return tx.signature.r ? bytes32(tx.signature.r) : null;
+        return tx.signature.r ?? null;
       case TxField.s:
-        return tx.signature.s ? bytes32(tx.signature.s) : null;
+        return tx.signature.s ?? null;
     }
   }
 
@@ -177,7 +177,7 @@ export async function getTxFieldValue(
     const calldata = tx.data;
     const calldataIdx = fieldOrCalldataIdx - ConstantsV2.TxCalldataIdxOffset;
     const reader = new ByteStringReader(calldata);
-    const _functionSignature = reader.readBytes("bytes4");
+    const _functionSignature = reader.readBytes("bytes4"); // unused
     for (let i = 0; i < calldataIdx; i++) {
       reader.readBytes("bytes32");
     }
@@ -199,7 +199,7 @@ export async function getTxFieldValue(
 export async function getReceiptFieldValue(
   provider: ethers.JsonRpcProvider,
   { txHash, fieldOrLogIdx, topicOrDataOrAddressIdx }: ReceiptSubquery,
-): Promise<string | ethers.Log | null> {
+): Promise<number | string | bigint | null> {
   const receipt = await provider.getTransactionReceipt(txHash);
   if (!receipt) {
     return null;
@@ -208,15 +208,23 @@ export async function getReceiptFieldValue(
   if (fieldOrLogIdx < ConstantsV2.ReceiptLogIdxOffset) {
     switch (fieldOrLogIdx) {
       case ReceiptField.Status:
-        return receipt.status ? bytes32(receipt.status) : null;
+        return receipt.status ?? null;
       case ReceiptField.PostState:
-        return receipt.status ? bytes32(receipt.status) : null;
+        return receipt.status ?? null;
       case ReceiptField.CumulativeGas:
-        return receipt.cumulativeGasUsed ? bytes32(receipt.cumulativeGasUsed) : null;
+        return receipt.cumulativeGasUsed ?? null;
       case ReceiptField.LogsBloom:
         return receipt.logsBloom ?? null;
       case ReceiptField.Logs:
         throw new Error("Use `receiptUseLogIdx(idx) to get a log at index `idx` in this transaction");
+      case ConstantsV2.TxTxTypeFieldIdx:
+        return receipt.type ?? null;
+      case ConstantsV2.ReceiptBlockNumberFieldIdx:
+        return receipt.blockNumber ?? null;
+      case ConstantsV2.ReceiptTxIndexFieldIdx:
+        return receipt.index ?? null;
+      default:
+        throw new Error(`Invalid receipt field index: ${fieldOrLogIdx}`);
     }
   }
 
@@ -226,6 +234,40 @@ export async function getReceiptFieldValue(
     return null;
   }
 
+  // TransactionReceipt {
+  //   provider: JsonRpcProvider {},
+  //   to: '0x253553366Da8546fC250F225fe3d25d0C782303b',
+  //   from: '0xB392448932F6ef430555631f765Df0dfaE34efF3',
+  //   contractAddress: null,
+  //   hash: '0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453',
+  //   index: 96,
+  //   blockHash: '0x0ec62b9b2b9dda21ece949b81131815c3f4c65e985837bcd8db25075c1bd084c',
+  //   blockNumber: 17874577,
+  //   logsBloom: '0x0000000000040000000000000010010000000000000000000101000010000000000004000000200008000000000000000000000000801000000000000012a0000000040000000000480000080280000800000000040010000000000000000000000000000300800000000010080008000000002000000800010000100000000000000100000000000000100000000000040000200000002000000000408000000000100000020400088040100420000000040000000000050080000400000022000000060000000000000200000150002008000000080004000000000200280000c0000800040000080000000100000000000040081000000100080200002000',
+  //   gasUsed: 340980n,
+  //   cumulativeGasUsed: 10227326n,
+  //   gasPrice: 16417267766n,
+  //   type: 2,
+  //   status: 1,
+  //   root: undefined
+  // }
+
+  // Log {
+  //   provider: JsonRpcProvider {},
+  //   transactionHash: '0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453',
+  //   blockHash: '0x0ec62b9b2b9dda21ece949b81131815c3f4c65e985837bcd8db25075c1bd084c',
+  //   blockNumber: 17874577,
+  //   removed: undefined,
+  //   address: '0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63',
+  //   data: '0x000000000000000000000000000000000000000000000000000000000000003c00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000014b392448932f6ef430555631f765df0dfae34eff3000000000000000000000000',
+  //   topics: [
+  //     '0x65412581168e88a1e60c6459d7f44ae83ad0832e670826c05a4e2476b57af752',
+  //     '0x7610115e31b8be283a240f1b8ea09ca53abfdfaa17c79175efd8cfef62b37ab9'
+  //   ],
+  //   index: 205,
+  //   transactionIndex: 96
+  // },
+
   if (topicOrDataOrAddressIdx < ConstantsV2.ReceiptDataIdxOffset) {
     // Return topic
     if (topicOrDataOrAddressIdx < log.topics.length) {
@@ -233,7 +275,7 @@ export async function getReceiptFieldValue(
     }
 
     // Return address
-    if (topicOrDataOrAddressIdx === ConstantsV2.ReceiptAddressOffset) {
+    if (topicOrDataOrAddressIdx === ConstantsV2.ReceiptAddressIdx) {
       return log.address ?? null;
     }
 

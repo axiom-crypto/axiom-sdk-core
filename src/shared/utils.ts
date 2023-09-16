@@ -97,7 +97,11 @@ export function getFunctionSignature(functionString: string): string {
     return `${functionName}()`;
   }
   const functionParamArray = functionParams.split(",").map((param) => {
-    let type = param.trim().split(" ")[0].trim();
+    const splitParams = param.trim().split(" ");
+    let type = splitParams[0].trim();
+    if (type.startsWith("index")) {
+      type = splitParams[1].trim();
+    }
     if (type === "uint") {
       type = "uint256";
     } else if (type === "int") {
