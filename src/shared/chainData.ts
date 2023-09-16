@@ -222,19 +222,33 @@ export async function getReceiptFieldValue(
 
   const logIdx = fieldOrLogIdx - ConstantsV2.ReceiptLogIdxOffset;
   const log = receipt.logs[logIdx] ?? null;
-  if (topicOrDataOrAddressIdx && log) {
+  if (!log) {
+    return null;
+  }
+
+  if (topicOrDataOrAddressIdx < ConstantsV2.ReceiptDataIdxOffset) {
+    // Return topic
     if (topicOrDataOrAddressIdx < log.topics.length) {
       return log.topics[topicOrDataOrAddressIdx];
     }
-    const dataIdx = topicOrDataOrAddressIdx - log.topics.length;
-    const reader = new ByteStringReader(log.data);
-    for (let i = 0; i < dataIdx; i++) {
-      reader.readBytes("bytes32");
+
+    // Return address
+    if (topicOrDataOrAddressIdx === ConstantsV2.ReceiptAddressOffset) {
+      return log.address ?? null;
     }
-    const dataValue = reader.readBytes("bytes32");
-    return dataValue;
+
+    console.warn("Invalid topic index: ", topicOrDataOrAddressIdx);
+    return null;
   }
-  return log;
+
+  // Return data
+  const dataIdx = topicOrDataOrAddressIdx - ConstantsV2.ReceiptDataIdxOffset;
+  const reader = new ByteStringReader(log.data);
+  for (let i = 0; i < dataIdx; i++) {
+    reader.readBytes("bytes32");
+  }
+  const dataValue = reader.readBytes("bytes32");
+  return dataValue;
 }
 
 export async function getSolidityNestedMappingValue(

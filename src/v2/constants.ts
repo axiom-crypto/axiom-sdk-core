@@ -28,11 +28,21 @@ export const ConstantsV2 = Object.freeze({
   TxFieldIdxOffset: 0,
   TxCalldataIdxOffset: 100,
   TxContractDataIdxOffset: 100000,
+  TxTxTypeFieldOffset: 51,
+  TxBlockNumberFieldOffset: 52,
+  TxTxIndexFieldOffset: 53,
+  TxFunctionSelectorFieldOffset: 54,
+  TxNoCalldataSelectorOffset: 55,
+  TxContractDeploySelectorOffset: 56,
+  TxCalldataHashFieldOffset: 57,
   ReceiptFieldIdxOffset: 0,
   ReceiptLogIdxOffset: 100,
   ReceiptTopicIdxOffset: 0,
-  ReceiptAddressOffset: 50,
   ReceiptDataIdxOffset: 100,
+  ReceiptAddressOffset: 50,
+  ReceiptTxTypeFieldOffset: 51,
+  ReceiptBlockNumberFieldOffset: 52,
+  ReceiptTxIndexFieldOffset: 53,
 });
 
 export function newEmptyDataQuery(): DataQueryRequestV2 {

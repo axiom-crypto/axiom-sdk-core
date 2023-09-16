@@ -1,6 +1,6 @@
 import { AccountField, AccountSubquery, ReceiptField, ReceiptSubquery, SolidityNestedMappingSubquery, StorageSubquery, TxField, TxSubquery, TxType, bytes32, getAccountFieldIdx, getReceiptFieldIdx, getTxFieldIdx } from "@axiom-crypto/codec"
 import { ethers } from "ethers"
-import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, txUseCalldataIdx, txUseContractDataIdx } from "../../fields"
+import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseContractDataIdx, txUseContractDeploySelector, txUseFunctionSelector, txUseNoCalldataSelector, txUseTxIndex, txUseTxType } from "../../fields"
 import { getEventSchema } from "../../../shared/utils"
 import { HeaderField, HeaderSubquery, getHeaderFieldIdx } from "@axiom-crypto/codec"
 import { getTxTypeForBlockNumber } from "../../../shared"
@@ -99,6 +99,55 @@ export const buildTxSubquery = (txHash: string) => {
     return {
       txHash,
       fieldOrCalldataIdx: txUseContractDataIdx(bytes32IdxNum),
+    }
+  }
+
+  const txType = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseTxType(),
+    }
+  }
+
+  const blockNumber = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseBlockNumber(),
+    }
+  }
+
+  const txIndex = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseTxIndex(),
+    }
+  }
+
+  const functionSelector = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseFunctionSelector(),
+    }
+  }
+
+  const noCalldataSelector = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseNoCalldataSelector(),
+    }
+  }
+
+  const contractDeploySelector = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseContractDeploySelector(),
+    }
+  }
+
+  const calldataHash = (): TxSubquery => {
+    return {
+      txHash,
+      fieldOrCalldataIdx: txUseCalldataHash(),
     }
   }
 

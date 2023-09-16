@@ -1,4 +1,4 @@
-import axios, { HttpStatusCode } from "axios";
+import axios from "axios";
 import { BlockHashWitness } from "../shared/types";
 import { InternalConfig } from "./internalConfig";
 import { SDK_VERSION } from "../version";
