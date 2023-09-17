@@ -37,38 +37,36 @@ const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 ### Building a Query: Appending method
 
 ```typescript
-query.appendHeaderSubquery(
-  17000000,
-  HeaderField.GasUsed,
-);
+// Appends a subquery where we look for the gas used at block 17000000
+const headerSubquery = buildHeaderSubquery(17000000)
+  .field(HeaderField.GasUsed);
+query.appendHeaderSubquery(headerSubquery);
 
-// 
-query.appendReceiptSubquery(
-  "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6",
-  ReceiptSubqueryType.Log,
-  0,
-  ReceiptSubqueryLogType.Topic,
-  1,
-  eventSchema
-);
+// Appends a receipt subquery for transaction 
+// 0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6 in which we look at 
+// log index 0 (Transfer (index_topic_1 address from, index_topic_2 address to, uint256 value))
+// and the first topic (address from) of that log event
+const receiptSubquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+  .log(0)
+  .eventSchema("Transfer(address,address,uint256)")
+  .topic(1);
+query.appendReceiptSubquery(receiptSubquery);
 
 // slot 5: mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
-query.appendSolidityNestedMappingSubquery(
-  17000000,
-  UNI_V3_FACTORY_ADDR,
-  "5",
-  3,
-  [
+const mappingSubquery = buildSolidityNestedMappingSubquery(17000000)
+  .address(UNI_V3_FACTORY_ADDR)
+  .mappingSlot(5)
+  .keys([
     WETH_ADDR,
     WSOL_ADDR,
-    bytes32(10000),
-  ]
-);
+    10000,
+  ]);
+query.appendSolidityNestedMappingSubquery(mappingSubquery);
 
 const callbackQuery = {
   callbackAddr: WETH_ADDR,
-  callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-  resultLen: 1,
+  callbackFunctionSelector: getFunctionSelector("balanceOf(address)"),
+  resultLen: 3,
   callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
 };
 
@@ -116,14 +114,14 @@ const dataQuery = {
 
 const callbackQuery = {
   callbackAddr: WETH_ADDR,
-  callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-  resultLen: 1,
+  callbackFunctionSelector: getFunctionSelector("balanceOf(address)"]),
+  resultLen: 3,
   callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
 };
 
 const query = (axiom.query as QueryV2).new(
   dataQuery,
-  undefined,  // computeQuery
+  undefined,  // no computeQuery
   callbackQuery,
 );
 ```

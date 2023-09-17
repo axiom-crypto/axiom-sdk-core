@@ -18,7 +18,7 @@ import {
   TxType,
 } from "@axiom-crypto/codec";
 import { bytes32 } from "../../../src/shared/utils";
-import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseFunctionSelector, txUseTxIndex, txUseTxType } from "../../../src";
+import { receiptUseAddress, receiptUseBlockNumber, receiptUseDataIdx, receiptUseLogIdx, receiptUseTxIndex, receiptUseTxType, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseFunctionSelector, txUseTxIndex, txUseTxType } from "../../../src";
 import { ConstantsV2 } from "../../../src/v2/constants";
 
 
@@ -182,8 +182,18 @@ describe("ChainData query tests", () => {
 
   test("get receipt field value", async () => {
     const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
-    const value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: ReceiptField.Status, eventSchema: "0x", topicOrDataOrAddressIdx: 0 });
+    let value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: ReceiptField.Status, eventSchema: "0x", topicOrDataOrAddressIdx: 0 });
     expect(value).toEqual(1);
+  });
+
+  test("get receipt special field value", async () => {
+    const txHash = "0x190414997454151f9bd4bc9c60fbae709bd2301f4d36adbe246b27157dde83ac"; // rug tx?
+    let value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseTxType(), eventSchema: ethers.ZeroHash, topicOrDataOrAddressIdx: 0});
+    expect(value).toEqual(2);
+    value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseBlockNumber(), eventSchema: ethers.ZeroHash, topicOrDataOrAddressIdx: 0});
+    expect(value).toEqual(17500000);
+    value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: receiptUseTxIndex(), eventSchema: ethers.ZeroHash, topicOrDataOrAddressIdx: 0});
+    expect(value).toEqual(119);
   });
 
   test("get receipt logIdx value", async () => {

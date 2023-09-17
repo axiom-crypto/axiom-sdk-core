@@ -7,7 +7,7 @@ import {
   buildTxSubquery,
   buildStorageSubquery,
   buildSolidityNestedMappingSubquery,
-} from '../../../src/v2/query/dataSubquery/build';
+} from '../../../src/v2/query/dataSubquery/builder';
 
 describe("Build data subquery", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase();

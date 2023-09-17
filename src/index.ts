@@ -4,7 +4,7 @@ export {
 
 export * from './shared';
 
-export * from './v2/query/dataSubquery/build';
+export * from './v2/query/dataSubquery/builder';
 export * from './v2/templates';
 
 export {
