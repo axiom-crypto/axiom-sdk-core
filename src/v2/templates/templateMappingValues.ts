@@ -1,5 +1,4 @@
-import { StorageSubquery, getSlotForMapping } from "@axiom-crypto/codec";
-import { DataQueryRequestV2 } from "../types";
+import { DataSubquery, DataSubqueryType, StorageSubquery, getSlotForMapping } from "@axiom-crypto/codec";
 
 /**
  * Template for getting mapping values from a contract at a given block number. Useful
@@ -11,7 +10,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param mappingSlot Slot number of the mapping to query
  * @param mappingKeyType Data type of the mapping key
  * @param keys Array of keys to query
- * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
+ * @returns A full DataSubquery[] that can be `append`ed to a QueryBuilderV2 instance
  */
 export function templateMappingValues(
   blockNumber: number,
@@ -19,19 +18,21 @@ export function templateMappingValues(
   mappingSlot: string,
   mappingKeyType: string,
   keys: string[],
-): DataQueryRequestV2 {
-  let dataQuery = {} as DataQueryRequestV2;
-  dataQuery.storageSubqueries = [];
+): DataSubquery[] {
+  let dataQuery = [] as DataSubquery[];
 
   for (const key of keys) {
     const slot = getSlotForMapping(mappingSlot, mappingKeyType, key);
-    const storageSubquery: StorageSubquery = {
-      blockNumber,
-      addr: address,
-      slot,
+    const storageSubquery: DataSubquery = {
+      type: DataSubqueryType.Storage,
+      subqueryData: {
+        blockNumber,
+        addr: address,
+        slot,
+      }
     };
 
-    dataQuery.storageSubqueries.push(storageSubquery);
+    dataQuery.push(storageSubquery);
   }
 
   return dataQuery;

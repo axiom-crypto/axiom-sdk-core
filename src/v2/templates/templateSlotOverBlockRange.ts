@@ -1,3 +1,4 @@
+import { DataSubquery, DataSubqueryType } from "@axiom-crypto/codec";
 import { DataQueryRequestV2 } from "../types";
 
 /**
@@ -8,7 +9,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param interval Interval between block numbers
  * @param address Contract address
  * @param slot Slot number to query
- * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
+ * @returns A full DataSubquery[] that can be `append`ed to a QueryBuilderV2 instance
  */
 export function templateSlotOverBlockRange(
   startBlock: number,
@@ -16,22 +17,24 @@ export function templateSlotOverBlockRange(
   interval: number,
   address: string,
   slot: string,
-): DataQueryRequestV2 {
+): DataSubquery[] {
   if (interval === 0) {
     throw new Error("Interval must be greater than 0");
   }
 
-  let dataQuery = {} as DataQueryRequestV2;
-  dataQuery.storageSubqueries = [];
+  let dataQuery = [] as DataSubquery[];
 
   for (let i = startBlock; i < endBlock; i += interval) {
     const storageSubquery = {
-      blockNumber: i,
-      addr: address,
-      slot,
+      type: DataSubqueryType.Storage,
+      subqueryData: {
+        blockNumber: i,
+        addr: address,
+        slot,
+      }
     };
 
-    dataQuery.storageSubqueries.push(storageSubquery);
+    dataQuery.push(storageSubquery);
   }
 
   return dataQuery;

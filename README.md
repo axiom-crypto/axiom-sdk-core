@@ -4,14 +4,14 @@ Axiom is a ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowled
 
 # Getting started with v2
 
-Create an `Axiom` instance and a `QueryV2` instance from it:
+Create an `Axiom` instance and a `QueryV2` instance from it (we will use Goerli testnet in this example):
 
 ```typescript
 const config: AxiomConfig = {
   privateKey: process.env.PRIVATE_KEY_GOERLI as string,
   providerUri: process.env.PROVIDER_URI_GOERLI as string,
   version: "v2",
-  chainId: 5,
+  chainId: 5, // Goerli
 };
 const overrides = {
   Addresses: {
@@ -28,6 +28,7 @@ There are two ways to build a query. We'll cover both of them here.
 
 ```typescript
 // Some constants used below
+const BLOCK_NUM = 9500000;
 const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
 const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
@@ -37,10 +38,10 @@ const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 ### Building a Query: Appending method
 
 ```typescript
-// Appends a subquery where we look for the gas used at block 17000000
-const headerSubquery = buildHeaderSubquery(17000000)
+// Appends a subquery where we look for the gas used at block BLOCK_NUM
+const headerSubquery = buildHeaderSubquery(BLOCK_NUM)
   .field(HeaderField.GasUsed);
-query.appendHeaderSubquery(headerSubquery);
+query.appendDataSubquery(headerSubquery);
 
 // Appends a receipt subquery for transaction 
 // 0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6 in which we look at 
@@ -50,10 +51,10 @@ const receiptSubquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382
   .log(0)
   .eventSchema("Transfer(address,address,uint256)")
   .topic(1);
-query.appendReceiptSubquery(receiptSubquery);
+query.appendDataSubquery(receiptSubquery);
 
 // slot 5: mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
-const mappingSubquery = buildSolidityNestedMappingSubquery(17000000)
+const mappingSubquery = buildSolidityNestedMappingSubquery(BLOCK_NUM)
   .address(UNI_V3_FACTORY_ADDR)
   .mappingSlot(5)
   .keys([
@@ -61,7 +62,7 @@ const mappingSubquery = buildSolidityNestedMappingSubquery(17000000)
     WSOL_ADDR,
     10000,
   ]);
-query.appendSolidityNestedMappingSubquery(mappingSubquery);
+query.appendDataSubquery(mappingSubquery);
 
 const callbackQuery = {
   callbackAddr: WETH_ADDR,
@@ -77,40 +78,40 @@ await query.build();
 ### Building a Query: Passing in objects
 
 ```typescript
-const dataQuery = {
-  headerSubqueries: [
-    {
-      blockNumber: BLOCK_NUMBER,
-      fieldIdx: getHeaderFieldIdx(HeaderField.Nonce),
+const dataQuery = [
+  {
+    type: DataSubqueryType.Header,
+    subqueryData: {
+      blockNumber: BLOCK_NUM,
+      fieldIdx: 0,
     },
-    {
-      blockNumber: BLOCK_NUMBER + 3,
-      fieldIdx: getHeaderFieldIdx(HeaderField.Miner),
+  },
+  {
+    type: DataSubqueryType.Header,
+    subqueryData: {
+      blockNumber: BLOCK_NUM + 1,
+      fieldIdx: 1,
     },
-  ],
-  receiptSubqueries: [
-    {
+  },
+  {
+    type: DataSubqueryType.Account,
+    subqueryData: {
+      blockNumber: BLOCK_NUM,
+      addr: WETH_WHALE,
+      fieldIdx: getAccountFieldIdx(AccountField.Nonce),
+    }
+  },
+  {
+    type: DataSubqueryType.Receipt,
+    subqueryData: {
       txHash:
         "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-      fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.Status),
-      topicOrDataOrAddressIdx: 0,
+      fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.CumulativeGas),
+      topicOrDataOrAddressIdx: 10,
       eventSchema: ethers.ZeroHash,
     },
-  ],
-  solidityNestedMappingSubqueries: [
-    {
-      blockNumber: 17000000,
-      addr: "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-      mappingSlot: "5",
-      mappingDepth: 3,
-      keys: [
-        bytes32("0x0000000000085d4780b73119b644ae5ecd22b376"),
-        bytes32("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
-        bytes32(3000),
-      ],
-    },
-  ],
-};
+  },
+];
 
 const callbackQuery = {
   callbackAddr: WETH_ADDR,

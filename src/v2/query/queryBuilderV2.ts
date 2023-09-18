@@ -17,35 +17,18 @@ import {
   AxiomV2DataQuery,
   getQuerySchemaHash,
   getQueryHashV2,
-  validateSize,
-  validateAddress,
-  validateBytes32,
-  HeaderField,
-  AccountField,
-  getAccountFieldIdx,
-  getHeaderFieldIdx,
-  TxType,
-  getTxFieldIdx,
-  TxField,
-  getReceiptFieldIdx,
-  ReceiptField,
   getDataQueryHashFromSubqueries,
 } from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import {
   BuiltQueryV2,
-  DataQueryRequestV2,
   QueryBuilderV2Options,
-  ReceiptSubqueryLogType,
-  ReceiptSubqueryType,
-  TxSubqueryType,
 } from "../types";
 import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
-import { ConstantsV2, newEmptyDataQuery } from "../constants";
+import { ConstantsV2 } from "../constants";
 import { PaymentCalc } from "./paymentCalc";
 import {
-  getSubqueryTypeFromKey,
   validateAccountSubquery,
   validateHeaderSubquery,
   validateStorageSubquery,
@@ -55,19 +38,19 @@ import {
   validateBeaconSubquery,
 } from "./dataSubquery/validate";
 import { convertIpfsCidToBytes32, writeStringIpfs } from "../../shared/ipfs";
-import { receiptUseAddress, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, txUseCalldataIdx, txUseContractDataIdx } from "../fields";
+import { getSubqueryTypeFromKeys } from "./dataSubquery/utils";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
   private builtQuery?: BuiltQueryV2;
-  private dataQuery?: DataQueryRequestV2;
+  private dataQuery?: DataSubquery[];
   private computeQuery?: AxiomV2ComputeQuery;
   private callback?: AxiomV2Callback;
   private options: QueryBuilderV2Options;
 
   constructor(
     config: InternalConfig,
-    dataQuery?: DataQueryRequestV2,
+    dataQuery?: DataSubquery[],
     computeQuery?: AxiomV2ComputeQuery,
     callback?: AxiomV2Callback,
     options?: QueryBuilderV2Options
@@ -92,7 +75,7 @@ export class QueryBuilderV2 {
     }
   }
 
-  getDataQuery(): DataQueryRequestV2 | undefined {
+  getDataQuery(): DataSubquery[] | undefined {
     return this.dataQuery;
   }
 
@@ -122,7 +105,7 @@ export class QueryBuilderV2 {
   getDataQueryHash(): string {
     return getDataQueryHashFromSubqueries(
       this.config.chainId.toString(),
-      this.concatenateDataSubqueriesWithType()
+      this.dataQuery ?? []
     );
   }
 
@@ -140,7 +123,7 @@ export class QueryBuilderV2 {
     this.builtQuery = undefined;
   }
 
-  setDataQuery(dataQuery: DataQueryRequestV2) {
+  setDataQuery(dataQuery: DataSubquery[]) {
     this.unsetBuiltQuery();
     this.dataQuery = undefined;
     this.append(dataQuery);
@@ -162,118 +145,40 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Append a `DataQueryRequestV2` object to the current dataQuery
-   * @param dataQuery A `DataQueryRequestV2` object to append 
+   * Append a `DataSubquery[]` object to the current dataQuery
+   * @param dataQuery A `DataSubquery[]` object to append 
    */
-  append(dataQuery: DataQueryRequestV2): void {
+  append(dataSubqueries: DataSubquery[]): void {
     this.unsetBuiltQuery();
 
-    Object.keys(dataQuery).forEach((key) => {
-      const subqueries = dataQuery[key as keyof DataQueryRequestV2];
-      if (subqueries) {
-        for (const subquery of subqueries) {
-          this.appendDataSubquery(getSubqueryTypeFromKey(key), subquery);
+    for (const subquery of dataSubqueries) {
+      // Points to original nested subquery data to lowercase any strings
+      const subqueryCast = subquery.subqueryData as {[key: string]: any};
+      for (const key of Object.keys(subqueryCast)) {
+        if (typeof subqueryCast[key] === "string") {
+          subqueryCast[key] = subqueryCast[key].toLowerCase();
         }
       }
-    });
+    }
+
+    // Append new dataSubqueries to existing dataQuery
+    this.dataQuery = [...this.dataQuery ?? [], ...dataSubqueries];
   }
 
   /**
    * Appends a single subquery to the current dataQuery
-   * @param type The type of subquery to append
    * @param dataSubquery The data of the subquery to append
+   * @param type (optional) The type of subquery to append. If not provided, the type will be 
+   *             inferred from the keys of the subquery.
    */
-  appendDataSubquery(type: DataSubqueryType, dataSubquery: Subquery): void {
-    this.unsetBuiltQuery();
-
-    if (this.dataQuery === undefined) {
-      this.dataQuery = newEmptyDataQuery();
+  appendDataSubquery(dataSubquery: Subquery, type?: DataSubqueryType): void {
+    if (type === undefined) {
+      type = getSubqueryTypeFromKeys(Object.keys(dataSubquery));
     }
-
-    // Cast subquery to new type in order to lowercase all string value fields
-    const subqueryCast = dataSubquery as {[key: string]: any};
-    for (const key of Object.keys(subqueryCast)) {
-      if (typeof subqueryCast[key] === "string") {
-        subqueryCast[key] = subqueryCast[key].toLowerCase();
-      }
-    }
-
-    // Append based on type
-    Object.keys(this.dataQuery).forEach((key) => {
-      if (type === getSubqueryTypeFromKey(key)) {
-        (this.dataQuery?.[key as keyof DataQueryRequestV2] as Subquery[])?.push(dataSubquery);
-      }
-    });
-  }
-
-  /**
-   * Appends a HeaderSubquery to the DataQuery
-   * @param headerSubquery HeaderSubquery to append
-   */
-  appendHeaderSubquery(
-    headerSubquery: HeaderSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.Header, headerSubquery);
-  }
-
-  /**
-   * Appends a AccountSubquery to the DataQuery
-   * @param accountSubquery AccountSubquery to append
-   */
-  appendAccountSubquery(
-    accountSubquery: AccountSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.Account, accountSubquery);
-  }
-
-  /**
-   * Appends a StorageSubquery to the DataQuery
-   * @param storageSubquery StorageSubquery to append
-   */
-  appendStorageSubquery(
-    headerSubquery: StorageSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.Storage, headerSubquery);
-  }
-
-  /**
-   * Appends a TxSubquery to the DataQuery
-   * @param txSubquery TxSubquery to append
-   */
-  appendTxSubquery(
-    txSubquery: TxSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.Transaction, txSubquery);
-  }
-
-  /**
-   * Appends a ReceiptSubquery to the DataQuery
-   * @param receiptSubquery ReceiptSubquery to append
-   */
-  appendReceiptSubquery(
-    receiptSubquery: ReceiptSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.Receipt, receiptSubquery);
-  }
-
-  /**
-   * Appends a SolidityNestedMappingSubquery to the DataQuery
-   * @param solidityNestedMappingSubquery SolidityNestedMappingSubquery to append
-   */
-  appendSolidityNestedMappingSubquery(
-    solidityNestedMappingSubquery: SolidityNestedMappingSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.SolidityNestedMapping, solidityNestedMappingSubquery);
-  }
-
-  /**
-   * Appends a BeaconValidatorSubquery to the DataQuery
-   * @param beaconValidatorSubquery BeaconValidatorSubquery to append
-   */
-  appendBeaconValidatorSubquery(
-    beaconValidatorSubquery: BeaconValidatorSubquery
-  ): void {
-    this.appendDataSubquery(DataSubqueryType.BeaconValidator, beaconValidatorSubquery);
+    this.append([{
+      type,
+      subqueryData: dataSubquery,
+    }]);
   }
 
   async sendOnchainQuery(
@@ -378,13 +283,12 @@ export class QueryBuilderV2 {
 
   async build(): Promise<BuiltQueryV2> {
     // Encode data query
-    const allSubqueries = this.concatenateDataSubqueriesWithType();
-    const dataQueryEncoded = this.encodeBuilderDataQuery(allSubqueries);
+    const dataQueryEncoded = this.encodeBuilderDataQuery(this.dataQuery ?? []);
     const dataQueryHash = getDataQueryHashFromSubqueries(
       this.config.chainId.toString(),
-      allSubqueries
+      this.dataQuery ?? []
     );
-    const dataQuery = this.buildDataQuery(allSubqueries);
+    const dataQuery = this.buildDataQuery(this.dataQuery ?? []);
 
     // Handle compute query
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
@@ -434,53 +338,6 @@ export class QueryBuilderV2 {
     return PaymentCalc.calculatePayment(this);
   }
 
-  private concatenateDataSubqueriesWithType(): DataSubquery[] {
-    return [
-      ...this.dataQuery?.headerSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.Header,
-          subqueryData: data,
-        }
-      }) ?? [],
-      ...this.dataQuery?.accountSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.Account,
-          subqueryData: data,
-        }
-      }) ?? [],
-      ...this.dataQuery?.storageSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.Storage,
-          subqueryData: data,
-        }
-      }) ?? [],
-      ...this.dataQuery?.txSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.Transaction,
-          subqueryData: data,
-        }
-      }) ?? [],
-      ...this.dataQuery?.receiptSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.Receipt,
-          subqueryData: data,
-        }
-      }) ?? [],
-      ...this.dataQuery?.solidityNestedMappingSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.SolidityNestedMapping,
-          subqueryData: data,
-        }
-      }) ?? [],
-      ...this.dataQuery?.beaconSubqueries?.map((data) => { 
-        return {
-          type: DataSubqueryType.BeaconValidator,
-          subqueryData: data,
-        }
-      }) ?? [],
-    ];
-  }
-
   private encodeBuilderDataQuery(allSubqueries: DataSubquery[]): string {
     return encodeDataQuery(
       this.config.chainId, 
@@ -514,26 +371,53 @@ export class QueryBuilderV2 {
     }
     const provider = this.config.provider;
     let validQuery = true;
-    for (const subquery of this.dataQuery.headerSubqueries ?? [] as HeaderSubquery[]) {
-      validQuery = validQuery && await validateHeaderSubquery(provider, subquery);
-    }
-    for (const subquery of this.dataQuery.accountSubqueries ?? [] as AccountSubquery[]) {
-      validQuery = validQuery && await validateAccountSubquery(provider, subquery);
-    }
-    for (const subquery of this.dataQuery.storageSubqueries ?? [] as StorageSubquery[]) {
-      validQuery = validQuery && await validateStorageSubquery(provider, subquery);
-    }
-    for (const subquery of this.dataQuery.txSubqueries ?? [] as TxSubquery[]) {
-      validQuery = validQuery && await validateTxSubquery(provider, subquery);
-    }
-    for (const subquery of this.dataQuery.receiptSubqueries ?? [] as ReceiptSubquery[]) {
-      validQuery = validQuery && await validateReceiptSubquery(provider, subquery);
-    }
-    for (const subquery of this.dataQuery.solidityNestedMappingSubqueries ?? [] as SolidityNestedMappingSubquery[]) {
-      validQuery = validQuery && await validateSolidityNestedMappingSubquery(provider, subquery);
-    }
-    for (const subquery of this.dataQuery.beaconSubqueries ?? [] as BeaconValidatorSubquery[]) {
-      validQuery = validQuery && await validateBeaconSubquery(provider, subquery);
+    for (const subquery of this.dataQuery) {
+      switch (subquery.type) {
+        case DataSubqueryType.Header:
+          validQuery = validQuery && await validateHeaderSubquery(
+            provider,
+            subquery.subqueryData as HeaderSubquery
+          );
+          break;
+        case DataSubqueryType.Account:
+          validQuery = validQuery && await validateAccountSubquery(
+            provider,
+            subquery.subqueryData as AccountSubquery
+          );
+          break;
+        case DataSubqueryType.Storage:
+          validQuery = validQuery && await validateStorageSubquery(
+            provider,
+            subquery.subqueryData as StorageSubquery
+          );
+          break;
+        case DataSubqueryType.Transaction:
+          validQuery = validQuery && await validateTxSubquery(
+            provider,
+            subquery.subqueryData as TxSubquery
+          );
+          break;
+        case DataSubqueryType.Receipt:
+          validQuery = validQuery && await validateReceiptSubquery(
+            provider,
+            subquery.subqueryData as ReceiptSubquery
+          );
+          break;
+        case DataSubqueryType.SolidityNestedMapping:
+          validQuery = validQuery && await validateSolidityNestedMappingSubquery(
+            provider,
+            subquery.subqueryData as SolidityNestedMappingSubquery
+          );
+          break;
+        case DataSubqueryType.BeaconValidator:
+          validQuery = validQuery && await validateBeaconSubquery(
+            provider,
+            subquery.subqueryData as BeaconValidatorSubquery
+          );
+          break;
+        default:
+          throw new Error(`Invalid subquery type: ${subquery.type}`);
+      }
     }
     return validQuery;
   }

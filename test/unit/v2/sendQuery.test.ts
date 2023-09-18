@@ -258,7 +258,7 @@ describe("QueryV2", () => {
 
     const headerSubquery = buildHeaderSubquery(8200007)
       .field(HeaderField.ParentHash)
-    query.appendHeaderSubquery(headerSubquery);
+    query.appendDataSubquery(headerSubquery);
     query.setCallback(callbackQuery);
     
     const isValid = await query.validate();

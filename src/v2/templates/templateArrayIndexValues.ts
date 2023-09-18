@@ -1,4 +1,4 @@
-import { getSlotForArray } from "@axiom-crypto/codec";
+import { DataSubquery, DataSubqueryType, getSlotForArray } from "@axiom-crypto/codec";
 import { DataQueryRequestV2 } from "../types";
 
 /**
@@ -10,7 +10,7 @@ import { DataQueryRequestV2 } from "../types";
  * @param arrayIndexEnd End index of the array
  * @param arrayIndexInterval Interval between array indices
  * @param arrayType Data type of the array
- * @returns A full DataQueryRequestV2 that can be `append`ed to a QueryBuilderV2 instance
+ * @returns A full DataSubquery[] that can be `append`ed to a QueryBuilderV2 instance
  */
 export function templateArrayIndexValues(
   blockNumber: number,
@@ -20,12 +20,11 @@ export function templateArrayIndexValues(
   arrayIndexEnd: string,
   arrayIndexInterval: string,
   arrayType: string,
-): DataQueryRequestV2 {
+): DataSubquery[] {
   if (BigInt(arrayIndexInterval) === 0n) {
     throw new Error("Array index interval must be greater than 0");
   }
-  let dataQuery = {} as DataQueryRequestV2;
-  dataQuery.storageSubqueries = [];
+  let dataQuery = [] as DataSubquery[];
 
   const bigIndexStart = BigInt(arrayIndexStart);
   const bigIndexEnd = BigInt(arrayIndexEnd);
@@ -33,13 +32,16 @@ export function templateArrayIndexValues(
   for (let i = bigIndexStart; i < bigIndexEnd; i += bigIndexInterval) {
     // Warning: This will return a packed slot if the arrayType is 16 bytes or less
     const slot = getSlotForArray(arraySlot, arrayType, i.toString());
-    const storageSubquery = {
-      blockNumber,
-      addr: address,
-      slot,
+    const storageSubquery: DataSubquery = {
+      type: DataSubqueryType.Storage,
+      subqueryData: {
+        blockNumber,
+        addr: address,
+        slot,
+      }
     };
 
-    dataQuery.storageSubqueries.push(storageSubquery);
+    dataQuery.push(storageSubquery);
   }
 
   return dataQuery;

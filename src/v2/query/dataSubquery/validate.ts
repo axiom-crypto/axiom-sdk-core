@@ -2,7 +2,6 @@ import {
   AccountField,
   AccountSubquery,
   BeaconValidatorSubquery,
-  DataSubqueryType,
   HeaderField,
   HeaderSubquery,
   ReceiptField,
@@ -16,27 +15,6 @@ import {
 import { ethers } from "ethers";
 import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getSolidityNestedMappingValue, getStorageFieldValue, getTxFieldValue } from "../../../shared/chainData";
 import { ConstantsV2 } from "../../constants";
-
-export function getSubqueryTypeFromKey(key: string): DataSubqueryType {
-  switch (key) {
-    case "headerSubqueries":
-      return DataSubqueryType.Header;
-    case "accountSubqueries":
-      return DataSubqueryType.Account
-    case "storageSubqueries":
-      return DataSubqueryType.Storage;
-    case "txSubqueries":
-      return DataSubqueryType.Transaction;
-    case "receiptSubqueries":
-      return DataSubqueryType.Receipt;
-    case "solidityNestedMappingSubqueries":
-      return DataSubqueryType.SolidityNestedMapping;
-    case "beaconSubqueries":
-      return DataSubqueryType.BeaconValidator;
-    default: 
-      throw new Error(`Invalid subquery type: ${key}`);
-  }
-}
 
 export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,

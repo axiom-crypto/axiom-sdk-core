@@ -46,15 +46,3 @@ export const ConstantsV2 = Object.freeze({
   ReceiptBlockNumberFieldIdx: 52,
   ReceiptTxIndexFieldIdx: 53,
 });
-
-export function newEmptyDataQuery(): DataQueryRequestV2 {
-  return {
-    headerSubqueries: [],
-    accountSubqueries: [],
-    storageSubqueries: [],
-    txSubqueries: [],
-    receiptSubqueries: [],
-    solidityNestedMappingSubqueries: [],
-    beaconSubqueries: [],
-  }
-}

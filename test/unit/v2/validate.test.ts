@@ -19,7 +19,7 @@ describe("Query Validation Tests", () => {
     const query = aq.new();
     const subquery = buildHeaderSubquery(17000000)
       .field(HeaderField.GasUsed);
-    query.appendHeaderSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -29,7 +29,7 @@ describe("Query Validation Tests", () => {
     const subquery = buildAccountSubquery(18000000)
       .address(WETH_WHALE)
       .field(AccountField.Balance);
-    query.appendAccountSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -40,7 +40,7 @@ describe("Query Validation Tests", () => {
     const subquery = buildStorageSubquery(18000000)
       .address(WETH_ADDR)
       .slot(slot);
-    query.appendStorageSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -50,7 +50,7 @@ describe("Query Validation Tests", () => {
     const subquery = buildTxSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
       .field(TxField.To)
       .type(TxType.Eip1559);
-    query.appendTxSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -59,7 +59,7 @@ describe("Query Validation Tests", () => {
     const query = aq.new();
     const subquery = buildTxSubquery("0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5")
       .calldata(0);
-    query.appendTxSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -70,7 +70,7 @@ describe("Query Validation Tests", () => {
       .log(0)
       .eventSchema("Transfer(address,address,uint256)")
       .topic(1);
-    query.appendReceiptSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -85,7 +85,7 @@ describe("Query Validation Tests", () => {
         WSOL_ADDR,
         10000,
       ]);
-    query.appendSolidityNestedMappingSubquery(subquery);
+    query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -95,7 +95,7 @@ describe("Query Validation Tests", () => {
     const test = () => {
       const subquery = buildHeaderSubquery("0x480aa3cf46a1813d543e169314d56831aa002d932444723fee6b9e31d01f8c28")
         .field(HeaderField.Miner);
-      query.appendHeaderSubquery(subquery);
+      query.appendDataSubquery(subquery);
     }
     expect(test).toThrow();
   });

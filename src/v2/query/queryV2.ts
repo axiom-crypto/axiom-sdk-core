@@ -1,11 +1,11 @@
 import { 
   AxiomV2Callback,
-  AxiomV2ComputeQuery
+  AxiomV2ComputeQuery,
+  DataSubquery
 } from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import { Query } from "../../core/query";
 import {
-  DataQueryRequestV2,
   QueryBuilderV2Options,
 } from "../types";
 import { QueryBuilderV2 } from './queryBuilderV2';
@@ -24,7 +24,7 @@ export class QueryV2 extends Query {
    * @returns 
    */
   new(
-    dataQuery?: DataQueryRequestV2,
+    dataQuery?: DataSubquery[],
     computeQuery?: AxiomV2ComputeQuery,
     callback?: AxiomV2Callback,
     options?: QueryBuilderV2Options

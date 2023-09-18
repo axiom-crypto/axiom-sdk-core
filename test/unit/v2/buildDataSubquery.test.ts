@@ -24,10 +24,10 @@ describe("Build data subquery", () => {
   test("Build and append a header subquery", () => {
     const headerSubquery: HeaderSubquery = buildHeaderSubquery(18000000)
       .field(HeaderField.GasUsed);
-    query.appendDataSubquery(DataSubqueryType.Header, headerSubquery);
+    query.appendDataSubquery(headerSubquery);
     const dataQuery = query.getDataQuery();
 
-    const subquery = dataQuery?.headerSubqueries?.[0];
+    const subquery = dataQuery?.[0].subqueryData as HeaderSubquery;
     expect(subquery?.blockNumber).toEqual(18000000);
     expect(subquery?.fieldIdx).toEqual(HeaderField.GasUsed);
   });
@@ -36,10 +36,10 @@ describe("Build data subquery", () => {
     const accountSubquery: AccountSubquery = buildAccountSubquery(18000000)
       .address(WETH_WHALE)
       .field(AccountField.Balance);
-    query.appendDataSubquery(DataSubqueryType.Account, accountSubquery);
+    query.appendDataSubquery(accountSubquery);
     const dataQuery = query.getDataQuery();
 
-    const subquery = dataQuery?.accountSubqueries?.[0];
+    const subquery = dataQuery?.[1].subqueryData as AccountSubquery;
     expect(subquery?.blockNumber).toEqual(18000000);
     expect(subquery?.addr).toEqual(WETH_WHALE);
     expect(subquery?.fieldIdx).toEqual(AccountField.Balance);
@@ -49,10 +49,10 @@ describe("Build data subquery", () => {
     const storageSubquery: StorageSubquery = buildStorageSubquery(18000000)
       .address(WETH_ADDR)
       .slot(1);
-    query.appendDataSubquery(DataSubqueryType.Storage, storageSubquery);
+    query.appendDataSubquery(storageSubquery);
     const dataQuery = query.getDataQuery();
 
-    const subquery = dataQuery?.storageSubqueries?.[0];
+    const subquery = dataQuery?.[2].subqueryData as StorageSubquery;
     expect(subquery?.blockNumber).toEqual(18000000);
     expect(subquery?.addr).toEqual(WETH_ADDR);
     expect(subquery?.slot).toEqual(bytes32(1));
@@ -62,10 +62,10 @@ describe("Build data subquery", () => {
     const txSubquery: TxSubquery = buildTxSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
       .field(TxField.MaxPriorityFeePerGas)
       .type(TxType.Eip1559);
-    query.appendDataSubquery(DataSubqueryType.Transaction, txSubquery);
+    query.appendDataSubquery(txSubquery);
     const dataQuery = query.getDataQuery();
 
-    const subquery = dataQuery?.txSubqueries?.[0];
+    const subquery = dataQuery?.[3].subqueryData as TxSubquery;
     expect(subquery?.txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
     expect(subquery?.fieldOrCalldataIdx).toEqual(2);
   });
@@ -75,10 +75,10 @@ describe("Build data subquery", () => {
       .log(0)
       .eventSchema("Transfer (address from, address to, uint256 value)")
       .address();
-    query.appendDataSubquery(DataSubqueryType.Receipt, receiptSubquery);
+    query.appendDataSubquery(receiptSubquery);
     const dataQuery = query.getDataQuery();
     
-    const subquery = dataQuery?.receiptSubqueries?.[0];
+    const subquery = dataQuery?.[4].subqueryData as ReceiptSubquery;
     expect(subquery?.txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
     expect(subquery?.fieldOrLogIdx).toEqual(100);
     expect(subquery?.topicOrDataOrAddressIdx).toEqual(50);
@@ -94,10 +94,10 @@ describe("Build data subquery", () => {
         WETH_WHALE,
         100000
       ]);
-    query.appendDataSubquery(DataSubqueryType.SolidityNestedMapping, nestedMappingSubquery);
+    query.appendDataSubquery(nestedMappingSubquery);
     const dataQuery = query.getDataQuery();
 
-    const subquery = dataQuery?.solidityNestedMappingSubqueries?.[0];
+    const subquery = dataQuery?.[5].subqueryData as SolidityNestedMappingSubquery;
     expect(subquery?.blockNumber).toEqual(18000000);
     expect(subquery?.addr).toEqual(WETH_ADDR);
     expect(subquery?.mappingSlot).toEqual(bytes32(0));
