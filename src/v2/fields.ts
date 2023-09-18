@@ -1,35 +1,39 @@
-import { ConstantsV2 } from "./constants";
+import { SpecialValuesV2 } from "@axiom-crypto/codec";
+
+export function headerUseLogsBloomIdx(idx: number): number {
+  return SpecialValuesV2.HeaderLogsBloomIdxOffset + idx;
+}
 
 export function txUseCalldataIdx(idx: number): number {
-  return ConstantsV2.TxCalldataIdxOffset + idx;
+  return SpecialValuesV2.TxCalldataIdxOffset + idx;
 }
 
 export function txUseContractDataIdx(idx: number): number {
-  return ConstantsV2.TxContractDataIdxOffset + idx;
+  return SpecialValuesV2.TxContractDataIdxOffset + idx;
 }
 
 export function txUseTxType(): number {
-  return ConstantsV2.TxTxTypeFieldIdx;
+  return SpecialValuesV2.TxTxTypeFieldIdx;
 }
 
 export function txUseBlockNumber(): number {
-  return ConstantsV2.TxBlockNumberFieldIdx;
+  return SpecialValuesV2.TxBlockNumberFieldIdx;
 }
 
 export function txUseTxIndex(): number {
-  return ConstantsV2.TxTxIndexFieldIdx;
+  return SpecialValuesV2.TxTxIndexFieldIdx;
 }
 
 export function txUseFunctionSelector(): number {
-  return ConstantsV2.TxFunctionSelectorFieldIdx;
+  return SpecialValuesV2.TxFunctionSelectorFieldIdx;
 }
 
 export function txUseCalldataHash(): number {
-  return ConstantsV2.TxCalldataHashFieldIdx;
+  return SpecialValuesV2.TxCalldataHashFieldIdx;
 }
 
 export function receiptUseLogIdx(idx: number): number {
-  return ConstantsV2.ReceiptLogIdxOffset + idx;
+  return SpecialValuesV2.ReceiptLogIdxOffset + idx;
 }
 
 export function receiptUseTopicIdx(idx: number): number {
@@ -37,21 +41,25 @@ export function receiptUseTopicIdx(idx: number): number {
 }
 
 export function receiptUseDataIdx(idx: number): number {
-  return ConstantsV2.ReceiptDataIdxOffset + idx;
+  return SpecialValuesV2.ReceiptDataIdxOffset + idx;
+}
+
+export function receiptUseLogsBloomIdx(idx: number): number {
+  return SpecialValuesV2.ReceiptLogsBloomIdxOffset + idx;
 }
 
 export function receiptUseAddress(): number {
-  return ConstantsV2.ReceiptAddressIdx;
+  return SpecialValuesV2.ReceiptAddressIdx;
 }
 
 export function receiptUseTxType(): number {
-  return ConstantsV2.ReceiptTxTypeFieldIdx;
+  return SpecialValuesV2.ReceiptTxTypeFieldIdx;
 }
 
 export function receiptUseBlockNumber(): number {
-  return ConstantsV2.ReceiptBlockNumberFieldIdx;
+  return SpecialValuesV2.ReceiptBlockNumberFieldIdx;
 }
 
 export function receiptUseTxIndex(): number {
-  return ConstantsV2.ReceiptTxIndexFieldIdx;
+  return SpecialValuesV2.ReceiptTxIndexFieldIdx;
 }

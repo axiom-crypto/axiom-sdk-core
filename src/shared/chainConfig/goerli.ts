@@ -66,7 +66,7 @@ export let versionDataGoerli: any = {
   v2: {
     Addresses: {
       Axiom: "",
-      AxiomQuery: "0x216AC1d450a68F77F9CC685649cA416922FEC96B",
+      AxiomQuery: "0x8dde5d4a8384f403f888e1419672d94c570440c9",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v2",
@@ -100,7 +100,7 @@ export let versionOverrideGoerliMock: any = {
   v2: {
     Addresses: {
       Axiom: "",
-      AxiomQuery: "0x216AC1d450a68F77F9CC685649cA416922FEC96B",
+      AxiomQuery: "0x8dde5d4a8384f403f888e1419672d94c570440c9",
     },
   },
 };

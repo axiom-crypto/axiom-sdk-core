@@ -25,24 +25,4 @@ export const ConstantsV2 = Object.freeze({
     resultLen: 0,
     callbackExtraData: ethers.ZeroHash,
   },
-
-  TxFieldIdxOffset: 0,
-  TxCalldataIdxOffset: 100,
-  TxContractDataIdxOffset: 100000,
-  TxTxTypeFieldIdx: 51,
-  TxBlockNumberFieldIdx: 52,
-  TxTxIndexFieldIdx: 53,
-  TxFunctionSelectorFieldIdx: 54,
-  TxCalldataHashFieldIdx: 55,
-  TxContractDeploySelectorValue: bytes32(60), // returned if contract deployment
-  TxNoCalldataSelectorValue: bytes32(61), // returned if pure EOA transfer
-
-  ReceiptFieldIdxOffset: 0,
-  ReceiptLogIdxOffset: 100,
-  ReceiptTopicIdxOffset: 0,
-  ReceiptDataIdxOffset: 100,
-  ReceiptAddressIdx: 50,
-  ReceiptTxTypeFieldIdx: 51,
-  ReceiptBlockNumberFieldIdx: 52,
-  ReceiptTxIndexFieldIdx: 53,
 });

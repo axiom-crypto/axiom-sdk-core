@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@axiom-crypto/codec':
-    specifier: 0.3.2
-    version: 0.3.2
+    specifier: 0.3.4
+    version: 0.3.4
   axios:
     specifier: ^1.4.0
     version: 1.4.0
@@ -82,8 +82,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.18
     dev: true
 
-  /@axiom-crypto/codec@0.3.2:
-    resolution: {integrity: sha512-JdB5OWUYn6VHrkPxbW8hGyTG6PlEIb8XMThhesjsZEPkty/FCQChet6yIEmL1OmpygPvkXlyeYv4kAwxXY+JmQ==}
+  /@axiom-crypto/codec@0.3.4:
+    resolution: {integrity: sha512-lVJinZhH7arZi7YfJwpl4rNweNeEMdMTz7bEIYmCT/cYwkIFCzheLokKlXrPviZ9jFzvxcrxstBdlzcdvWA4/w==}
     dependencies:
       ethers: 6.7.1
     transitivePeerDependencies:

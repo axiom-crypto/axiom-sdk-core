@@ -11,10 +11,10 @@ import {
   TxField,
   TxSubquery,
   getNumBytes,
+  SpecialValuesV2,
 } from "@axiom-crypto/codec";
 import { ethers } from "ethers";
 import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getSolidityNestedMappingValue, getStorageFieldValue, getTxFieldValue } from "../../../shared/chainData";
-import { ConstantsV2 } from "../../constants";
 
 export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
@@ -90,7 +90,7 @@ export async function validateTxSubquery(
 ): Promise<boolean> {
   if (
     subquery.fieldOrCalldataIdx > TxField.s && 
-    subquery.fieldOrCalldataIdx < ConstantsV2.TxCalldataIdxOffset
+    subquery.fieldOrCalldataIdx < SpecialValuesV2.TxCalldataIdxOffset
   ) {
     console.error(`Invalid tx field/calldata index: ${subquery.fieldOrCalldataIdx}`);
     return false;
@@ -110,12 +110,12 @@ export async function validateReceiptSubquery(
 ): Promise<boolean> {
   if (
     subquery.fieldOrLogIdx > ReceiptField.CumulativeGas && 
-    subquery.fieldOrLogIdx < ConstantsV2.ReceiptLogIdxOffset
+    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptLogIdxOffset
   ) {
     console.error(`Invalid receipt field/log index: ${subquery.fieldOrLogIdx}`);
     return false;
   }
-  if (subquery.fieldOrLogIdx >= ConstantsV2.ReceiptLogIdxOffset) {
+  if (subquery.fieldOrLogIdx >= SpecialValuesV2.ReceiptLogIdxOffset) {
     if (
       !ethers.isBytesLike(subquery.eventSchema) ||
       getNumBytes(subquery.eventSchema) !== 32
@@ -126,8 +126,8 @@ export async function validateReceiptSubquery(
   }
   if (
     subquery.topicOrDataOrAddressIdx > 4 && 
-    subquery.topicOrDataOrAddressIdx < ConstantsV2.ReceiptLogIdxOffset &&
-    subquery.topicOrDataOrAddressIdx !== ConstantsV2.ReceiptAddressIdx
+    subquery.topicOrDataOrAddressIdx < SpecialValuesV2.ReceiptLogIdxOffset &&
+    subquery.topicOrDataOrAddressIdx !== SpecialValuesV2.ReceiptAddressIdx
   ) {
     console.error(`Invalid receipt topic/data/address index index: ${subquery.topicOrDataOrAddressIdx}`);
     return false;

@@ -13,9 +13,9 @@ import {
   TxSubquery,
   ReceiptSubquery,
   SolidityNestedMappingSubquery,
+  SpecialValuesV2,
 } from "@axiom-crypto/codec";
 import { SharedConstants } from "./constants";
-import { ConstantsV2 } from "../v2/constants";
 
 export async function getFullBlock(blockNumber: number, provider: ethers.JsonRpcProvider) {
   const fullBlock = await provider.send(
@@ -60,6 +60,26 @@ export async function getHeaderFieldValue(
   if (!block) {
     return null;
   }
+
+  if (
+    fieldIdx >= SpecialValuesV2.HeaderLogsBloomIdxOffset && 
+    fieldIdx < SpecialValuesV2.HeaderLogsBloomIdxOffset + 8
+  ) {
+    const logIdx = fieldIdx - SpecialValuesV2.HeaderLogsBloomIdxOffset;
+    if (
+      !block.logsBloom || 
+      logIdx >= block.logsBloom.slice(2).length / 64
+    ) {
+      return null;
+    }
+    const reader = new ByteStringReader(block.logsBloom);
+    for (let i = 0; i < logIdx; i++) {
+      reader.readBytes("bytes32");
+    }
+    const logsBloomValue = reader.readBytes("bytes32");
+    return logsBloomValue;
+  }
+
   switch (fieldIdx) {
     case HeaderField.ParentHash:
       return block.parentHash ?? null;
@@ -143,7 +163,7 @@ export async function getTxFieldValue(
   if (!tx) {
     return null;
   }
-  if (fieldOrCalldataIdx < ConstantsV2.TxCalldataIdxOffset) {
+  if (fieldOrCalldataIdx < SpecialValuesV2.TxCalldataIdxOffset) {
     switch (fieldOrCalldataIdx) {
       case TxField.ChainId:
         return tx.chainId ?? null;
@@ -177,34 +197,34 @@ export async function getTxFieldValue(
         return tx.signature.r ?? null;
       case TxField.s:
         return tx.signature.s ?? null;
-      case ConstantsV2.TxTxTypeFieldIdx:
+      case SpecialValuesV2.TxTxTypeFieldIdx:
         return tx.type ?? null;
-      case ConstantsV2.TxBlockNumberFieldIdx:
+      case SpecialValuesV2.TxBlockNumberFieldIdx:
         return tx.blockNumber ?? null;
-      case ConstantsV2.TxTxIndexFieldIdx:
+      case SpecialValuesV2.TxTxIndexFieldIdx:
         const txRaw = await getTransactionData(txHash, provider);
         return txRaw.transactionIndex ?? null;
-      case ConstantsV2.TxFunctionSelectorFieldIdx:
+      case SpecialValuesV2.TxFunctionSelectorFieldIdx:
         if (!tx.to && !!tx.data) {
-          return ConstantsV2.TxContractDeploySelectorValue;
+          return SpecialValuesV2.TxContractDeploySelectorValue;
         }
         if (tx.data === "0x") {
-          return ConstantsV2.TxNoCalldataSelectorValue;
+          return SpecialValuesV2.TxNoCalldataSelectorValue;
         }
         const selectorReader = new ByteStringReader(tx.data);
         const selector = selectorReader.readBytes("bytes4"); // function selector
         return selector; 
-      case ConstantsV2.TxCalldataHashFieldIdx:
+      case SpecialValuesV2.TxCalldataHashFieldIdx:
         return ethers.keccak256(tx.data);
       default:
         throw new Error(`Invalid tx field index: ${fieldOrCalldataIdx}`);
     }
   }
 
-  if (fieldOrCalldataIdx < ConstantsV2.TxContractDataIdxOffset) {
+  if (fieldOrCalldataIdx < SpecialValuesV2.TxContractDataIdxOffset) {
     // Parse calldata blob (ignoring function selector) to get calldata at specified idx
     const calldata = tx.data;
-    const calldataIdx = fieldOrCalldataIdx - ConstantsV2.TxCalldataIdxOffset;
+    const calldataIdx = fieldOrCalldataIdx - SpecialValuesV2.TxCalldataIdxOffset;
     const reader = new ByteStringReader(calldata);
     const _functionSignature = reader.readBytes("bytes4"); // unused
     for (let i = 0; i < calldataIdx; i++) {
@@ -215,7 +235,7 @@ export async function getTxFieldValue(
   }
 
   // Get contractData Idx
-  const contractDataIdx = fieldOrCalldataIdx - ConstantsV2.TxContractDataIdxOffset;
+  const contractDataIdx = fieldOrCalldataIdx - SpecialValuesV2.TxContractDataIdxOffset;
   const contractData = tx.data;
   const reader = new ByteStringReader(contractData);
   for (let i = 0; i < contractDataIdx; i++) {
@@ -234,7 +254,26 @@ export async function getReceiptFieldValue(
     return null;
   }
 
-  if (fieldOrLogIdx < ConstantsV2.ReceiptLogIdxOffset) {
+  if (
+    fieldOrLogIdx >= SpecialValuesV2.HeaderLogsBloomIdxOffset && 
+    fieldOrLogIdx < SpecialValuesV2.HeaderLogsBloomIdxOffset + 8
+  ) {
+    const logIdx = fieldOrLogIdx - SpecialValuesV2.HeaderLogsBloomIdxOffset;
+    if (
+      !receipt.logsBloom || 
+      logIdx >= receipt.logsBloom.slice(2).length / 64
+    ) {
+      return null;
+    }
+    const reader = new ByteStringReader(receipt.logsBloom);
+    for (let i = 0; i < logIdx; i++) {
+      reader.readBytes("bytes32");
+    }
+    const logsBloomValue = reader.readBytes("bytes32");
+    return logsBloomValue;
+  }
+
+  if (fieldOrLogIdx < SpecialValuesV2.ReceiptLogIdxOffset) {
     switch (fieldOrLogIdx) {
       case ReceiptField.Status:
         return receipt.status ?? null;
@@ -246,31 +285,31 @@ export async function getReceiptFieldValue(
         return receipt.logsBloom ?? null;
       case ReceiptField.Logs:
         throw new Error("Use `receiptUseLogIdx(idx) to get a log at index `idx` in this transaction");
-      case ConstantsV2.TxTxTypeFieldIdx:
+      case SpecialValuesV2.TxTxTypeFieldIdx:
         return receipt.type ?? null;
-      case ConstantsV2.ReceiptBlockNumberFieldIdx:
+      case SpecialValuesV2.ReceiptBlockNumberFieldIdx:
         return receipt.blockNumber ?? null;
-      case ConstantsV2.ReceiptTxIndexFieldIdx:
+      case SpecialValuesV2.ReceiptTxIndexFieldIdx:
         return receipt.index ?? null;
       default:
         throw new Error(`Invalid receipt field index: ${fieldOrLogIdx}`);
     }
   }
 
-  const logIdx = fieldOrLogIdx - ConstantsV2.ReceiptLogIdxOffset;
+  const logIdx = fieldOrLogIdx - SpecialValuesV2.ReceiptLogIdxOffset;
   const log = receipt.logs[logIdx] ?? null;
   if (!log) {
     return null;
   }
 
-  if (topicOrDataOrAddressIdx < ConstantsV2.ReceiptDataIdxOffset) {
+  if (topicOrDataOrAddressIdx < SpecialValuesV2.ReceiptDataIdxOffset) {
     // Return topic
     if (topicOrDataOrAddressIdx < log.topics.length) {
       return log.topics[topicOrDataOrAddressIdx];
     }
 
     // Return address
-    if (topicOrDataOrAddressIdx === ConstantsV2.ReceiptAddressIdx) {
+    if (topicOrDataOrAddressIdx === SpecialValuesV2.ReceiptAddressIdx) {
       return log.address ?? null;
     }
 
@@ -279,7 +318,7 @@ export async function getReceiptFieldValue(
   }
 
   // Return data
-  const dataIdx = topicOrDataOrAddressIdx - ConstantsV2.ReceiptDataIdxOffset;
+  const dataIdx = topicOrDataOrAddressIdx - SpecialValuesV2.ReceiptDataIdxOffset;
   const reader = new ByteStringReader(log.data);
   for (let i = 0; i < dataIdx; i++) {
     reader.readBytes("bytes32");

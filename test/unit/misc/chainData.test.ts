@@ -14,12 +14,26 @@ import {
   AccountField,
   HeaderField,
   ReceiptField,
+  SpecialValuesV2,
   TxField,
   TxType,
+  bytes32,
 } from "@axiom-crypto/codec";
-import { bytes32 } from "../../../src/shared/utils";
-import { receiptUseAddress, receiptUseBlockNumber, receiptUseDataIdx, receiptUseLogIdx, receiptUseTxIndex, receiptUseTxType, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseFunctionSelector, txUseTxIndex, txUseTxType } from "../../../src";
-import { ConstantsV2 } from "../../../src/v2/constants";
+import {
+  headerUseLogsBloomIdx,
+  receiptUseAddress,
+  receiptUseBlockNumber,
+  receiptUseDataIdx,
+  receiptUseLogIdx,
+  receiptUseTxIndex,
+  receiptUseTxType,
+  txUseBlockNumber,
+  txUseCalldataHash,
+  txUseCalldataIdx,
+  txUseFunctionSelector,
+  txUseTxIndex,
+  txUseTxType
+} from "../../../src";
 
 
 describe("ChainData query tests", () => {
@@ -71,6 +85,16 @@ describe("ChainData query tests", () => {
     expect(excessBlobGas).toEqual(null);
     const parentBeaconBlockRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.ParentBeaconBlockRoot });
     expect(parentBeaconBlockRoot).toEqual(null);
+  }, 10000);
+
+  test("get header field logs bloom", async () => {
+    const blockNumber = 17000001;
+    const block = await getFullBlock(blockNumber, provider);
+    const logsBloom = block.logsBloom.slice(2);
+    for (let i = 0; i < 8; i++) {
+      const logsBloomAtIdx = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: headerUseLogsBloomIdx(i) });
+      expect(logsBloomAtIdx).toEqual("0x" + logsBloom.slice(0 + i*64, 64 + i*64));
+    }
   });
 
   test("get account fields", async () => {
@@ -172,18 +196,28 @@ describe("ChainData query tests", () => {
     // Contract creation
     const contractCreateTxHash = "0x5a532ae8eb36dad0058b78f00ee459c42d58157dc11cc290e939b8aa91aa59d4";
     value = await getTxFieldValue(provider, { txHash: contractCreateTxHash, fieldOrCalldataIdx: txUseFunctionSelector() });
-    expect(value).toEqual(ConstantsV2.TxContractDeploySelectorValue);
+    expect(value).toEqual(SpecialValuesV2.TxContractDeploySelectorValue);
 
     // EOA transfer
     const eoaTransferTxHash = "0xb1257d8484c43929d7bae46b2aecd509e5d9278273063c9bac2a2d9cb4f1c9f1";
     value = await getTxFieldValue(provider, { txHash: eoaTransferTxHash, fieldOrCalldataIdx: txUseFunctionSelector() });
-    expect(value).toEqual(ConstantsV2.TxNoCalldataSelectorValue);
+    expect(value).toEqual(SpecialValuesV2.TxNoCalldataSelectorValue);
   });
 
   test("get receipt field value", async () => {
     const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
     let value = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: ReceiptField.Status, eventSchema: "0x", topicOrDataOrAddressIdx: 0 });
     expect(value).toEqual(1);
+  });
+
+  test("get receipt logsBloom field value", async () => {
+    const txHash = "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453";
+    const receipt = await provider.getTransactionReceipt(txHash);
+    const logsBloom = receipt?.logsBloom.slice(2);
+    for (let i = 0; i < 8; i++) {
+      const logsBloomAtIdx = await getReceiptFieldValue(provider, { txHash, fieldOrLogIdx: headerUseLogsBloomIdx(i), topicOrDataOrAddressIdx: 0, eventSchema: "" });
+      expect(logsBloomAtIdx).toEqual("0x" + logsBloom?.slice(0 + i*64, 64 + i*64));
+    }
   });
 
   test("get receipt special field value", async () => {

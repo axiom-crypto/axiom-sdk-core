@@ -1,8 +1,46 @@
-import { AccountField, AccountSubquery, ReceiptField, ReceiptSubquery, SolidityNestedMappingSubquery, StorageSubquery, TxField, TxSubquery, TxType, bytes32, getAccountFieldIdx, getReceiptFieldIdx, getTxFieldIdx, validateAddress, validateBytes32, validateSize } from "@axiom-crypto/codec"
 import { ethers } from "ethers"
-import { receiptUseAddress, receiptUseBlockNumber, receiptUseDataIdx, receiptUseLogIdx, receiptUseTopicIdx, receiptUseTxIndex, receiptUseTxType, txUseBlockNumber, txUseCalldataHash, txUseCalldataIdx, txUseContractDataIdx, txUseFunctionSelector, txUseTxIndex, txUseTxType } from "../../fields"
+import {
+  AccountField,
+  AccountSubquery,
+  ReceiptField,
+  ReceiptSubquery,
+  SolidityNestedMappingSubquery,
+  StorageSubquery,
+  TxField,
+  TxSubquery,
+  TxType,
+  bytes32,
+  getAccountFieldIdx,
+  getReceiptFieldIdx,
+  getTxFieldIdx,
+  validateAddress,
+  validateBytes32,
+  validateSize,
+} from "@axiom-crypto/codec"
+import {
+  headerUseLogsBloomIdx,
+  receiptUseAddress,
+  receiptUseBlockNumber,
+  receiptUseDataIdx,
+  receiptUseLogIdx,
+  receiptUseLogsBloomIdx,
+  receiptUseTopicIdx,
+  receiptUseTxIndex,
+  receiptUseTxType,
+  txUseBlockNumber,
+  txUseCalldataHash,
+  txUseCalldataIdx,
+  txUseContractDataIdx,
+  txUseFunctionSelector,
+  txUseTxIndex,
+  txUseTxType,
+} from "../../fields"
+import {
+  HeaderField,
+  HeaderSubquery,
+  getHeaderFieldIdx,
+} from "@axiom-crypto/codec"
 import { getEventSchema } from "../../../shared/utils"
-import { HeaderField, HeaderSubquery, getHeaderFieldIdx } from "@axiom-crypto/codec"
 import { getTxTypeForBlockNumber } from "../../../shared"
 
 /**
@@ -25,8 +63,24 @@ export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
     }
   }
 
+  /**
+   * End of the builder chain for a Header subquery. Specifies the logs bloom index to query.
+   * @param logsBloomIdx Logs Bloom index (bytes as bytes32 array) to query
+   * @returns HeaderSubquery struct
+   */
+  const logsBloom = (logsBloomIdx: number): HeaderSubquery => {
+    if (logsBloomIdx < 0 || logsBloomIdx >= 8) {
+      throw new Error("logsBloomIdx range is [0,8)");
+    }
+    return {
+      blockNumber: blockNumberNum,
+      fieldIdx: headerUseLogsBloomIdx(logsBloomIdx),
+    }
+  }
+
   return Object.freeze({
     field,
+    logsBloom,
   });
 }
 
@@ -279,8 +333,25 @@ export const buildReceiptSubquery = (txHash: string) => {
   }
 
   /**
+   * End of the builder chain for a Receipt subquery. Specifies the logs bloom index to query.
+   * @param logsBloomIdx Logs Bloom index (bytes as bytes32 array) to query
+   * @returns ReceiptSubquery struct
+   */
+  const logsBloom = (logsBloomIdx: number): ReceiptSubquery => {
+    if (logsBloomIdx < 0 || logsBloomIdx >= 8) {
+      throw new Error("logsBloomIdx range is [0,8)");
+    }
+    return {
+      txHash,
+      fieldOrLogIdx: receiptUseLogsBloomIdx(logsBloomIdx),
+      topicOrDataOrAddressIdx: 0,
+      eventSchema: ethers.ZeroHash,
+    }
+  }
+
+  /**
    * Continues building a Receipt subquery for a log (event) index. 
-   * @param logIdx 
+   * @param logIdx Index of the log event to query
    */
   const log = (logIdx: number) => {
     validateSize(logIdx, "uint32");
@@ -391,6 +462,7 @@ export const buildReceiptSubquery = (txHash: string) => {
 
   return Object.freeze({
     field,
+    logsBloom,
     log,
     txType,
     blockNumber,
