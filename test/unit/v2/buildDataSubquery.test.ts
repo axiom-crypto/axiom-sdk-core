@@ -89,7 +89,22 @@ describe("Build data subquery", () => {
     const query = (axiom.query as QueryV2).new();
     const receiptSubquery: ReceiptSubquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
       .log(0)
-      .eventSchema("Transfer (address from, address to, uint256 value)")
+      .topic(1)
+      .eventSchema("Transfer (address from, address to, uint256 value)");
+    query.appendDataSubquery(receiptSubquery);
+    const dataQuery = query.getDataQuery();
+    
+    const subquery = dataQuery?.[0].subqueryData as ReceiptSubquery;
+    expect(subquery?.txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
+    expect(subquery?.fieldOrLogIdx).toEqual(100);
+    expect(subquery?.topicOrDataOrAddressIdx).toEqual(1);
+    expect(subquery?.eventSchema).toEqual("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+  });
+
+  test("Build and append a receipt log address subquery", () => {
+    const query = (axiom.query as QueryV2).new();
+    const receiptSubquery: ReceiptSubquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+      .log(0)
       .address();
     query.appendDataSubquery(receiptSubquery);
     const dataQuery = query.getDataQuery();
@@ -98,7 +113,7 @@ describe("Build data subquery", () => {
     expect(subquery?.txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
     expect(subquery?.fieldOrLogIdx).toEqual(100);
     expect(subquery?.topicOrDataOrAddressIdx).toEqual(50);
-    expect(subquery?.eventSchema).toEqual("0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef");
+    expect(subquery?.eventSchema).toEqual(bytes32(0));
   });
 
   test("Build and append a receipt logsBloom subquery", () => {

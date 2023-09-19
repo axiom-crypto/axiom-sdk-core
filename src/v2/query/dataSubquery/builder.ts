@@ -358,20 +358,21 @@ export const buildReceiptSubquery = (txHash: string) => {
     logIdx = receiptUseLogIdx(logIdx);
 
     /**
-     * Continues building a Receipt subquery. Specifies the event schema of the log.
-     * @param eventSchema 
+     * Continues building a Receipt subquery. Specifies the topic index of the
+     * log to query.
+     * @param topicIdx Index of the topic to query
      */
-    const eventSchema = (eventSchema: string) => {
-      eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
-      validateBytes32(eventSchema);
+    const topic = (topicIdx: number) => {
+      validateSize(topicIdx, "uint32");
 
       /**
-       * End of the builder chain for a Receipt subquery. Specifies the topic index of the
-       * log to query.
-       * @param topicIdx Index of the topic to query
+       * End of the builder chain for a Receipt subquery. Specifies the event schema of the log.
+       * @param eventSchema Bytes32 event schema
+       * @returns ReceiptSubquery struct
        */
-      const topic = (topicIdx: number): ReceiptSubquery => {
-        validateSize(topicIdx, "uint32");
+      const eventSchema = (eventSchema: string): ReceiptSubquery => {
+        eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
+        validateBytes32(eventSchema);
         return {
           txHash,
           fieldOrLogIdx: logIdx,
@@ -379,14 +380,28 @@ export const buildReceiptSubquery = (txHash: string) => {
           eventSchema,
         }
       }
+      
+      return Object.freeze({
+        eventSchema,
+      });
+    }
+
+    /**
+     * Continues building a Receipt subquery. Specifies the data index of the 
+     * log to query.
+     * @param dataIdx Index of the data to query (bytes as bytes32 array)
+     */
+    const data = (dataIdx: number) => {
+      validateSize(dataIdx, "uint32");
 
       /**
-       * End of the builder chain for a Receipt subquery. Specifies the data index of the 
-       * log to query.
-       * @param dataIdx Index of the data to query (bytes as bytes32 array)
+       * End of the builder chain for a Receipt subquery. Specifies the event schema of the log.
+       * @param eventSchema Bytes32 event schema
+       * @returns ReceiptSubquery struct
        */
-      const data = (dataIdx: number): ReceiptSubquery => {
-        validateSize(dataIdx, "uint32");
+      const eventSchema = (eventSchema: string): ReceiptSubquery => {
+        eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
+        validateBytes32(eventSchema);
         return {
           txHash,
           fieldOrLogIdx: logIdx,
@@ -395,30 +410,30 @@ export const buildReceiptSubquery = (txHash: string) => {
         }
       }
 
-      /**
-       * End of the builder chain for a Receipt subquery. Specifies querying the address 
-       * of the log event.
-       * @returns ReceiptSubquery struct
-       */
-      const address = (): ReceiptSubquery => {
-        return {
-          txHash,
-          fieldOrLogIdx: logIdx,
-          topicOrDataOrAddressIdx: receiptUseAddress(),
-          eventSchema,
-        }
-      }
-
       return Object.freeze({
-        topic,
-        data,
-        address,
+        eventSchema,
       });
     }
 
+    /**
+     * End of the builder chain for a Receipt subquery. Specifies querying the address 
+     * of the log event.
+     * @returns ReceiptSubquery struct
+     */
+    const address = (): ReceiptSubquery => {
+      return {
+        txHash,
+        fieldOrLogIdx: logIdx,
+        topicOrDataOrAddressIdx: receiptUseAddress(),
+        eventSchema: ethers.ZeroHash,
+      }
+    }
+
     return Object.freeze({
-      eventSchema,
-    })
+      topic,
+      data,
+      address,
+    });
   }
 
   /**

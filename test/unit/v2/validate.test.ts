@@ -1,5 +1,23 @@
 import { TxType, bytes32 } from "@axiom-crypto/codec";
-import { AccountField, Axiom, AxiomConfig, HeaderField, QueryV2, ReceiptSubqueryLogType, ReceiptSubqueryType, TxField, TxSubqueryType, buildAccountSubquery, buildHeaderSubquery, buildReceiptSubquery, buildSolidityNestedMappingSubquery, buildStorageSubquery, buildTxSubquery, getHeaderFieldIdx, getSlotForMapping } from "../../../src";
+import {
+  AccountField,
+  Axiom,
+  AxiomConfig,
+  HeaderField,
+  QueryV2,
+  ReceiptSubqueryLogType,
+  ReceiptSubqueryType,
+  TxField,
+  TxSubqueryType,
+  buildAccountSubquery,
+  buildHeaderSubquery,
+  buildReceiptSubquery,
+  buildSolidityNestedMappingSubquery,
+  buildStorageSubquery,
+  buildTxSubquery,
+  getHeaderFieldIdx,
+  getSlotForMapping,
+} from "../../../src";
 
 describe("Query Validation Tests", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -68,8 +86,8 @@ describe("Query Validation Tests", () => {
     const query = aq.new();
     const subquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
       .log(0)
-      .eventSchema("Transfer(address,address,uint256)")
-      .topic(1);
+      .topic(1)
+      .eventSchema("Transfer(address,address,uint256)");
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);

@@ -113,7 +113,7 @@ export async function getHeaderFieldValue(
       return block.nonce ?? null;
     case HeaderField.BaseFeePerGas:
       return block.baseFeePerGas ?? null;
-    case HeaderField.WithdrawlsRoot:
+    case HeaderField.WithdrawalsRoot:
       return block.withdrawlsRoot ?? null;
     // case HeaderField.BlobGasUsed:
     //   return block.blobGasUsed ?? null;

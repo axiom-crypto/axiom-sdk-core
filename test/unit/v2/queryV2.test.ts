@@ -450,8 +450,8 @@ describe("QueryV2", () => {
     const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
     const subquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
       .log(0)
-      .eventSchema("Transfer(address,address,uint256)")
-      .topic(1);
+      .topic(1)
+      .eventSchema("Transfer(address,address,uint256)");
     query.appendDataSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();

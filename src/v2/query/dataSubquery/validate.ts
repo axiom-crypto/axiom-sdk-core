@@ -114,7 +114,10 @@ export async function validateReceiptSubquery(
   ) {
     console.error(`Invalid receipt field/log index: ${subquery.fieldOrLogIdx}`);
     return false;
-  }
+  } else if (
+    subquery.fieldOrLogIdx >= SpecialValuesV2.ReceiptAddressIdx &&
+    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptTxIndexFieldIdx
+  )
   if (subquery.fieldOrLogIdx >= SpecialValuesV2.ReceiptLogIdxOffset) {
     if (
       !ethers.isBytesLike(subquery.eventSchema) ||

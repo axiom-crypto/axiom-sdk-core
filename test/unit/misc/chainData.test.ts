@@ -77,7 +77,7 @@ describe("ChainData query tests", () => {
     expect(nonce).toEqual(block.nonce);
     const baseFeePerGas = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.BaseFeePerGas });
     expect(baseFeePerGas).toEqual(block.baseFeePerGas);
-    const withdrawlsRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.WithdrawlsRoot });
+    const withdrawlsRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.WithdrawalsRoot });
     expect(withdrawlsRoot).toEqual(null);
     // const blobGasUsed = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.BlobGasUsed });
     // expect(blobGasUsed).toEqual(null);
