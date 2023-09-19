@@ -180,6 +180,10 @@ describe("ChainData query tests", () => {
     expect(calldataValue).toEqual("0x0000000000000000000000000000000000000000000000000000000000000000");
   });
 
+  test("get tx contract data field values", async () => {
+    
+  });
+
   test("get tx special field values", async () => {
     const txHash = "0xb5ad2d2802c2c7b910a27438800e32d09284d7870ff10cc8024e4fb449f34015";
     let value = await getTxFieldValue(provider, { txHash, fieldOrCalldataIdx: txUseTxType() });

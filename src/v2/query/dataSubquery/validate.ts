@@ -109,15 +109,14 @@ export async function validateReceiptSubquery(
   subquery: ReceiptSubquery
 ): Promise<boolean> {
   if (
-    subquery.fieldOrLogIdx > ReceiptField.CumulativeGas && 
-    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptLogIdxOffset
+    (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas && 
+    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptAddressIdx) ||
+    (subquery.fieldOrLogIdx > SpecialValuesV2.ReceiptTxIndexFieldIdx &&
+    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptLogIdxOffset)
   ) {
     console.error(`Invalid receipt field/log index: ${subquery.fieldOrLogIdx}`);
     return false;
-  } else if (
-    subquery.fieldOrLogIdx >= SpecialValuesV2.ReceiptAddressIdx &&
-    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptTxIndexFieldIdx
-  )
+  }
   if (subquery.fieldOrLogIdx >= SpecialValuesV2.ReceiptLogIdxOffset) {
     if (
       !ethers.isBytesLike(subquery.eventSchema) ||

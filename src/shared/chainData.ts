@@ -203,6 +203,9 @@ export async function getTxFieldValue(
         if (tx.data === "0x") {
           return SpecialValuesV2.TxNoCalldataSelectorValue;
         }
+        if (tx.data.length < 10) {
+          return null;
+        }
         const selectorReader = new ByteStringReader(tx.data);
         const selector = selectorReader.readBytes("bytes4"); // function selector
         return selector; 
@@ -217,6 +220,9 @@ export async function getTxFieldValue(
     // Parse calldata blob (ignoring function selector) to get calldata at specified idx
     const calldata = tx.data;
     const calldataIdx = fieldOrCalldataIdx - SpecialValuesV2.TxCalldataIdxOffset;
+    if (!tx.data || calldataIdx >= tx.data.slice(2).length / 64) {
+      return null;
+    }
     const reader = new ByteStringReader(calldata);
     const _functionSignature = reader.readBytes("bytes4"); // unused
     for (let i = 0; i < calldataIdx; i++) {
@@ -227,8 +233,12 @@ export async function getTxFieldValue(
   }
 
   // Get contractData Idx
+  // Contract construction: https://blog.smlxl.io/evm-contract-construction-93c98cc4ca96
   const contractDataIdx = fieldOrCalldataIdx - SpecialValuesV2.TxContractDataIdxOffset;
   const contractData = tx.data;
+  if (!tx.data || contractDataIdx >= tx.data.slice(2).length / 64) {
+    return null;
+  }
   const reader = new ByteStringReader(contractData);
   for (let i = 0; i < contractDataIdx; i++) {
     reader.readBytes("bytes32");
@@ -311,6 +321,9 @@ export async function getReceiptFieldValue(
 
   // Return data
   const dataIdx = topicOrDataOrAddressIdx - SpecialValuesV2.ReceiptDataIdxOffset;
+  if (!log.data || dataIdx >= log.data.slice(2).length / 64) {
+    return null;
+  }
   const reader = new ByteStringReader(log.data);
   for (let i = 0; i < dataIdx; i++) {
     reader.readBytes("bytes32");

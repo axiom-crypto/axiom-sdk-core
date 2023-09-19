@@ -278,7 +278,7 @@ describe("QueryV2", () => {
   });
 
   test("should initialize build QueryV2 with dataQuery", async () => {
-    const dataQuery = [
+    const dataQueryReq = [
       {
         type: DataSubqueryType.Header,
         subqueryData: {
@@ -294,11 +294,11 @@ describe("QueryV2", () => {
         },
       },
     ];
-    const query = aq.new(dataQuery);
+    const query = aq.new(dataQueryReq);
     const {
       queryHash,
       dataQueryHash,
-      dataQueryEncoded,
+      dataQuery,
       computeQuery,
       callback,
     } = await query.build();
@@ -306,7 +306,7 @@ describe("QueryV2", () => {
     expect(dataQueryHash).toEqual(
       "0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49"
     );
-    expect(dataQueryEncoded).toEqual(
+    expect(dataQuery).toEqual(
       "0x00000000000000010002000100ed14f20000000a000100ed14f30000000a"
     );
     expect(computeQuery.k).toEqual(0);
@@ -316,7 +316,7 @@ describe("QueryV2", () => {
   });
 
   test("should initialize build QueryV2 with dataQuery, computeQuery, and callback", async () => {
-    const dataQuery = [
+    const dataQueryReq = [
       {
         type: DataSubqueryType.Header,
         subqueryData: {
@@ -362,7 +362,7 @@ describe("QueryV2", () => {
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
-    const query = aq.new(dataQuery, computeQueryReq, callbackQuery, options);
+    const query = aq.new(dataQueryReq, computeQueryReq, callbackQuery, options);
     
     const processedDq = query.getDataQuery();
     expect((processedDq?.[2].subqueryData as AccountSubquery).addr).toEqual(WETH_WHALE.toLowerCase());
@@ -370,7 +370,7 @@ describe("QueryV2", () => {
     const {
       queryHash,
       dataQueryHash,
-      dataQueryEncoded,
+      dataQuery,
       computeQuery,
       callback,
     } = await query.build();
@@ -378,7 +378,7 @@ describe("QueryV2", () => {
     expect(dataQueryHash).toEqual(
       "0x7c9d2ff14ef864fa50bfa2bed97c998a6915058225a94e20803148344946d7b9"
     );
-    expect(dataQueryEncoded).toEqual(
+    expect(dataQuery).toEqual(
       "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae139200000000000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000010000000a0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);

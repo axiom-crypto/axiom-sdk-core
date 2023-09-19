@@ -3,7 +3,7 @@ import { AxiomConfig } from '../shared/types';
 import { Block } from './block';
 import { QueryV1 } from '../v1/query/queryV1';
 import { QueryBuilderV1 } from '../v1/query/queryBuilderV1';
-import { getAxiomAbiForVersion, getAxiomQueryAbiForVersion } from './lib/abi';
+import { getAxiomQueryAbiForVersion } from './lib/abi';
 import { Query } from './query';
 import { QueryV2 } from '../v2/query/queryV2';
 
@@ -53,16 +53,8 @@ export class Axiom {
     return new QueryBuilderV1(this.config);
   }
 
-  getAxiomAbi(): any {
-    return getAxiomAbiForVersion(this.config.version);
-  }
-
   getAxiomQueryAbi(): any {
     return getAxiomQueryAbiForVersion(this.config.version);
-  }
-
-  getAxiomAddress(): string | undefined {
-    return this.config.getConstants().Addresses.Axiom;
   }
 
   getAxiomQueryAddress(): string | undefined {

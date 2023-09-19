@@ -43,9 +43,9 @@ export interface QueryBuilderV2Options {
 export interface BuiltQueryV2 {
   sourceChainId: string;
   queryHash: string;
-  dataQueryEncoded: string;
+  dataQuery: string;
   dataQueryHash: string;
-  dataQuery: AxiomV2DataQuery;
+  dataQueryStruct: AxiomV2DataQuery;
   computeQuery: AxiomV2ComputeQuery;
   querySchema: string;
   callback: AxiomV2Callback;

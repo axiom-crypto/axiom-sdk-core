@@ -33,7 +33,6 @@ describe('Axiom Core tests', () => {
     }
     const overrides = {
       Addresses: {
-        Axiom: AX_ADDR_OVERRIDE,
         AxiomQuery: AX_QUERY_ADDR_OVERRIDE,
       },
       Urls: {
@@ -42,9 +41,7 @@ describe('Axiom Core tests', () => {
     }
     const ax0 = new Axiom(config);
     const ax1 = new Axiom(config, overrides);
-    expect(ax0.getAxiomAddress()).not.toEqual(AX_ADDR_OVERRIDE);
     expect(ax0.getAxiomQueryAddress()).not.toEqual(AX_QUERY_ADDR_OVERRIDE);
-    expect(ax1.getAxiomAddress()).toEqual(AX_ADDR_OVERRIDE);
     expect(ax1.getAxiomQueryAddress()).toEqual(AX_QUERY_ADDR_OVERRIDE);
   });
 
@@ -62,7 +59,7 @@ describe('Axiom Core tests', () => {
       version: "v2",
     }
     const ax = new Axiom(config);
-    const abi = ax.getAxiomAbi();
+    const abi = ax.getAxiomQueryAbi();
 
     expect(abi[0].type).toEqual("constructor");
   })
@@ -74,10 +71,8 @@ describe('Axiom Core tests', () => {
       chainId: 1,
     }
     const ax = new Axiom(config);
-    const axiomV2 = ax.getAxiomAddress();
     const axiomV2Query = ax.getAxiomQueryAddress();
 
-    expect(axiomV2).toEqual("");
     expect(axiomV2Query).toEqual("");
   });
 
@@ -89,10 +84,8 @@ describe('Axiom Core tests', () => {
       mock: true,
     }
     const ax = new Axiom(config);
-    const axiomV2Mock = ax.getAxiomAddress();
     const axiomV2QueryMock = ax.getAxiomQueryAddress();
     
-    expect(axiomV2Mock).toEqual("");
-    expect(axiomV2QueryMock).toEqual("0x18d8a359c23bebc4b5a0d116f792172a114a1fb7");
+    expect(axiomV2QueryMock).toEqual("0x8dde5d4a8384f403f888e1419672d94c570440c9");
   });
 });

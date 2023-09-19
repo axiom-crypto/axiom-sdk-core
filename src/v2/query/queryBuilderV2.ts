@@ -205,7 +205,7 @@ export class QueryBuilderV2 {
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
-      this.builtQuery.dataQueryEncoded,
+      this.builtQuery.dataQuery,
       { value: paymentAmountWei }
     );
     const receipt = await tx.wait();
@@ -229,7 +229,7 @@ export class QueryBuilderV2 {
     // Handle encoding data and uploading to IPFS
     const encodedQuery = encodeQueryV2(
       this.builtQuery.sourceChainId,
-      this.builtQuery.dataQuery,
+      this.builtQuery.dataQueryStruct,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
@@ -283,12 +283,12 @@ export class QueryBuilderV2 {
 
   async build(): Promise<BuiltQueryV2> {
     // Encode data query
-    const dataQueryEncoded = this.encodeBuilderDataQuery(this.dataQuery ?? []);
+    const dataQuery = this.encodeBuilderDataQuery(this.dataQuery ?? []);
     const dataQueryHash = getDataQueryHashFromSubqueries(
       this.config.chainId.toString(),
       this.dataQuery ?? []
     );
-    const dataQuery = this.buildDataQuery(this.dataQuery ?? []);
+    const dataQueryStruct = this.buildDataQuery(this.dataQuery ?? []);
 
     // Handle compute query
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
@@ -321,9 +321,9 @@ export class QueryBuilderV2 {
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
       queryHash,
-      dataQueryEncoded,
-      dataQueryHash,
       dataQuery,
+      dataQueryHash,
+      dataQueryStruct,
       computeQuery,
       querySchema,
       callback,

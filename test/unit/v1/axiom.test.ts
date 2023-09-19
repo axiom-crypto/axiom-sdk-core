@@ -36,7 +36,7 @@ describe('Axiom Core tests', () => {
     }
     const overrides = {
       Addresses: {
-        Axiom: AX_ADDR_OVERRIDE,
+        AxiomQuery: AX_QUERY_ADDR_OVERRIDE,
       },
     }
     const ax = new Axiom(config, overrides);
@@ -45,7 +45,7 @@ describe('Axiom Core tests', () => {
     expect(typeof ax.block).toEqual("object");
     expect(typeof ax.query).toEqual("object");
     expect(typeof ax.newQueryBuilder).toEqual("function");
-    expect(ax.getAxiomAddress()).toEqual(AX_ADDR_OVERRIDE);
+    expect(ax.getAxiomQueryAddress()).toEqual(AX_QUERY_ADDR_OVERRIDE);
   });
 
   test('should initialize v1 Axiom with overrides', () => {
@@ -56,7 +56,6 @@ describe('Axiom Core tests', () => {
     }
     const overrides = {
       Addresses: {
-        Axiom: AX_ADDR_OVERRIDE,
         AxiomQuery: AX_QUERY_ADDR_OVERRIDE,
       },
       Urls: {
@@ -65,9 +64,7 @@ describe('Axiom Core tests', () => {
     }
     const ax0 = new Axiom(config);
     const ax1 = new Axiom(config, overrides);
-    expect(ax0.getAxiomAddress()).not.toEqual(AX_ADDR_OVERRIDE);
     expect(ax0.getAxiomQueryAddress()).not.toEqual(AX_QUERY_ADDR_OVERRIDE);
-    expect(ax1.getAxiomAddress()).toEqual(AX_ADDR_OVERRIDE);
     expect(ax1.getAxiomQueryAddress()).toEqual(AX_QUERY_ADDR_OVERRIDE);
   });
 
@@ -87,7 +84,7 @@ describe('Axiom Core tests', () => {
       version: "v0.2",
     }
     const ax = new Axiom(config);
-    const abi = ax.getAxiomAbi();
+    const abi = ax.getAxiomQueryAbi();
 
     expect(abi[0].type).toEqual("constructor");
   })
@@ -98,7 +95,7 @@ describe('Axiom Core tests', () => {
       version: "v1",
     }
     const ax = new Axiom(config);
-    const abi = ax.getAxiomAbi();
+    const abi = ax.getAxiomQueryAbi();
 
     expect(abi[0].type).toEqual("constructor");
   })
@@ -110,10 +107,8 @@ describe('Axiom Core tests', () => {
       chainId: 1,
     }
     const ax = new Axiom(config);
-    const axiomV1 = ax.getAxiomAddress();
     const axiomV1Query = ax.getAxiomQueryAddress();
 
-    expect(axiomV1).toEqual("0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5");
     expect(axiomV1Query).toEqual("0xd617ab7f787adf64c2b5b920c251ea10cd35a952");
   });
 
@@ -125,10 +120,8 @@ describe('Axiom Core tests', () => {
       mock: true,
     }
     const ax = new Axiom(config);
-    const axiomV1Mock = ax.getAxiomAddress();
     const axiomV1QueryMock = ax.getAxiomQueryAddress();
     
-    expect(axiomV1Mock?.toLowerCase()).toEqual("0x8d41105949fc6c418dff1a76ff5ae69128ade55a");
     expect(axiomV1QueryMock).toEqual("0x4Fb202140c5319106F15706b1A69E441c9536306");
   });
 });
