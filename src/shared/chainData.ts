@@ -115,12 +115,12 @@ export async function getHeaderFieldValue(
       return block.baseFeePerGas ?? null;
     case HeaderField.WithdrawlsRoot:
       return block.withdrawlsRoot ?? null;
-    case HeaderField.BlobGasUsed:
-      return block.blobGasUsed ?? null;
-    case HeaderField.ExcessBlobGas:
-      return block.excessBlobGas ?? null;
-    case HeaderField.ParentBeaconBlockRoot:
-      return block.parentBeaconBlockRoot ?? null;
+    // case HeaderField.BlobGasUsed:
+    //   return block.blobGasUsed ?? null;
+    // case HeaderField.ExcessBlobGas:
+    //   return block.excessBlobGas ?? null;
+    // case HeaderField.ParentBeaconBlockRoot:
+    //   return block.parentBeaconBlockRoot ?? null;
     default:
       throw new Error(`Invalid header field: ${fieldIdx}`);
   }
@@ -181,14 +181,6 @@ export async function getTxFieldValue(
         return tx.value ?? null;
       case TxField.Data:
         return tx.data ?? null;
-      case TxField.AccessList:
-        throw new Error("Access Lists are currently unsupported.")
-      case TxField.SignatureYParity:
-        return tx.signature.yParity ?? null;
-      case TxField.SignatureR:
-        return tx.signature.r ?? null;
-      case TxField.SignatureS:
-        return tx.signature.s ?? null;
       case TxField.GasPrice:
         return tx.gasPrice ?? null;
       case TxField.v:

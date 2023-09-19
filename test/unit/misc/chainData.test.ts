@@ -79,12 +79,12 @@ describe("ChainData query tests", () => {
     expect(baseFeePerGas).toEqual(block.baseFeePerGas);
     const withdrawlsRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.WithdrawlsRoot });
     expect(withdrawlsRoot).toEqual(null);
-    const blobGasUsed = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.BlobGasUsed });
-    expect(blobGasUsed).toEqual(null);
-    const excessBlobGas = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.ExcessBlobGas });
-    expect(excessBlobGas).toEqual(null);
-    const parentBeaconBlockRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.ParentBeaconBlockRoot });
-    expect(parentBeaconBlockRoot).toEqual(null);
+    // const blobGasUsed = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.BlobGasUsed });
+    // expect(blobGasUsed).toEqual(null);
+    // const excessBlobGas = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.ExcessBlobGas });
+    // expect(excessBlobGas).toEqual(null);
+    // const parentBeaconBlockRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.ParentBeaconBlockRoot });
+    // expect(parentBeaconBlockRoot).toEqual(null);
   }, 10000);
 
   test("get header field logs bloom", async () => {
