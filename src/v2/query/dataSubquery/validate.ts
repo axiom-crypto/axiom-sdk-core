@@ -89,8 +89,10 @@ export async function validateTxSubquery(
   subquery: TxSubquery
 ): Promise<boolean> {
   if (
-    subquery.fieldOrCalldataIdx > TxField.s && 
-    subquery.fieldOrCalldataIdx < SpecialValuesV2.TxCalldataIdxOffset
+    (subquery.fieldOrCalldataIdx > TxField.s && 
+    subquery.fieldOrCalldataIdx < SpecialValuesV2.TxTxTypeFieldIdx) ||
+    (subquery.fieldOrCalldataIdx > SpecialValuesV2.TxCalldataHashFieldIdx &&
+    subquery.fieldOrCalldataIdx < SpecialValuesV2.TxCalldataIdxOffset)
   ) {
     console.error(`Invalid tx field/calldata index: ${subquery.fieldOrCalldataIdx}`);
     return false;

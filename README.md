@@ -44,13 +44,17 @@ const headerSubquery = buildHeaderSubquery(BLOCK_NUM)
 query.appendDataSubquery(headerSubquery);
 
 // Appends a receipt subquery for transaction 
-// 0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6 in which we look at 
-// log index 0 (Transfer (index_topic_1 address from, index_topic_2 address to, uint256 value))
-// and the first topic (address from) of that log event
-const receiptSubquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
-  .log(0)
-  .eventSchema("Transfer(address,address,uint256)")
-  .topic(1);
+// 0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b in which we look at 
+// log index 4 (Transfer (index_topic_1 address from, index_topic_2 address to, uint256 value))
+// and the second topic (indexed address to) of that log event
+const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
+const swapEventSchema = getEventSchema(
+  "Swap(address,uint256,uint256,uint256,uint256,address)"
+);
+const receiptSubquery: ReceiptSubquery = buildReceiptSubquery(txHash)
+  .log(4) // event 
+  .topic(0) // event schema
+  .eventSchema(swapEventSchema);
 query.appendDataSubquery(receiptSubquery);
 
 // slot 5: mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
@@ -67,7 +71,6 @@ query.appendDataSubquery(mappingSubquery);
 const callbackQuery = {
   callbackAddr: WETH_ADDR,
   callbackFunctionSelector: getFunctionSelector("balanceOf(address)"),
-  resultLen: 3,
   callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
 };
 
