@@ -35,7 +35,7 @@ export interface DataQueryRequestV2 {
   beaconSubqueries?: BeaconValidatorSubquery[];
 }
 
-export interface QueryBuilderV2Options {
+export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
   callbackGasLimit?: number;
 }

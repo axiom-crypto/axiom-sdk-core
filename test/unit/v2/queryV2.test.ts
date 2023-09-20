@@ -22,6 +22,8 @@ import {
 import {
   Axiom,
   AxiomConfig,
+  AxiomV2Callback,
+  AxiomV2QueryOptions,
   ReceiptSubqueryLogType,
   ReceiptSubqueryType,
   TxSubqueryType,
@@ -161,7 +163,8 @@ describe("QueryV2", () => {
 
   test("should initialize QueryBuilderV2 with dataQuery", async () => {
     const dataQuery = [] as DataSubquery[];
-    const query = aq.new(dataQuery);
+    const query = aq.new();
+    query.append(dataQuery);
     expect(typeof query).toEqual("object");
   });
 
@@ -186,7 +189,6 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const query = aq.new(dataQuery, computeQuery, callbackQuery);
@@ -203,7 +205,6 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
@@ -268,8 +269,7 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 1,
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+      callbackExtraData: bytes32(ethers.solidityPacked(["address"], [WETH_WHALE])),
     };
     const options = {};
     const query = aq.new(dataQuery, computeQueryReq, callbackQuery, options);
@@ -294,7 +294,8 @@ describe("QueryV2", () => {
         },
       },
     ];
-    const query = aq.new(dataQueryReq);
+    const query = aq.new();
+    query.append(dataQueryReq);
     const {
       queryHash,
       dataQueryHash,
@@ -358,10 +359,11 @@ describe("QueryV2", () => {
     const callbackQuery = {
       callbackAddr: WETH_ADDR,
       callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      resultLen: 1,
       callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
-    const options = {};
+    const options: AxiomV2QueryOptions = {
+      maxFeePerGas: BigInt(100000000).toString(),
+    };
     const query = aq.new(dataQueryReq, computeQueryReq, callbackQuery, options);
     
     const processedDq = query.getDataQuery();
@@ -388,9 +390,69 @@ describe("QueryV2", () => {
     expect(callback).toEqual({
       callbackAddr: WETH_ADDR.toLowerCase(),
       callbackExtraData: "0x2e15d7aa0650de1009710fdd45c3468d75ae1392",
-      resultLen: 1,
+      resultLen: 4,
       callbackFunctionSelector: "0x70a08231",
     });
+  });
+
+  test("Compute callback resultLen based on number of subqueries", async () => {
+    const query = aq.new();
+
+    const callback: AxiomV2Callback = {
+      callbackAddr: WETH_ADDR,
+      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
+      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    query.setCallback(callback);
+
+    query.appendDataSubquery(buildHeaderSubquery(17000000).field(HeaderField.GasLimit));
+    query.appendDataSubquery(buildHeaderSubquery(17000001).field(HeaderField.GasLimit));
+    const builtQuery = await query.build();
+    expect(builtQuery.callback.resultLen).toEqual(2);
+  });
+
+  test("Use specified callback resultLen if there is a computeQuery", async () => {
+    const query = aq.new();
+    
+    const callback: AxiomV2Callback = {
+      callbackAddr: WETH_ADDR,
+      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
+      resultLen: 4,
+      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    query.setCallback(callback);
+
+    query.appendDataSubquery(buildHeaderSubquery(17000000).field(HeaderField.GasLimit));
+    query.appendDataSubquery(buildHeaderSubquery(17000001).field(HeaderField.GasLimit));
+    const computeQueryReq: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    query.setComputeQuery(computeQueryReq);
+    
+    const builtQuery = await query.build();
+    expect(builtQuery.callback.resultLen).toEqual(4);
+  });
+
+  test("Payment calculation based on options", () => {
+    const query = aq.new();
+    let fee = query.calculateFee();
+    expect(fee).toEqual("22500000000000000");
+    
+    const options: AxiomV2QueryOptions = {
+      maxFeePerGas: BigInt(10000000000).toString(),
+    };
+    query.setOptions(options);
+    fee = query.calculateFee();
+    expect(fee).toEqual("12000000000000000");
+
+    query.setOptions({
+      maxFeePerGas: "500000000000",
+      callbackGasLimit: 1000000000,
+    });
+    fee = query.calculateFee();
+    expect(fee).toEqual("500255000000000000000");
   });
 
   test("Append a Header subquery", async () => {

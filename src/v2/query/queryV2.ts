@@ -6,7 +6,7 @@ import {
 import { InternalConfig } from "../../core/internalConfig";
 import { Query } from "../../core/query";
 import {
-  QueryBuilderV2Options,
+  AxiomV2QueryOptions,
 } from "../types";
 import { QueryBuilderV2 } from './queryBuilderV2';
 
@@ -27,7 +27,7 @@ export class QueryV2 extends Query {
     dataQuery?: DataSubquery[],
     computeQuery?: AxiomV2ComputeQuery,
     callback?: AxiomV2Callback,
-    options?: QueryBuilderV2Options
+    options?: AxiomV2QueryOptions,
   ): QueryBuilderV2 {
     return new QueryBuilderV2(this.config, dataQuery, computeQuery, callback, options);
   }

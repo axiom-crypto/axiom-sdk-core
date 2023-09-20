@@ -18,11 +18,12 @@ import {
   getQuerySchemaHash,
   getQueryHashV2,
   getDataQueryHashFromSubqueries,
+  SpecialValuesV2,
 } from "@axiom-crypto/codec";
 import { InternalConfig } from "../../core/internalConfig";
 import {
   BuiltQueryV2,
-  QueryBuilderV2Options,
+  AxiomV2QueryOptions,
 } from "../types";
 import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
@@ -46,14 +47,14 @@ export class QueryBuilderV2 {
   private dataQuery?: DataSubquery[];
   private computeQuery?: AxiomV2ComputeQuery;
   private callback?: AxiomV2Callback;
-  private options: QueryBuilderV2Options;
+  private options: AxiomV2QueryOptions;
 
   constructor(
     config: InternalConfig,
     dataQuery?: DataSubquery[],
     computeQuery?: AxiomV2ComputeQuery,
     callback?: AxiomV2Callback,
-    options?: QueryBuilderV2Options
+    options?: AxiomV2QueryOptions,
   ) {
     this.config = config;
     
@@ -87,7 +88,7 @@ export class QueryBuilderV2 {
     return this.callback;
   }
 
-  getOptions(): QueryBuilderV2Options {
+  getOptions(): AxiomV2QueryOptions {
     return this.options;
   }
 
@@ -139,7 +140,7 @@ export class QueryBuilderV2 {
     this.callback = this.handleCallback(callback);
   }
 
-  setOptions(options: QueryBuilderV2Options) {
+  setOptions(options: AxiomV2QueryOptions) {
     this.unsetBuiltQuery();
     this.options = options;
   }
@@ -150,6 +151,14 @@ export class QueryBuilderV2 {
    */
   append(dataSubqueries: DataSubquery[]): void {
     this.unsetBuiltQuery();
+
+    if (this.dataQuery === undefined) {
+      this.dataQuery = [] as DataSubquery[];
+    }
+
+    if (this.dataQuery?.length + dataSubqueries.length > SpecialValuesV2.MaxOutputs) {
+      throw new Error(`Cannot add more than ${SpecialValuesV2.MaxOutputs} subqueries`);
+    }
 
     for (const subquery of dataSubqueries) {
       // Points to original nested subquery data to lowercase any strings
@@ -268,20 +277,32 @@ export class QueryBuilderV2 {
    */
   async validate(): Promise<boolean> {
     // Check if data subqueries are valid
-    const sq = await this.validateDataSubqueries();
+    const data = await this.validateDataSubqueries();
 
     // Check if compute query is valid
     // WIP
-    const cq = true;
+    const compute = true;
 
     // Check if callback is valid
-    // WIP
-    const cb = true;
+    const callback = await this.validateCallback();
 
-    return (sq && cq && cb);
+    return (data && compute && callback);
   }
 
   async build(): Promise<BuiltQueryV2> {
+    // Check if Query can be built
+    let validDataQuery = true;
+    if (this.dataQuery === undefined || this.dataQuery.length === 0) {
+      validDataQuery = false;
+    }
+    let validComputeQuery = true;
+    if (this.computeQuery === undefined || this.computeQuery.k === 0) {
+      validComputeQuery = false;
+    }
+    if (!validDataQuery && !validComputeQuery) {
+      throw new Error("Cannot build Query without data or compute query");
+    }
+
     // Encode data query
     const dataQuery = this.encodeBuilderDataQuery(this.dataQuery ?? []);
     const dataQueryHash = getDataQueryHashFromSubqueries(
@@ -310,11 +331,16 @@ export class QueryBuilderV2 {
     );
 
     // Handle callback
+    let resultLen = this.dataQuery?.length ?? 0;
+    if (this.computeQuery !== undefined) {
+      resultLen = this.callback?.resultLen ?? SpecialValuesV2.MaxOutputs;
+    }
+    const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
     const callback = {
       callbackAddr: this.callback?.callbackAddr ?? ethers.ZeroAddress,
       callbackFunctionSelector:
         this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
-      resultLen: this.callback?.resultLen ?? ConstantsV2.MaxOutputs,
+      resultLen,
       callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
     };
 
@@ -358,9 +384,11 @@ export class QueryBuilderV2 {
     return computeQuery;
   }
 
-  private handleCallback(callback: AxiomV2Callback) {
+  private handleCallback(callback: AxiomV2Callback): AxiomV2Callback {
+    const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
     callback.callbackAddr = callback.callbackAddr.toLowerCase();
     callback.callbackExtraData = callback.callbackExtraData.toLowerCase();
+    callback.resultLen = callback.resultLen ? callback.resultLen : numDataSubqueries;
     callback.callbackFunctionSelector = callback.callbackFunctionSelector.toLowerCase();
     return callback;
   }
@@ -420,5 +448,54 @@ export class QueryBuilderV2 {
       }
     }
     return validQuery;
+  }
+
+  private async validateCallback(): Promise<boolean> {
+    if (this.callback === undefined) {
+      return true;
+    }
+    let valid = true;
+
+    // Check if callback address is a valid contract address
+    const bytecode = await this.config.provider.getCode(this.callback.callbackAddr);
+    if (bytecode.length <= 2) {
+      console.warn("Callback address is not a valid contract address");
+      valid = false;
+    }
+
+    // Check if function selector exists in bytecode
+    let selector = this.callback.callbackFunctionSelector;
+    if (selector.length !== 10) {
+      console.warn("Callback function selector is not 4 bytes");
+      valid = false;
+    }
+    if (selector.startsWith("0x")) {
+      selector = selector.slice(2);
+    }
+    if (!bytecode.includes(selector)) {
+      console.warn("Callback function selector does not exist in callback address bytecode");
+      valid = false;
+    }
+
+    // Check resultLen
+    if (
+      this.callback.resultLen !== undefined && 
+      this.callback.resultLen > SpecialValuesV2.MaxOutputs
+    ) {
+      console.warn(`Callback resultLen is greater than maxOutputs (${SpecialValuesV2.MaxOutputs})`);
+      valid = false;
+    }
+
+    // Check if extra data is bytes32-aligned
+    let extraData = this.callback.callbackExtraData;
+    if (extraData.startsWith("0x")) {
+      extraData = extraData.slice(2);
+    }
+    if (extraData.length % 64 !== 0) {
+      console.warn("Callback extra data is not bytes32-aligned");
+      valid = false;
+    }
+
+    return valid;
   }
 }

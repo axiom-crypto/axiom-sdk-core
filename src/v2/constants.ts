@@ -1,14 +1,10 @@
 import { ethers } from "ethers";
-import { DataQueryRequestV2 } from "./types";
-import { bytes32 } from "../shared";
 
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGas: "0x05d21dba00",
   DefaultCallbackGasLimit: 200000,
   ProofGas: 500000,
   QueryBaseFeeGwei: 5000000,
-
-  MaxOutputs: 5,
 
   EmptyComputeQuery:
     "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
