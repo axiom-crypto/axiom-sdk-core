@@ -16,6 +16,7 @@ export type { QueryBuilderV2 } from "./query/queryBuilderV2";
 export { 
   AxiomV2Callback,
   AxiomV2ComputeQuery,
+  DataSubquery,
   HeaderSubquery,
   AccountSubquery,
   StorageSubquery,

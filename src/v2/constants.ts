@@ -11,7 +11,6 @@ export const ConstantsV2 = Object.freeze({
   EmptyBytes4: "0x00000000",
   EmptyComputeQueryObject: {
     k: 0,
-    vkeyLen: 0,
     vkey: [] as string[],
     computeProof: "0x00",
   },
