@@ -194,13 +194,14 @@ export const buildTxSubquery = (txHash: string) => {
      * End of builder chain for a Transaction subquery. User specifies the block number 
      * associated with the previously-input txHash and the builder will set the appropriate 
      * TxType based on the block number.
-     * @param blockNumber 
+     * @param blockNumber Block number for the block
+     * @param chainId Chain ID that the block is on 
      * @returns TxSubquery struct
      */
-    const blockNumber = (blockNumber: number | string | BigInt): TxSubquery => {
+    const blockNumber = (blockNumber: number | string | BigInt, chainId: number | string | BigInt): TxSubquery => {
       validateSize(blockNumber, "uint32");
       const blockNumberNum = Number(blockNumber.toString());
-      const txType = getTxTypeForBlockNumber(blockNumberNum);
+      const txType = getTxTypeForBlockNumber(blockNumberNum, chainId);
       return {
         txHash,
         fieldOrCalldataIdx: getTxFieldIdx(txType, field),

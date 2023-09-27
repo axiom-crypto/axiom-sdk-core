@@ -21,6 +21,8 @@ import {
 } from "@axiom-crypto/codec";
 import {
   headerUseLogsBloomIdx,
+  headerUseTxHashIdx,
+  headerUseTxSizeIdx,
   receiptUseAddress,
   receiptUseBlockNumber,
   receiptUseDataIdx,
@@ -34,7 +36,6 @@ import {
   txUseTxIndex,
   txUseTxType
 } from "../../../src";
-
 
 describe("ChainData query tests", () => {
   const MATIC_ADDR = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0";
@@ -86,6 +87,14 @@ describe("ChainData query tests", () => {
     // const parentBeaconBlockRoot = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: HeaderField.ParentBeaconBlockRoot });
     // expect(parentBeaconBlockRoot).toEqual(null);
   }, 10000);
+
+  test("get special header fields", async () => {
+    const blockNumber = 18000000;
+    const blockHash = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: headerUseTxHashIdx() });
+    expect(blockHash).toEqual("0x95b198e154acbfc64109dfd22d8224fe927fd8dfdedfae01587674482ba4baf3");
+    const headerSize = await getHeaderFieldValue(provider, { blockNumber, fieldIdx: headerUseTxSizeIdx() });
+    expect(headerSize).toEqual("0x469a6");
+  });
 
   test("get header field logs bloom", async () => {
     const blockNumber = 17000001;
@@ -271,11 +280,11 @@ describe("ChainData query tests", () => {
   });
 
   test("Get TxType for hash", async () => {
-    const legacy = await getTxTypeForTxHash(provider, "0x078a2ebd0cfcc55f03f8ac604a16147aba1bd67db398069cedae5495412ac47a");
+    const legacy = await getTxTypeForTxHash(provider, 1, "0x078a2ebd0cfcc55f03f8ac604a16147aba1bd67db398069cedae5495412ac47a");
     expect(legacy).toEqual(TxType.Legacy);
-    const eip2930 = await getTxTypeForTxHash(provider, "0xa6b2e8ba408ae22f617dacef1bae75a129ec92c9c3f1832338f2585bb7d77a35");
+    const eip2930 = await getTxTypeForTxHash(provider, 1, "0xa6b2e8ba408ae22f617dacef1bae75a129ec92c9c3f1832338f2585bb7d77a35");
     expect(eip2930).toEqual(TxType.Eip2930);
-    const eip1559 = await getTxTypeForTxHash(provider, "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453");
+    const eip1559 = await getTxTypeForTxHash(provider, 1, "0x540d8ddec902752fdac71a44274513b80b537ce9d8b60ab6668078b583e17453");
     expect(eip1559).toEqual(TxType.Eip1559);
   });
 });

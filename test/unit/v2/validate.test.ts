@@ -5,10 +5,7 @@ import {
   AxiomConfig,
   HeaderField,
   QueryV2,
-  ReceiptSubqueryLogType,
-  ReceiptSubqueryType,
   TxField,
-  TxSubqueryType,
   buildAccountSubquery,
   buildHeaderSubquery,
   buildReceiptSubquery,
@@ -116,5 +113,9 @@ describe("Query Validation Tests", () => {
       query.appendDataSubquery(subquery);
     }
     expect(test).toThrow();
+  });
+
+  test("Validate pass: Callback", async () => {
+
   });
 });

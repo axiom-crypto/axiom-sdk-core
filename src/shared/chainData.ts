@@ -121,6 +121,10 @@ export async function getHeaderFieldValue(
     //   return block.excessBlobGas ?? null;
     // case HeaderField.ParentBeaconBlockRoot:
     //   return block.parentBeaconBlockRoot ?? null;
+    case SpecialValuesV2.HeaderHashFieldIdx:
+      return block.hash ?? null;
+    case SpecialValuesV2.HeaderSizeFieldIdx:
+      return block.size ?? null;
     default:
       throw new Error(`Invalid header field: ${fieldIdx}`);
   }
@@ -351,24 +355,36 @@ export async function getSolidityNestedMappingValue(
 
 export function getTxTypeForBlockNumber(
   blockNumber: number,
+  chainId: number | string | BigInt,
 ): TxType {
-  if (blockNumber < SharedConstants.EIP2930_BLOCK) {
-    return TxType.Legacy;
-  } else if (blockNumber < SharedConstants.EIP1559_BLOCK) {
-    return TxType.Eip2930;
-  } else {
-    return TxType.Eip1559;
+  const chainIdStr = BigInt(chainId.toString()).toString();
+  switch (chainIdStr) {
+    case "1":
+      if (blockNumber < SharedConstants.EIP2930_BLOCK) {
+        return TxType.Legacy;
+      } else if (blockNumber < SharedConstants.EIP1559_BLOCK) {
+        return TxType.Eip2930;
+      } else {
+        return TxType.Eip1559;
+      }
+    case "5":
+      return TxType.Eip1559;
+    default:
+      throw new Error(`Unsupported chainId ${chainId}`);
   }
 }
 
 export async function getTxTypeForTxHash(
   provider: ethers.JsonRpcProvider,
+  chainId: number | string | BigInt,
   txHash: string
 ): Promise<TxType | null> {
+  const chainIdStr = BigInt(chainId.toString()).toString();
   const tx = await provider.getTransaction(txHash);
   if (!tx || !tx.blockNumber) {
     return null;
   }
   const blockNumber = tx.blockNumber;
-  return getTxTypeForBlockNumber(blockNumber);
+
+  return getTxTypeForBlockNumber(blockNumber, chainIdStr);
 }

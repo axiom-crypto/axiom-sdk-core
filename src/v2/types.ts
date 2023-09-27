@@ -24,6 +24,8 @@ export {
   ReceiptSubquery,
   SolidityNestedMappingSubquery,
   BeaconValidatorSubquery,
+  DataSubqueryType,
+  SpecialValuesV2,
 } from '@axiom-crypto/codec';
 
 export interface DataQueryRequestV2 {
@@ -52,21 +54,4 @@ export interface BuiltQueryV2 {
   callback: AxiomV2Callback;
   maxFeePerGas: string;
   callbackGasLimit: number,
-}
-
-export enum TxSubqueryType {
-  Field,
-  Calldata,
-  ContractData,
-}
-
-export enum ReceiptSubqueryType {
-  Field,
-  Log,
-}
-
-export enum ReceiptSubqueryLogType {
-  Topic,
-  Data,
-  Address,
 }

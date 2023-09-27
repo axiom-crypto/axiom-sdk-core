@@ -4,6 +4,14 @@ export function headerUseLogsBloomIdx(idx: number): number {
   return SpecialValuesV2.HeaderLogsBloomIdxOffset + idx;
 }
 
+export function headerUseTxHashIdx(): number {
+  return SpecialValuesV2.HeaderHashFieldIdx;
+}
+
+export function headerUseTxSizeIdx(): number {
+  return SpecialValuesV2.HeaderSizeFieldIdx;
+}
+
 export function txUseCalldataIdx(idx: number): number {
   return SpecialValuesV2.TxCalldataIdxOffset + idx;
 }

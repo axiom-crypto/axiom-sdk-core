@@ -20,7 +20,7 @@ export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
   subquery: HeaderSubquery
 ): Promise<boolean> {
-  if (subquery.fieldIdx > HeaderField.Size) {
+  if (subquery.fieldIdx > HeaderField.WithdrawalsRoot) {
     console.error(`Invalid header field index: ${subquery.fieldIdx}`);
     return false;
   }
