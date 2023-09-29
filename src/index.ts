@@ -15,4 +15,4 @@ export {
   unpackSlot,
   getSlotForMapping,
   getSlotForArray,
-} from '@axiom-crypto/codec';
+} from '@axiom-crypto/tools';

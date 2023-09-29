@@ -11,10 +11,17 @@ import {
   TxField,
   TxSubquery,
   getNumBytes,
-  SpecialValuesV2,
-} from "@axiom-crypto/codec";
+  AxiomV2FieldConstant,
+} from "@axiom-crypto/tools";
 import { ethers } from "ethers";
-import { getAccountFieldValue, getHeaderFieldValue, getReceiptFieldValue, getSolidityNestedMappingValue, getStorageFieldValue, getTxFieldValue } from "../../../shared/chainData";
+import { 
+  getAccountFieldValue,
+  getHeaderFieldValue,
+  getReceiptFieldValue,
+  getSolidityNestedMappingValue,
+  getStorageFieldValue,
+  getTxFieldValue,
+} from "@axiom-crypto/tools";
 
 export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
@@ -90,9 +97,9 @@ export async function validateTxSubquery(
 ): Promise<boolean> {
   if (
     (subquery.fieldOrCalldataIdx > TxField.s && 
-    subquery.fieldOrCalldataIdx < SpecialValuesV2.TxTxTypeFieldIdx) ||
-    (subquery.fieldOrCalldataIdx > SpecialValuesV2.TxCalldataHashFieldIdx &&
-    subquery.fieldOrCalldataIdx < SpecialValuesV2.TxCalldataIdxOffset)
+    subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.TxTypeFieldIdx) ||
+    (subquery.fieldOrCalldataIdx > AxiomV2FieldConstant.Tx.CalldataHashFieldIdx &&
+    subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.CalldataIdxOffset)
   ) {
     console.error(`Invalid tx field/calldata index: ${subquery.fieldOrCalldataIdx}`);
     return false;
@@ -112,14 +119,14 @@ export async function validateReceiptSubquery(
 ): Promise<boolean> {
   if (
     (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas && 
-    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptAddressIdx) ||
-    (subquery.fieldOrLogIdx > SpecialValuesV2.ReceiptTxIndexFieldIdx &&
-    subquery.fieldOrLogIdx < SpecialValuesV2.ReceiptLogIdxOffset)
+    subquery.fieldOrLogIdx < AxiomV2FieldConstant.Receipt.AddressIdx) ||
+    (subquery.fieldOrLogIdx > AxiomV2FieldConstant.Receipt.TxIndexFieldIdx &&
+    subquery.fieldOrLogIdx < AxiomV2FieldConstant.Receipt.LogIdxOffset)
   ) {
     console.error(`Invalid receipt field/log index: ${subquery.fieldOrLogIdx}`);
     return false;
   }
-  if (subquery.fieldOrLogIdx >= SpecialValuesV2.ReceiptLogIdxOffset) {
+  if (subquery.fieldOrLogIdx >= AxiomV2FieldConstant.Receipt.LogIdxOffset) {
     if (
       !ethers.isBytesLike(subquery.eventSchema) ||
       getNumBytes(subquery.eventSchema) !== 32
@@ -130,8 +137,8 @@ export async function validateReceiptSubquery(
   }
   if (
     subquery.topicOrDataOrAddressIdx > 4 && 
-    subquery.topicOrDataOrAddressIdx < SpecialValuesV2.ReceiptLogIdxOffset &&
-    subquery.topicOrDataOrAddressIdx !== SpecialValuesV2.ReceiptAddressIdx
+    subquery.topicOrDataOrAddressIdx < AxiomV2FieldConstant.Receipt.LogIdxOffset &&
+    subquery.topicOrDataOrAddressIdx !== AxiomV2FieldConstant.Receipt.AddressIdx
   ) {
     console.error(`Invalid receipt topic/data/address index index: ${subquery.topicOrDataOrAddressIdx}`);
     return false;

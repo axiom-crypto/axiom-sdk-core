@@ -1,4 +1,8 @@
-import { getEventSchema, getFunctionSelector, getFunctionSignature } from "../../../src/shared/utils";
+import {
+  getEventSchema,
+  getFunctionSelector,
+  getFunctionSignature,
+} from "@axiom-crypto/tools";
 
 describe("Utils", () => {
   test("Get a function signature", () => {

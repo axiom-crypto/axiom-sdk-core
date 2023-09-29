@@ -28,26 +28,6 @@ describe('Axiom Core tests', () => {
     expect(typeof ax.newQueryBuilder).toEqual("function");
   });
 
-  test('should initialize v0.2 Axiom with overrides', () => {
-    const config: AxiomConfig = {
-      apiKey: "demo",
-      providerUri: process.env.PROVIDER_URI as string,
-      version: "v0.2",
-    }
-    const overrides = {
-      Addresses: {
-        AxiomQuery: AX_QUERY_ADDR_OVERRIDE,
-      },
-    }
-    const ax = new Axiom(config, overrides);
-    
-    expect(typeof ax).toEqual("object");
-    expect(typeof ax.block).toEqual("object");
-    expect(typeof ax.query).toEqual("object");
-    expect(typeof ax.newQueryBuilder).toEqual("function");
-    expect(ax.getAxiomQueryAddress()).toEqual(AX_QUERY_ADDR_OVERRIDE);
-  });
-
   test('should initialize v1 Axiom with overrides', () => {
     const config: AxiomConfig = {
       apiKey: "demo",
@@ -76,18 +56,6 @@ describe('Axiom Core tests', () => {
     }
     expect(() => new Axiom(config)).toThrowError("Invalid version number. Valid versions are: " + Versions.join(", "));
   });
-
-  test('should get a v0.2 abi', () => {
-    const config: AxiomConfig = {
-      apiKey: "demo",
-      providerUri: process.env.PROVIDER_URI as string,
-      version: "v0.2",
-    }
-    const ax = new Axiom(config);
-    const abi = ax.getAxiomQueryAbi();
-
-    expect(abi[0].type).toEqual("constructor");
-  })
 
   test('should get a v1 abi', () => {
     const config: AxiomConfig = {

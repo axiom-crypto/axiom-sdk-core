@@ -12,7 +12,7 @@ export abstract class Query {
       "Typecast Query object to the appropriate version to use this method. Example:\n\n" +
       "const axiom = new Axiom(config)\n" +
       "const aq = axiom.query as QueryV2;\n" +
-      "const query = await aq.new();"
+      "const query = aq.new();"
     );
   }
 }

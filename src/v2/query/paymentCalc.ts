@@ -1,4 +1,4 @@
-import { AxiomV2Callback, AxiomV2ComputeQuery } from "@axiom-crypto/codec";
+import { AxiomV2Callback, AxiomV2ComputeQuery } from "@axiom-crypto/tools";
 import { ConstantsV2 } from "../constants";
 import { QueryBuilderV2 } from "./queryBuilderV2";
 import { ethers } from "ethers";

@@ -4,19 +4,10 @@ import {
   HeaderField,
   ReceiptField,
   bytes32,
-  getHeaderFieldIdx,
-  getReceiptFieldIdx
-} from "@axiom-crypto/codec";
-import { Axiom,
-  AxiomConfig,
-  buildHeaderSubquery,
-  receiptUseAddress,
-  receiptUseLogIdx,
-  receiptUseTopicIdx
-} from "../../../src";
+  getFunctionSelector,
+} from "@axiom-crypto/tools";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
-import { getFunctionSelector } from "../../../src/shared/utils";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537400;
@@ -142,18 +133,18 @@ describe("QueryV2", () => {
   //     headerSubqueries: [
   //       {
   //         blockNumber: BLOCK_NUMBER,
-  //         fieldIdx: getHeaderFieldIdx(HeaderField.Nonce),
+  //         fieldIdx: HeaderField.Nonce,
   //       },
   //       {
   //         blockNumber: BLOCK_NUMBER + 3,
-  //         fieldIdx: getHeaderFieldIdx(HeaderField.Miner),
+  //         fieldIdx: HeaderField.Miner,
   //       },
   //     ],
   //     receiptSubqueries: [
   //       {
   //         txHash:
   //           "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-  //         fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.Status),
+  //         fieldOrLogIdx: ReceiptField.Status,
   //         topicOrDataOrAddressIdx: 0,
   //         eventSchema: ethers.ZeroHash,
   //       },

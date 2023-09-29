@@ -1,4 +1,4 @@
-import { DataSubquery, DataSubqueryType, getSlotForArray } from "@axiom-crypto/codec";
+import { DataSubquery, DataSubqueryType, getSlotForArray } from "@axiom-crypto/tools";
 import { DataQueryRequestV2 } from "../types";
 
 /**

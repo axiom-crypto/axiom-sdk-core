@@ -9,7 +9,7 @@ import {
   SolidityNestedMappingSubquery,
   StorageSubquery,
   TxSubquery,
-} from "@axiom-crypto/codec";
+} from "@axiom-crypto/tools";
 
 export type { QueryV2 } from "./query/queryV2";
 export type { QueryBuilderV2 } from "./query/queryBuilderV2";
@@ -25,8 +25,12 @@ export {
   SolidityNestedMappingSubquery,
   BeaconValidatorSubquery,
   DataSubqueryType,
-  SpecialValuesV2,
-} from '@axiom-crypto/codec';
+  HeaderField,
+  AccountField,
+  TxField,
+  ReceiptField,
+  AxiomV2FieldConstant,
+} from '@axiom-crypto/tools';
 
 export interface DataQueryRequestV2 {
   headerSubqueries?: HeaderSubquery[];

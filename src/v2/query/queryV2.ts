@@ -2,7 +2,7 @@ import {
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   DataSubquery
-} from "@axiom-crypto/codec";
+} from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import { Query } from "../../core/query";
 import {

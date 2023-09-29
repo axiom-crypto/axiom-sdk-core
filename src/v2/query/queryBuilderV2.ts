@@ -18,8 +18,8 @@ import {
   getQuerySchemaHash,
   getQueryHashV2,
   getDataQueryHashFromSubqueries,
-  SpecialValuesV2,
-} from "@axiom-crypto/codec";
+  AxiomV2CircuitConstant,
+} from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
   BuiltQueryV2,
@@ -156,8 +156,8 @@ export class QueryBuilderV2 {
       this.dataQuery = [] as DataSubquery[];
     }
 
-    if (this.dataQuery?.length + dataSubqueries.length > SpecialValuesV2.MaxOutputs) {
-      throw new Error(`Cannot add more than ${SpecialValuesV2.MaxOutputs} subqueries`);
+    if (this.dataQuery?.length + dataSubqueries.length > AxiomV2CircuitConstant.UserMaxSubqueries) {
+      throw new Error(`Cannot add more than ${AxiomV2CircuitConstant.UserMaxSubqueries} subqueries`);
     }
 
     for (const subquery of dataSubqueries) {
@@ -333,7 +333,7 @@ export class QueryBuilderV2 {
     // Handle callback
     let resultLen = this.dataQuery?.length ?? 0;
     if (this.computeQuery !== undefined) {
-      resultLen = this.callback?.resultLen ?? SpecialValuesV2.MaxOutputs;
+      resultLen = this.callback?.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs;
     }
     const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
     const callback = {
@@ -480,9 +480,9 @@ export class QueryBuilderV2 {
     // Check resultLen
     if (
       this.callback.resultLen !== undefined && 
-      this.callback.resultLen > SpecialValuesV2.MaxOutputs
+      this.callback.resultLen > AxiomV2CircuitConstant.UserMaxOutputs
     ) {
-      console.warn(`Callback resultLen is greater than maxOutputs (${SpecialValuesV2.MaxOutputs})`);
+      console.warn(`Callback resultLen is greater than maxOutputs (${AxiomV2CircuitConstant.UserMaxOutputs})`);
       valid = false;
     }
 

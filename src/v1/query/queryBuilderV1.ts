@@ -13,7 +13,7 @@ import {
   sortBlockNumber,
   sortSlot 
 } from "../../shared/utils";
-import { getAccountData } from "../../shared/chainData";
+import { getAccountData } from "@axiom-crypto/tools";
 import { validateQueryRow } from "./validate";
 import MerkleTree from "merkletreejs";
 
@@ -335,10 +335,10 @@ export class QueryBuilderV1 {
       const [blockNumberStr, address] = blockNumberAccountStr.split(",");
       const blockNumber = parseInt(blockNumberStr);
       const account = await getAccountData(
+        this.config.provider,
         blockNumber,
         address as `0x${string}`,
         [],
-        this.config.provider
       );
       blockNumberAccountToAccount[blockNumberAccountStr] = account;
     }

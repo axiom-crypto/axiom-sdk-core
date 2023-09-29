@@ -8,40 +8,30 @@ import {
   StorageSubquery,
   TxField,
   TxSubquery,
-  TxType,
   bytes32,
-  getAccountFieldIdx,
-  getReceiptFieldIdx,
-  getTxFieldIdx,
   validateAddress,
   validateBytes32,
   validateSize,
-} from "@axiom-crypto/codec"
-import {
-  headerUseLogsBloomIdx,
-  receiptUseAddress,
-  receiptUseBlockNumber,
-  receiptUseDataIdx,
-  receiptUseLogIdx,
-  receiptUseLogsBloomIdx,
-  receiptUseTopicIdx,
-  receiptUseTxIndex,
-  receiptUseTxType,
-  txUseBlockNumber,
-  txUseCalldataHash,
-  txUseCalldataIdx,
-  txUseContractDataIdx,
-  txUseFunctionSelector,
-  txUseTxIndex,
-  txUseTxType,
-} from "../../fields"
-import {
+  getFieldIdxHeaderLogsBloomIdx,
+  getFieldIdxReceiptLogAddress,
+  getFieldIdxReceiptBlockNumber,
+  getFieldIdxReceiptDataIdx,
+  getFieldIdxReceiptLogIdx,
+  getFieldIdxReceiptLogsBloomIdx,
+  getFieldIdxReceiptTopicIdx,
+  getFieldIdxReceiptTxIndex,
+  getFieldIdxReceiptTxType,
+  getFieldIdxTxBlockNumber,
+  getFieldIdxTxCalldataHash,
+  getFieldIdxTxCalldataIdx,
+  getFieldIdxTxContractDataIdx,
+  getFieldIdxTxFunctionSelector,
+  getFieldIdxTxIndex,
+  getFieldIdxTxType,
   HeaderField,
   HeaderSubquery,
-  getHeaderFieldIdx,
-} from "@axiom-crypto/codec"
-import { getEventSchema } from "../../../shared/utils"
-import { getTxTypeForBlockNumber } from "../../../shared"
+  getEventSchema,
+} from "@axiom-crypto/tools"
 
 /**
  * Builder for a Header data subquery
@@ -59,7 +49,7 @@ export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
   const field = (field: HeaderField): HeaderSubquery => {
     return {
       blockNumber: blockNumberNum,
-      fieldIdx: getHeaderFieldIdx(field),
+      fieldIdx: field,
     }
   }
 
@@ -74,7 +64,7 @@ export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
     }
     return {
       blockNumber: blockNumberNum,
-      fieldIdx: headerUseLogsBloomIdx(logsBloomIdx),
+      fieldIdx: getFieldIdxHeaderLogsBloomIdx(logsBloomIdx),
     }
   }
 
@@ -108,7 +98,7 @@ export const buildAccountSubquery = (blockNumber: number | string | BigInt) => {
       return {
         blockNumber: blockNumberNum,
         addr: address,
-        fieldIdx: getAccountFieldIdx(field),
+        fieldIdx: field,
       }
     }
 
@@ -167,51 +157,27 @@ export const buildStorageSubquery = (blockNumber: number | string | BigInt) => {
  * Builder for a Transaction data subquery
  * @param txHash Transaction hash to query
  */
-export const buildTxSubquery = (txHash: string) => {
-  validateBytes32(txHash);
+export const buildTxSubquery = (
+  blockNumber: number | string | BigInt,
+  txIdx: number | string | BigInt
+) => {
+  validateSize(blockNumber, "uint32");
+  validateSize(txIdx, "uint16");
+
+  const blockNumberNum = Number(blockNumber.toString());
+  const txIdxNum = Number(txIdx.toString());
 
   /**
-   * Continues building a Transaction subquery for a TxField
+   * End of builder chain for a Transaction subquery. 
    * @param field The TxField to query
+   * @returns TxSubquery struct
    */
-  const field = (field: TxField) => {
-
-    /**
-     * End of builder chain for a Transaction subquery. Specifies the type of transaction 
-     * to query for a TxField, which is based on different EIPs. TxType is Eip1559 after 
-     * block 12965000. 
-     * @param type The transaction type
-     * @returns TxSubquery struct
-     */
-    const type = (type: TxType): TxSubquery => {
-      return {
-        txHash,
-        fieldOrCalldataIdx: getTxFieldIdx(type, field),
-      }
+  const field = (field: TxField): TxSubquery => {
+    return {
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: field,
     }
-
-    /**
-     * End of builder chain for a Transaction subquery. User specifies the block number 
-     * associated with the previously-input txHash and the builder will set the appropriate 
-     * TxType based on the block number.
-     * @param blockNumber Block number for the block
-     * @param chainId Chain ID that the block is on 
-     * @returns TxSubquery struct
-     */
-    const blockNumber = (blockNumber: number | string | BigInt, chainId: number | string | BigInt): TxSubquery => {
-      validateSize(blockNumber, "uint32");
-      const blockNumberNum = Number(blockNumber.toString());
-      const txType = getTxTypeForBlockNumber(blockNumberNum, chainId);
-      return {
-        txHash,
-        fieldOrCalldataIdx: getTxFieldIdx(txType, field),
-      }
-    }
-
-    return Object.freeze({
-      type,
-      blockNumber,
-    });
   }
 
   /**
@@ -224,8 +190,9 @@ export const buildTxSubquery = (txHash: string) => {
     validateSize(dataIdx, "uint32");
     const dataIdxNum = Number(dataIdx.toString());
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseCalldataIdx(dataIdxNum),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxCalldataIdx(dataIdxNum),
     }
   }
 
@@ -239,8 +206,9 @@ export const buildTxSubquery = (txHash: string) => {
     validateSize(dataIdx, "uint32");
     const dataIdxNum = Number(dataIdx.toString());
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseContractDataIdx(dataIdxNum),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxContractDataIdx(dataIdxNum),
     }
   }
 
@@ -250,8 +218,9 @@ export const buildTxSubquery = (txHash: string) => {
    */
   const txType = (): TxSubquery => {
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseTxType(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxType(),
     }
   }
 
@@ -259,10 +228,11 @@ export const buildTxSubquery = (txHash: string) => {
    * End of the builder chain for a Transaction subquery. Queries the block number.
    * @returns TxSubquery struct
    */
-  const blockNumber = (): TxSubquery => {
+  const blockNumberQuery = (): TxSubquery => {
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseBlockNumber(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxBlockNumber(),
     }
   }
 
@@ -272,8 +242,9 @@ export const buildTxSubquery = (txHash: string) => {
    */
   const txIndex = (): TxSubquery => {
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseTxIndex(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxIndex(),
     }
   }
 
@@ -283,8 +254,9 @@ export const buildTxSubquery = (txHash: string) => {
    */
   const functionSelector = (): TxSubquery => {
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseFunctionSelector(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxFunctionSelector(),
     }
   }
 
@@ -295,8 +267,9 @@ export const buildTxSubquery = (txHash: string) => {
    */
   const calldataHash = (): TxSubquery => {
     return {
-      txHash,
-      fieldOrCalldataIdx: txUseCalldataHash(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrCalldataIdx: getFieldIdxTxCalldataHash(),
     }
   }
 
@@ -305,7 +278,7 @@ export const buildTxSubquery = (txHash: string) => {
     calldata,
     contractData,
     txType,
-    blockNumber,
+    blockNumberQuery,
     txIndex,
     functionSelector,
     calldataHash,
@@ -316,8 +289,15 @@ export const buildTxSubquery = (txHash: string) => {
  * Builder for a Receipt data subquery
  * @param txHash Transaction hash to query
  */
-export const buildReceiptSubquery = (txHash: string) => {
-  validateBytes32(txHash);
+export const buildReceiptSubquery = (
+  blockNumber: number | string | BigInt,
+  txIdx: number | string | BigInt
+) => {
+  validateSize(blockNumber, "uint32");
+  validateSize(txIdx, "uint16");
+
+  const blockNumberNum = Number(blockNumber.toString());
+  const txIdxNum = Number(txIdx.toString());
 
   /**
    * End of the builder chain for a Receipt subquery. Specifies the ReceiptField to query.
@@ -326,8 +306,9 @@ export const buildReceiptSubquery = (txHash: string) => {
    */
   const field = (field: ReceiptField): ReceiptSubquery => {
     return {
-      txHash,
-      fieldOrLogIdx: getReceiptFieldIdx(field),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrLogIdx: field,
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
     }
@@ -343,8 +324,9 @@ export const buildReceiptSubquery = (txHash: string) => {
       throw new Error("logsBloomIdx range is [0,8)");
     }
     return {
-      txHash,
-      fieldOrLogIdx: receiptUseLogsBloomIdx(logsBloomIdx),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrLogIdx: getFieldIdxReceiptLogsBloomIdx(logsBloomIdx),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
     }
@@ -356,7 +338,7 @@ export const buildReceiptSubquery = (txHash: string) => {
    */
   const log = (logIdx: number) => {
     validateSize(logIdx, "uint32");
-    logIdx = receiptUseLogIdx(logIdx);
+    logIdx = getFieldIdxReceiptLogIdx(logIdx);
 
     /**
      * Continues building a Receipt subquery. Specifies the topic index of the
@@ -375,9 +357,10 @@ export const buildReceiptSubquery = (txHash: string) => {
         eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
         validateBytes32(eventSchema);
         return {
-          txHash,
+          blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
           fieldOrLogIdx: logIdx,
-          topicOrDataOrAddressIdx: receiptUseTopicIdx(topicIdx),
+          topicOrDataOrAddressIdx: getFieldIdxReceiptTopicIdx(topicIdx),
           eventSchema,
         }
       }
@@ -404,9 +387,10 @@ export const buildReceiptSubquery = (txHash: string) => {
         eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
         validateBytes32(eventSchema);
         return {
-          txHash,
+          blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
           fieldOrLogIdx: logIdx,
-          topicOrDataOrAddressIdx: receiptUseDataIdx(dataIdx),
+          topicOrDataOrAddressIdx: getFieldIdxReceiptDataIdx(dataIdx),
           eventSchema,
         }
       }
@@ -423,9 +407,10 @@ export const buildReceiptSubquery = (txHash: string) => {
      */
     const address = (): ReceiptSubquery => {
       return {
-        txHash,
+        blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
         fieldOrLogIdx: logIdx,
-        topicOrDataOrAddressIdx: receiptUseAddress(),
+        topicOrDataOrAddressIdx: getFieldIdxReceiptLogAddress(),
         eventSchema: ethers.ZeroHash,
       }
     }
@@ -443,8 +428,9 @@ export const buildReceiptSubquery = (txHash: string) => {
    */
   const txType = (): ReceiptSubquery => {
     return {
-      txHash,
-      fieldOrLogIdx: receiptUseTxType(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrLogIdx: getFieldIdxReceiptTxType(),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
     }
@@ -454,10 +440,11 @@ export const buildReceiptSubquery = (txHash: string) => {
    * End of the builder chain for a Receipt subquery. Queries the block number.
    * @returns ReceiptSubquery struct
    */
-  const blockNumber = (): ReceiptSubquery => {
+  const blockNumberQuery = (): ReceiptSubquery => {
     return {
-      txHash,
-      fieldOrLogIdx: receiptUseBlockNumber(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrLogIdx: getFieldIdxReceiptBlockNumber(),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
     }
@@ -469,8 +456,9 @@ export const buildReceiptSubquery = (txHash: string) => {
    */
   const txIndex = (): ReceiptSubquery => {
     return {
-      txHash,
-      fieldOrLogIdx: receiptUseTxIndex(),
+      blockNumber: blockNumberNum,
+      txIdx: txIdxNum,
+      fieldOrLogIdx: getFieldIdxReceiptTxIndex(),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
     }
@@ -481,7 +469,7 @@ export const buildReceiptSubquery = (txHash: string) => {
     logsBloom,
     log,
     txType,
-    blockNumber,
+    blockNumberQuery,
     txIndex,
   });
 }

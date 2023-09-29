@@ -1,4 +1,4 @@
-import { DataSubqueryType } from "@axiom-crypto/codec";
+import { DataSubqueryType } from "@axiom-crypto/tools";
 
 export function getSubqueryTypeFromKeys(keys: string[]) {
   switch (keys.join(",")) {
@@ -8,9 +8,9 @@ export function getSubqueryTypeFromKeys(keys: string[]) {
       return DataSubqueryType.Account;
     case ["blockNumber", "addr", "slot"].join(","):
       return DataSubqueryType.Storage;
-    case ["txHash", "fieldOrCalldataIdx"].join(","):
+    case ["blockNumber", "txIdx", "fieldOrCalldataIdx"].join(","):
       return DataSubqueryType.Transaction;
-    case ["txHash", "fieldOrLogIdx", "topicOrDataOrAddressIdx", "eventSchema"].join(","):
+    case ["blockNumber", "txIdx", "fieldOrLogIdx", "topicOrDataOrAddressIdx", "eventSchema"].join(","):
       return DataSubqueryType.Receipt;
     case ["blockNumber", "addr", "mappingSlot", "mappingDepth", "keys"].join(","):
       return DataSubqueryType.SolidityNestedMapping;

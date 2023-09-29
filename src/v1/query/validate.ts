@@ -1,13 +1,13 @@
 import { BigNumberish, ethers } from "ethers";
 import { AccountState, QueryRow } from "../../shared/types";
-import { getAccountData, getFullBlock } from "../../shared/chainData";
+import { getAccountData, getFullBlock } from "@axiom-crypto/tools";
 
 // Ported from axiom-proving-service/services/query/responseValidation.ts
 export async function validateQueryRow(
   provider: ethers.JsonRpcProvider,
   queryRow: QueryRow,
 ) {
-  const block = await getFullBlock(queryRow.blockNumber, provider);
+  const block = await getFullBlock(provider, queryRow.blockNumber);
   let accountState: AccountState | undefined;
   let slot = queryRow.slot;
   if (slot) {
@@ -21,7 +21,7 @@ export async function validateQueryRow(
     if (slot) {
       slots.push(slot);
     }
-    const proofRes = await getAccountData(queryRow.blockNumber, queryRow.address, slots, provider);
+    const proofRes = await getAccountData(provider, queryRow.blockNumber, queryRow.address, slots);
     const accountProof = proofRes.accountProof;
     if (!isAssignedSlot(queryRow.address, accountProof)) {
       throw new Error(

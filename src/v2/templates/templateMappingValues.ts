@@ -1,4 +1,4 @@
-import { DataSubquery, DataSubqueryType, StorageSubquery, getSlotForMapping } from "@axiom-crypto/codec";
+import { DataSubquery, DataSubqueryType, StorageSubquery, getSlotForMapping } from "@axiom-crypto/tools";
 
 /**
  * Template for getting mapping values from a contract at a given block number. Useful

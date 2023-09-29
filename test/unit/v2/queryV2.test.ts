@@ -10,15 +10,16 @@ import {
   ReceiptSubquery,
   SolidityNestedMappingSubquery,
   StorageSubquery,
-  TxField,
   TxSubquery,
-  TxType,
-  getAccountFieldIdx,
-  getHeaderFieldIdx,
-  getReceiptFieldIdx,
+  TxField,
   getSlotForMapping,
-  getTxFieldIdx
-} from "@axiom-crypto/codec";
+  getBlockNumberAndTxIdx,
+  getFieldIdxReceiptLogIdx,
+  getFieldIdxReceiptTopicIdx,
+  bytes32,
+  getEventSchema,
+  getFunctionSelector,
+} from "@axiom-crypto/tools";
 import {
   Axiom,
   AxiomConfig,
@@ -30,16 +31,11 @@ import {
   buildSolidityNestedMappingSubquery,
   buildStorageSubquery,
   buildTxSubquery,
-  receiptUseLogIdx,
-  receiptUseTopicIdx
 } from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
 import {
-  bytes32,
-  getEventSchema,
-  getFunctionSelector,
-  resizeArray
+  resizeArray,
 } from "../../../src/shared/utils";
 
 describe("QueryV2", () => {
@@ -48,6 +44,8 @@ describe("QueryV2", () => {
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
   const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
   const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+  const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI);
 
   const vkeyLen = 27;
   const vkey = [
@@ -230,15 +228,15 @@ describe("QueryV2", () => {
         subqueryData: {
           blockNumber: BLOCK_NUMBER,
           addr: WETH_WHALE,
-          fieldIdx: getAccountFieldIdx(AccountField.Nonce),
+          fieldIdx: AccountField.Nonce,
         }
       },
       {
         type: DataSubqueryType.Receipt,
         subqueryData: {
-          txHash:
-            "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-          fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.CumulativeGas),
+          blockNumber: 17975259,
+          txIdx: 34,
+          fieldOrLogIdx: ReceiptField.CumulativeGas,
           topicOrDataOrAddressIdx: 0,
           eventSchema: ethers.ZeroHash,
         },
@@ -280,14 +278,14 @@ describe("QueryV2", () => {
         type: DataSubqueryType.Header,
         subqueryData: {
           blockNumber: BLOCK_NUMBER,
-          fieldIdx: getHeaderFieldIdx(HeaderField.GasUsed),
+          fieldIdx: HeaderField.GasUsed,
         },
       },
       {
         type: DataSubqueryType.Header,
         subqueryData: {
           blockNumber: BLOCK_NUMBER + 1,
-          fieldIdx: getHeaderFieldIdx(HeaderField.GasUsed),
+          fieldIdx: HeaderField.GasUsed,
         },
       },
     ];
@@ -334,15 +332,15 @@ describe("QueryV2", () => {
         subqueryData: {
           blockNumber: BLOCK_NUMBER,
           addr: WETH_WHALE,
-          fieldIdx: getAccountFieldIdx(AccountField.Nonce),
+          fieldIdx: AccountField.Nonce,
         }
       },
       {
         type: DataSubqueryType.Receipt,
         subqueryData: {
-          txHash:
-            "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-          fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.CumulativeGas),
+          blockNumber: 17975259,
+          txIdx: 34,
+          fieldOrLogIdx: ReceiptField.CumulativeGas,
           topicOrDataOrAddressIdx: 10,
           eventSchema: ethers.ZeroHash,
         },
@@ -373,12 +371,12 @@ describe("QueryV2", () => {
       computeQuery,
       callback,
     } = await query.build();
-    expect(queryHash).toEqual("0x21ffa8bf591e4703c8b5cf7867ad9f77e78ba5e3ba3252dc20193d26d688e1da");
+    expect(queryHash).toEqual("0x14deb32d407d2fa0f014e4ca1f4bb328ffb705f53e60a58704040cfca5fb4be9");
     expect(dataQueryHash).toEqual(
-      "0x7c9d2ff14ef864fa50bfa2bed97c998a6915058225a94e20803148344946d7b9"
+      "0xa23b68c6445bf7850bfdb0921bef5c55d43bd6362133b1f3929dd7b8103502dd"
     );
     expect(dataQuery).toEqual(
-      "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae139200000000000547082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602000000010000000a0000000000000000000000000000000000000000000000000000000000000000"
+      "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae1392000000000005011247db0022000000020000000a0000000000000000000000000000000000000000000000000000000000000000"
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);
     expect(computeQuery.vkey.length).toEqual(computeQueryReq.vkey.length);
@@ -492,22 +490,27 @@ describe("QueryV2", () => {
 
   test("Append a Tx subquery", async () => {
     const query = aq.new();
-    const subquery = buildTxSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
-      .field(TxField.To)
-      .type(TxType.Eip1559);
+    const hash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
+    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, hash) as { blockNumber: number, txIdx: number };
+    const subquery = buildTxSubquery(blockNumber, txIdx)
+      .field(TxField.To);
     query.appendDataSubquery(subquery);
     await query.build();
     const dataQuery = query.getDataQuery();
 
-    const fieldOrCalldataIdx = getTxFieldIdx(TxType.Eip1559, TxField.To);
-    expect((dataQuery?.[0].subqueryData as TxSubquery).txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
-    expect((dataQuery?.[0].subqueryData as TxSubquery).fieldOrCalldataIdx).toEqual(fieldOrCalldataIdx);
+    expect((dataQuery?.[0].subqueryData as TxSubquery).blockNumber).toEqual(blockNumber);
+    expect((dataQuery?.[0].subqueryData as TxSubquery).txIdx).toEqual(txIdx);
+    expect((dataQuery?.[0].subqueryData as TxSubquery).fieldOrCalldataIdx).toEqual(TxField.To);
   });
 
   test("Append a Receipt subquery", async () => {
     const query = aq.new();
     const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
-    const subquery = buildReceiptSubquery("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6")
+
+    const hash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
+    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, hash) as { blockNumber: number, txIdx: number };
+
+    const subquery = buildReceiptSubquery(blockNumber, txIdx)
       .log(0)
       .topic(1)
       .eventSchema("Transfer(address,address,uint256)");
@@ -515,9 +518,10 @@ describe("QueryV2", () => {
     await query.build();
     const dataQuery = query.getDataQuery();
 
-    const fieldOrLogIdx = receiptUseLogIdx(0);
-    const topicOrDataOrAddressIdx = receiptUseTopicIdx(1);
-    expect((dataQuery?.[0].subqueryData as ReceiptSubquery).txHash).toEqual("0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6");
+    const fieldOrLogIdx = getFieldIdxReceiptLogIdx(0);
+    const topicOrDataOrAddressIdx = getFieldIdxReceiptTopicIdx(1);
+    expect((dataQuery?.[0].subqueryData as ReceiptSubquery).blockNumber).toEqual(blockNumber);
+    expect((dataQuery?.[0].subqueryData as ReceiptSubquery).txIdx).toEqual(txIdx);
     expect((dataQuery?.[0].subqueryData as ReceiptSubquery).fieldOrLogIdx).toEqual(fieldOrLogIdx);
     expect((dataQuery?.[0].subqueryData as ReceiptSubquery).topicOrDataOrAddressIdx).toEqual(topicOrDataOrAddressIdx);
     expect((dataQuery?.[0].subqueryData as ReceiptSubquery).eventSchema).toEqual(eventSchema);

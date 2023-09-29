@@ -1,4 +1,4 @@
-import { DataSubquery, DataSubqueryType } from "@axiom-crypto/codec";
+import { DataSubquery, DataSubqueryType } from "@axiom-crypto/tools";
 import { DataQueryRequestV2 } from "../types";
 
 /**
