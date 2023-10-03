@@ -51,7 +51,12 @@ import {
   writeStringIpfs, 
 } from "../../shared/ipfs";
 import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
-import { buildDataSubquery } from "./dataSubquery/build";
+import { 
+  buildDataQuery,
+  buildDataSubqueries,
+  buildDataSubquery,
+  encodeBuilderDataQuery
+} from "./dataSubquery/build";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -88,26 +93,50 @@ export class QueryBuilderV2 {
     }
   }
 
+  /**
+   * Gets the current set of unbuilt data subqueries
+   * @returns Array of unbuilt data subqueries
+   */
   getDataQuery(): UnbuiltSubquery[] | undefined {
     return this.dataQuery;
   }
 
+  /**
+   * Gets the current compute query
+   * @returns The current compute query
+   */
   getComputeQuery(): AxiomV2ComputeQuery | undefined {
     return this.computeQuery;
   }
 
+  /**
+   * Gets the callback information
+   * @returns The current callback information
+   */
   getCallback(): AxiomV2Callback | undefined {
     return this.callback;
   }
 
+  /**
+   * Gets the current Query options
+   * @returns The current Query options
+   */
   getOptions(): AxiomV2QueryOptions {
     return this.options;
   }
 
+  /**
+   * Gets the built Query. Built Query resets if any data is changed.
+   * @returns The built Query; undefined if Query has not been built yet
+   */
   getBuiltQuery(): BuiltQueryV2 | undefined {
     return this.builtQuery;
   }
 
+  /**
+   * Gets the hash of the querySchema of the computeQuery
+   * @returns Query schema hash
+   */
   getQuerySchema(): string {
     return getQuerySchemaHash(
       this.computeQuery?.k ?? 0,
@@ -115,10 +144,14 @@ export class QueryBuilderV2 {
     );
   }
   
+  /**
+   * Gets the hash of the data query
+   * @returns Data query hash
+   */
   getDataQueryHash(): string {
     if (this.builtQuery === undefined) {
       throw new Error(
-        "Query must be built with `.build()` before getting data query hash. If Query is modified after building, you must run `.build()` again."
+        "Query must first be built with `.build()` before getting data query hash. If Query is modified after building, you will need to run `.build()` again."
       );
     }
     return getDataQueryHashFromSubqueries(
@@ -130,7 +163,7 @@ export class QueryBuilderV2 {
   getQueryHash(): string {
     if (this.builtQuery === undefined) {
       throw new Error(
-        "Query must be built with `.build()` before getting data query hash. If Query is modified after building, you must run `.build()` again."
+        "Query must first be built with `.build()` before getting query hash. If Query is modified after building, you will need to run `.build()` again."
       );
     }
     const computeQuery = this.computeQuery ?? ConstantsV2.EmptyComputeQueryObject;
@@ -146,7 +179,7 @@ export class QueryBuilderV2 {
     this.builtQuery = undefined;
   }
 
-  setDataQuery(dataQuery: DataSubquery[]) {
+  setDataQuery(dataQuery: UnbuiltSubquery[]) {
     this.unsetBuiltQuery();
     this.dataQuery = undefined;
     this.append(dataQuery);
@@ -286,8 +319,7 @@ export class QueryBuilderV2 {
     const data = await this.validateDataSubqueries();
 
     // Check if compute query is valid
-    // WIP
-    const compute = true;
+    const compute = await this.validateComputeQuery();
 
     // Check if callback is valid
     const callback = await this.validateCallback();
@@ -295,6 +327,11 @@ export class QueryBuilderV2 {
     return (data && compute && callback);
   }
 
+  /**
+   * Queries the required subquery data and builds the entire Query object into the format 
+   * that is required by the backend/ZK circuit
+   * @returns A built Query object
+   */
   async build(): Promise<BuiltQueryV2> {
     // Check if Query can be built: needs at least a dataQuery or computeQuery
     let validDataQuery = true;
@@ -310,15 +347,24 @@ export class QueryBuilderV2 {
     }
 
     // Parse and get fetch appropriate data for all data subqueries
-    let builtDataSubqueries = await this.buildDataSubqueries(this.dataQuery ?? []);
+    const builtDataSubqueries = await buildDataSubqueries(
+      this.config.provider,
+      this.dataQuery ?? []
+    );
 
-    // Encode data query
-    const dataQuery = this.encodeBuilderDataQuery(builtDataSubqueries);
+    // Encode & build data query
+    const dataQuery = encodeBuilderDataQuery(
+      this.config.chainId,
+      builtDataSubqueries
+    );
     const dataQueryHash = getDataQueryHashFromSubqueries(
       this.config.chainId.toString(),
       builtDataSubqueries
     );
-    const dataQueryStruct = this.buildDataQuery(builtDataSubqueries);
+    const dataQueryStruct = buildDataQuery(
+      this.config.chainId,
+      builtDataSubqueries
+    );
 
     // Handle compute query
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
@@ -369,36 +415,12 @@ export class QueryBuilderV2 {
     return this.builtQuery;
   }
 
+  /**
+   * Calculates the fee (in wei) required to send the Query
+   * @returns The amount of wei required to send this query
+   */
   calculateFee(): string {
     return PaymentCalc.calculatePayment(this);
-  }
-
-  /**
-   * Builds UnbuiltSubquery[] into DataSubquery[]
-   */
-  private async buildDataSubqueries(subqueries: UnbuiltSubquery[]): Promise<DataSubquery[]> {
-    let dataSubqueries: DataSubquery[] = [];
-    for (const subquery of subqueries) {
-      const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
-      let dataSubquery = await buildDataSubquery(this.config.provider, subquery, type);
-      dataSubqueries.push(dataSubquery);
-    }
-    return dataSubqueries;
-  }
-
-  private encodeBuilderDataQuery(allSubqueries: DataSubquery[]): string {
-    return encodeDataQuery(
-      this.config.chainId, 
-      allSubqueries
-    );
-  }
-
-  private buildDataQuery(allSubqueries: DataSubquery[]): AxiomV2DataQuery {
-    const sourceChainId = this.config.chainId.toString();
-    return {
-      sourceChainId,
-      subqueries: allSubqueries,
-    }
   }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
@@ -471,6 +493,27 @@ export class QueryBuilderV2 {
       }
     }
     return validQuery;
+  }
+
+  private async validateComputeQuery(): Promise<boolean> {
+    if (this.computeQuery === undefined) {
+      return true;
+    }
+    let valid = true;
+
+    // Check that vkey and computeProof are not zero if k is nonzero
+    if (this.computeQuery.k !== 0) {
+      if (this.computeQuery.vkey.length === 0) {
+        console.warn("Compute query vkey is empty");
+        valid = false;
+      }
+      if (this.computeQuery.computeProof.length === 0) {
+        console.warn("Compute query computeProof is empty");
+        valid = false;
+      }
+    }
+
+    return valid;
   }
 
   private async validateCallback(): Promise<boolean> {

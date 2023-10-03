@@ -2,6 +2,8 @@ import { ethers } from "ethers";
 import {
   bytes32,
   getBlockNumberAndTxIdx,
+  encodeDataQuery,
+  AxiomV2DataQuery,
 } from '@axiom-crypto/tools';
 import { 
   DataSubquery,
@@ -14,6 +16,44 @@ import {
   UnbuiltSubquery,
   UnbuiltTxSubquery,
 } from "../../types";
+import { getUnbuiltSubqueryTypeFromKeys } from "./utils";
+
+/**
+ * Builds UnbuiltSubquery[] into DataSubquery[]
+ */
+export async function buildDataSubqueries(
+  provider: ethers.JsonRpcProvider,
+  subqueries: UnbuiltSubquery[]
+): Promise<DataSubquery[]> {
+  let dataSubqueries: DataSubquery[] = [];
+  for (const subquery of subqueries) {
+    const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
+    let dataSubquery = await buildDataSubquery(provider, subquery, type);
+    dataSubqueries.push(dataSubquery);
+  }
+  return dataSubqueries;
+}
+
+export function encodeBuilderDataQuery(
+  chainId: number | string | BigInt,
+  allSubqueries: DataSubquery[]
+): string {
+  return encodeDataQuery(
+    chainId, 
+    allSubqueries
+  );
+}
+
+export function buildDataQuery(
+  chainId: number | string | BigInt,
+  allSubqueries: DataSubquery[]
+): AxiomV2DataQuery {
+  const sourceChainId = chainId.toString();
+  return {
+    sourceChainId,
+    subqueries: allSubqueries,
+  }
+}
 
 export async function buildDataSubquery(
   provider: ethers.JsonRpcProvider,

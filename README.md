@@ -51,7 +51,7 @@ const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e
 const swapEventSchema = getEventSchema(
   "Swap(address,uint256,uint256,uint256,uint256,address)"
 );
-const receiptSubquery: ReceiptSubquery = buildReceiptSubquery(txHash)
+const receiptSubquery = buildReceiptSubquery(txHash)
   .log(4) // event 
   .topic(0) // event schema
   .eventSchema(swapEventSchema);
@@ -83,36 +83,23 @@ await query.build();
 ```typescript
 const dataQuery = [
   {
-    type: DataSubqueryType.Header,
-    subqueryData: {
-      blockNumber: BLOCK_NUM,
-      fieldIdx: 0,
-    },
+    blockNumber: BLOCK_NUM,
+    fieldIdx: HeaderField.GasLimit,
   },
   {
-    type: DataSubqueryType.Header,
-    subqueryData: {
-      blockNumber: BLOCK_NUM + 1,
-      fieldIdx: 1,
-    },
+    blockNumber: BLOCK_NUM + 1,
+    fieldIdx: HeaderField.StateRoot,
   },
   {
-    type: DataSubqueryType.Account,
-    subqueryData: {
-      blockNumber: BLOCK_NUM,
-      addr: WETH_WHALE,
-      fieldIdx: getAccountFieldIdx(AccountField.Nonce),
-    }
+    blockNumber: BLOCK_NUM,
+    addr: WETH_WHALE,
+    fieldIdx: AccountField.Nonce,
   },
   {
-    type: DataSubqueryType.Receipt,
-    subqueryData: {
-      txHash:
-        "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-      fieldOrLogIdx: getReceiptFieldIdx(ReceiptField.CumulativeGas),
-      topicOrDataOrAddressIdx: 10,
-      eventSchema: ethers.ZeroHash,
-    },
+    txHash: "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
+    fieldOrLogIdx: ReceiptField.CumulativeGas,
+    topicOrDataOrAddressIdx: 0,
+    eventSchema: ethers.ZeroHash,
   },
 ];
 
