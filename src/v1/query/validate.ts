@@ -66,7 +66,7 @@ export async function validateQueryRow(
       if (
         ethers.toBeHex(queryRow.value as BigNumberish, 32) !== ethers.toBeHex(_value, 32)
       ) {
-        console.log(`Storage slot value mismatch [block ${queryRow.blockNumber}, account ${queryRow.address}, slot ${queryRow.slot}]: ${queryRow.value} (query) ${_value} (storageProof)
+        console.error(`Storage slot value mismatch [block ${queryRow.blockNumber}, account ${queryRow.address}, slot ${queryRow.slot}]: ${queryRow.value} (query) ${_value} (storageProof)
         Replacing value with ${_value}`);
         queryRow.value = ethers.toBeHex(_value, 32);
       }

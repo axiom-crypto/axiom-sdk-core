@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import {
   AccountField,
   AccountSubquery,
@@ -10,11 +11,9 @@ import {
   StorageSubquery,
   TxField,
   TxSubquery,
+  getBlockNumberAndTxIdx,
   getNumBytes,
   AxiomV2FieldConstant,
-} from "@axiom-crypto/tools";
-import { ethers } from "ethers";
-import { 
   getAccountFieldValue,
   getHeaderFieldValue,
   getReceiptFieldValue,
@@ -22,10 +21,18 @@ import {
   getStorageFieldValue,
   getTxFieldValue,
 } from "@axiom-crypto/tools";
+import {
+  UnbuiltAccountSubquery,
+  UnbuiltHeaderSubquery,
+  UnbuiltReceiptSubquery,
+  UnbuiltSolidityNestedMappingSubquery,
+  UnbuiltStorageSubquery,
+  UnbuiltTxSubquery,
+} from "../../types";
 
 export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: HeaderSubquery
+  subquery: UnbuiltHeaderSubquery
 ): Promise<boolean> {
   if (subquery.fieldIdx > HeaderField.WithdrawalsRoot) {
     console.error(`Invalid header field index: ${subquery.fieldIdx}`);
@@ -49,7 +56,7 @@ export async function validateHeaderSubquery(
 
 export async function validateAccountSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: AccountSubquery
+  subquery: UnbuiltAccountSubquery
 ): Promise<boolean> {
   if (subquery.fieldIdx > AccountField.CodeHash) {
     console.error(`Invalid account field index: ${subquery.fieldIdx}`);
@@ -73,7 +80,7 @@ export async function validateAccountSubquery(
 
 export async function validateStorageSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: StorageSubquery
+  subquery: UnbuiltStorageSubquery
 ): Promise<boolean> {
   const latestBlock = await provider.getBlock("latest");
   if (!latestBlock) {
@@ -93,7 +100,7 @@ export async function validateStorageSubquery(
 
 export async function validateTxSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: TxSubquery
+  subquery: UnbuiltTxSubquery
 ): Promise<boolean> {
   if (
     (subquery.fieldOrCalldataIdx > TxField.s && 
@@ -105,7 +112,16 @@ export async function validateTxSubquery(
     return false;
   }
 
-  const value = await getTxFieldValue(provider, subquery);
+  const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
+  if (!blockNumber || !txIdx) {
+    console.error("Unable to get blockNumber or txIdx from supplied txHash");
+    return false;
+  }
+  const value = await getTxFieldValue(provider, {
+    blockNumber,
+    txIdx,
+    fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
+  });
   if (value === null) {
     console.error(`Tx subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -115,7 +131,7 @@ export async function validateTxSubquery(
 
 export async function validateReceiptSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: ReceiptSubquery
+  subquery: UnbuiltReceiptSubquery
 ): Promise<boolean> {
   if (
     (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas && 
@@ -144,7 +160,18 @@ export async function validateReceiptSubquery(
     return false;
   }
 
-  const value = await getReceiptFieldValue(provider, subquery);
+  const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
+  if (!blockNumber || !txIdx) {
+    console.error("Unable to get blockNumber or txIdx from supplied txHash");
+    return false;
+  }
+  const value = await getReceiptFieldValue(provider, {
+    blockNumber,
+    txIdx,
+    fieldOrLogIdx: subquery.fieldOrLogIdx,
+    topicOrDataOrAddressIdx: subquery.topicOrDataOrAddressIdx,
+    eventSchema: subquery.eventSchema,
+  });
   if (value === null) {
     console.error(`Receipt subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -154,7 +181,7 @@ export async function validateReceiptSubquery(
 
 export async function validateSolidityNestedMappingSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: SolidityNestedMappingSubquery
+  subquery: UnbuiltSolidityNestedMappingSubquery
 ): Promise<boolean> {
   if (subquery.keys.length !== subquery.mappingDepth) {
     console.error(`Nested mapping keys length ${subquery.keys.length} does not match mapping depth ${subquery.mappingDepth}`);

@@ -1,13 +1,8 @@
 import { ethers } from "ethers"
 import {
   AccountField,
-  AccountSubquery,
   ReceiptField,
-  ReceiptSubquery,
-  SolidityNestedMappingSubquery,
-  StorageSubquery,
   TxField,
-  TxSubquery,
   bytes32,
   validateAddress,
   validateBytes32,
@@ -29,9 +24,16 @@ import {
   getFieldIdxTxIndex,
   getFieldIdxTxType,
   HeaderField,
-  HeaderSubquery,
   getEventSchema,
 } from "@axiom-crypto/tools"
+import {
+  UnbuiltAccountSubquery,
+  UnbuiltHeaderSubquery,
+  UnbuiltReceiptSubquery,
+  UnbuiltSolidityNestedMappingSubquery,
+  UnbuiltStorageSubquery,
+  UnbuiltTxSubquery
+} from "../../types";
 
 /**
  * Builder for a Header data subquery
@@ -44,9 +46,9 @@ export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
   /**
    * End of the builder chain for a Header subquery. Specifies the HeaderField to query.
    * @param field HeaderField to query
-   * @returns HeaderSubquery struct
+   * @returns UnbuiltHeaderSubquery struct
    */
-  const field = (field: HeaderField): HeaderSubquery => {
+  const field = (field: HeaderField): UnbuiltHeaderSubquery => {
     return {
       blockNumber: blockNumberNum,
       fieldIdx: field,
@@ -56,9 +58,9 @@ export const buildHeaderSubquery = (blockNumber: number | string | BigInt) => {
   /**
    * End of the builder chain for a Header subquery. Specifies the logs bloom index to query.
    * @param logsBloomIdx Logs Bloom index (bytes as bytes32 array) to query
-   * @returns HeaderSubquery struct
+   * @returns UnbuiltHeaderSubquery struct
    */
-  const logsBloom = (logsBloomIdx: number): HeaderSubquery => {
+  const logsBloom = (logsBloomIdx: number): UnbuiltHeaderSubquery => {
     if (logsBloomIdx < 0 || logsBloomIdx >= 8) {
       throw new Error("logsBloomIdx range is [0,8)");
     }
@@ -92,9 +94,9 @@ export const buildAccountSubquery = (blockNumber: number | string | BigInt) => {
      * End of the builder chain for an Account subquery. Specifies the AccountField to 
      * query.
      * @param field AccountField to query
-     * @returns AccountSubquery struct
+     * @returns UnbuiltAccountSubquery struct
      */
-    const field = (field: AccountField): AccountSubquery => {
+    const field = (field: AccountField): UnbuiltAccountSubquery => {
       return {
         blockNumber: blockNumberNum,
         addr: address,
@@ -131,9 +133,9 @@ export const buildStorageSubquery = (blockNumber: number | string | BigInt) => {
      * End of the builder chain for a Storage subquery. Specifies the storage slot to 
      * query.
      * @param slot Storage slot to query
-     * @returns StorageSubquery struct
+     * @returns UnbuiltStorageSubquery struct
      */
-    const slot = (slot: number | string | BigInt): StorageSubquery => {
+    const slot = (slot: number | string | BigInt): UnbuiltStorageSubquery => {
       validateSize(slot, "uint256");
       const slotStr = bytes32(slot.toString());
       return {
@@ -158,24 +160,18 @@ export const buildStorageSubquery = (blockNumber: number | string | BigInt) => {
  * @param txHash Transaction hash to query
  */
 export const buildTxSubquery = (
-  blockNumber: number | string | BigInt,
-  txIdx: number | string | BigInt
+  txHash: string,
 ) => {
-  validateSize(blockNumber, "uint32");
-  validateSize(txIdx, "uint16");
-
-  const blockNumberNum = Number(blockNumber.toString());
-  const txIdxNum = Number(txIdx.toString());
+  validateBytes32(txHash);
 
   /**
    * End of builder chain for a Transaction subquery. 
    * @param field The TxField to query
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const field = (field: TxField): TxSubquery => {
+  const field = (field: TxField): UnbuiltTxSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: field,
     }
   }
@@ -184,14 +180,13 @@ export const buildTxSubquery = (
    * End of the builder chain for a Transaction subquery. Specifies the calldata data index 
    * (as an array of bytes32 after the 4-byte function selector) to query.
    * @param dataIdx Calldata index (bytes as bytes32 array) to query
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const calldata = (dataIdx: number | string | BigInt): TxSubquery => {
+  const calldata = (dataIdx: number | string | BigInt): UnbuiltTxSubquery => {
     validateSize(dataIdx, "uint32");
     const dataIdxNum = Number(dataIdx.toString());
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxCalldataIdx(dataIdxNum),
     }
   }
@@ -200,62 +195,57 @@ export const buildTxSubquery = (
    * End of the builder chain for a Transaction subquery. Specifies the contract data index
    * (as an array of bytes32) to query.
    * @param dataIdx Contract data index (bytes as bytes32 array) to query
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const contractData = (dataIdx: number | string | BigInt): TxSubquery => {
+  const contractData = (dataIdx: number | string | BigInt): UnbuiltTxSubquery => {
     validateSize(dataIdx, "uint32");
     const dataIdxNum = Number(dataIdx.toString());
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxContractDataIdx(dataIdxNum),
     }
   }
 
   /**
    * End of the builder chain for a Transaction subquery. Queries the transaction type.
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const txType = (): TxSubquery => {
+  const txType = (): UnbuiltTxSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxType(),
     }
   }
 
   /**
    * End of the builder chain for a Transaction subquery. Queries the block number.
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const blockNumberQuery = (): TxSubquery => {
+  const blockNumberQuery = (): UnbuiltTxSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxBlockNumber(),
     }
   }
 
   /**
    * End of the builder chain for a Transaction subquery. Queries the transaction index.
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const txIndex = (): TxSubquery => {
+  const txIndex = (): UnbuiltTxSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxIndex(),
     }
   }
 
   /**
    * End of the builder chain for a Transaction subquery. Queries the function selector.
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const functionSelector = (): TxSubquery => {
+  const functionSelector = (): UnbuiltTxSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxFunctionSelector(),
     }
   }
@@ -263,12 +253,11 @@ export const buildTxSubquery = (
   /**
    * End of the builder chain for a Transaction subquery. Queries the keccak256 hash of 
    * the transaction's calldata.
-   * @returns TxSubquery struct
+   * @returns UnbuiltTxSubquery struct
    */
-  const calldataHash = (): TxSubquery => {
+  const calldataHash = (): UnbuiltTxSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrCalldataIdx: getFieldIdxTxCalldataHash(),
     }
   }
@@ -290,24 +279,18 @@ export const buildTxSubquery = (
  * @param txHash Transaction hash to query
  */
 export const buildReceiptSubquery = (
-  blockNumber: number | string | BigInt,
-  txIdx: number | string | BigInt
+  txHash: string,
 ) => {
-  validateSize(blockNumber, "uint32");
-  validateSize(txIdx, "uint16");
-
-  const blockNumberNum = Number(blockNumber.toString());
-  const txIdxNum = Number(txIdx.toString());
+  validateBytes32(txHash);
 
   /**
    * End of the builder chain for a Receipt subquery. Specifies the ReceiptField to query.
    * @param field 
-   * @returns ReceiptSubquery struct
+   * @returns UnbuiltReceiptSubquery struct
    */
-  const field = (field: ReceiptField): ReceiptSubquery => {
+  const field = (field: ReceiptField): UnbuiltReceiptSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrLogIdx: field,
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
@@ -317,15 +300,14 @@ export const buildReceiptSubquery = (
   /**
    * End of the builder chain for a Receipt subquery. Specifies the logs bloom index to query.
    * @param logsBloomIdx Logs Bloom index (bytes as bytes32 array) to query
-   * @returns ReceiptSubquery struct
+   * @returns UnbuiltReceiptSubquery struct
    */
-  const logsBloom = (logsBloomIdx: number): ReceiptSubquery => {
+  const logsBloom = (logsBloomIdx: number): UnbuiltReceiptSubquery => {
     if (logsBloomIdx < 0 || logsBloomIdx >= 8) {
       throw new Error("logsBloomIdx range is [0,8)");
     }
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrLogIdx: getFieldIdxReceiptLogsBloomIdx(logsBloomIdx),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
@@ -351,14 +333,13 @@ export const buildReceiptSubquery = (
       /**
        * End of the builder chain for a Receipt subquery. Specifies the event schema of the log.
        * @param eventSchema Bytes32 event schema
-       * @returns ReceiptSubquery struct
+       * @returns UnbuiltReceiptSubquery struct
        */
-      const eventSchema = (eventSchema: string): ReceiptSubquery => {
+      const eventSchema = (eventSchema: string): UnbuiltReceiptSubquery => {
         eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
         validateBytes32(eventSchema);
         return {
-          blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+          txHash,
           fieldOrLogIdx: logIdx,
           topicOrDataOrAddressIdx: getFieldIdxReceiptTopicIdx(topicIdx),
           eventSchema,
@@ -381,14 +362,14 @@ export const buildReceiptSubquery = (
       /**
        * End of the builder chain for a Receipt subquery. Specifies the event schema of the log.
        * @param eventSchema Bytes32 event schema
-       * @returns ReceiptSubquery struct
+       * @returns UnbuiltReceiptSubquery struct
        */
-      const eventSchema = (eventSchema: string): ReceiptSubquery => {
+      const eventSchema = (eventSchema: string): UnbuiltReceiptSubquery => {
         eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
         validateBytes32(eventSchema);
+        
         return {
-          blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+          txHash,
           fieldOrLogIdx: logIdx,
           topicOrDataOrAddressIdx: getFieldIdxReceiptDataIdx(dataIdx),
           eventSchema,
@@ -403,12 +384,11 @@ export const buildReceiptSubquery = (
     /**
      * End of the builder chain for a Receipt subquery. Specifies querying the address 
      * of the log event.
-     * @returns ReceiptSubquery struct
+     * @returns UnbuiltReceiptSubquery struct
      */
-    const address = (): ReceiptSubquery => {
+    const address = (): UnbuiltReceiptSubquery => {
       return {
-        blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+        txHash,
         fieldOrLogIdx: logIdx,
         topicOrDataOrAddressIdx: getFieldIdxReceiptLogAddress(),
         eventSchema: ethers.ZeroHash,
@@ -424,12 +404,11 @@ export const buildReceiptSubquery = (
 
   /**
    * End of the builder chain for a Receipt subquery. Queries the transaction type.
-   * @returns ReceiptSubquery struct
+   * @returns UnbuiltReceiptSubquery struct
    */
-  const txType = (): ReceiptSubquery => {
+  const txType = (): UnbuiltReceiptSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrLogIdx: getFieldIdxReceiptTxType(),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
@@ -438,12 +417,11 @@ export const buildReceiptSubquery = (
 
   /**
    * End of the builder chain for a Receipt subquery. Queries the block number.
-   * @returns ReceiptSubquery struct
+   * @returns UnbuiltReceiptSubquery struct
    */
-  const blockNumberQuery = (): ReceiptSubquery => {
+  const blockNumberQuery = (): UnbuiltReceiptSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrLogIdx: getFieldIdxReceiptBlockNumber(),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
@@ -452,12 +430,11 @@ export const buildReceiptSubquery = (
 
   /**
    * End of the builder chain for a Receipt subquery. Queries the transaction index.
-   * @returns ReceiptSubquery struct
+   * @returns UnbuiltReceiptSubquery struct
    */
-  const txIndex = (): ReceiptSubquery => {
+  const txIndex = (): UnbuiltReceiptSubquery => {
     return {
-      blockNumber: blockNumberNum,
-      txIdx: txIdxNum,
+      txHash,
       fieldOrLogIdx: getFieldIdxReceiptTxIndex(),
       topicOrDataOrAddressIdx: 0,
       eventSchema: ethers.ZeroHash,
@@ -503,13 +480,14 @@ export const buildSolidityNestedMappingSubquery = (blockNumber: number | string 
        * End of the builder chain for a Solidity Nested Mapping subquery. Specifies an array
        * of keys for the nested mapping. Max nested mappinng depth supported is 4.
        * @param keys An array of keys for the nested mapping (max depth 4).
-       * @returns SolidityNestedMappingSubquery struct
+       * @returns UnbuiltSolidityNestedMappingSubquery struct
        */
-      const keys = (keys: (number | string | BigInt)[]): SolidityNestedMappingSubquery => {
+      const keys = (keys: (number | string | BigInt)[]): UnbuiltSolidityNestedMappingSubquery => {
         if (keys.length > 4) {
           throw new Error("Max mapping depth supported is 4");
         }
         const keysStr = keys.map(k => bytes32(k.toString()));
+
         return {
           blockNumber: blockNumberNum,
           addr: address,

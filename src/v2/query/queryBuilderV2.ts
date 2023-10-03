@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import {
   AccountSubquery,
   AxiomV2Callback,
@@ -24,8 +25,15 @@ import { InternalConfig } from "../../core/internalConfig";
 import {
   BuiltQueryV2,
   AxiomV2QueryOptions,
+  UnbuiltSubquery,
+  UnbuiltHeaderSubquery,
+  UnbuiltAccountSubquery,
+  UnbuiltStorageSubquery,
+  UnbuiltTxSubquery,
+  UnbuiltReceiptSubquery,
+  UnbuiltSolidityNestedMappingSubquery,
+  UnbuiltBeaconValidatorSubquery,
 } from "../types";
-import { ethers } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
 import { PaymentCalc } from "./paymentCalc";
@@ -38,20 +46,24 @@ import {
   validateSolidityNestedMappingSubquery,
   validateBeaconSubquery,
 } from "./dataSubquery/validate";
-import { convertIpfsCidToBytes32, writeStringIpfs } from "../../shared/ipfs";
-import { getSubqueryTypeFromKeys } from "./dataSubquery/utils";
+import {
+  convertIpfsCidToBytes32,
+  writeStringIpfs, 
+} from "../../shared/ipfs";
+import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
+import { buildDataSubquery } from "./dataSubquery/build";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
   private builtQuery?: BuiltQueryV2;
-  private dataQuery?: DataSubquery[];
+  private dataQuery?: UnbuiltSubquery[];
   private computeQuery?: AxiomV2ComputeQuery;
   private callback?: AxiomV2Callback;
   private options: AxiomV2QueryOptions;
 
   constructor(
     config: InternalConfig,
-    dataQuery?: DataSubquery[],
+    dataQuery?: UnbuiltSubquery[],
     computeQuery?: AxiomV2ComputeQuery,
     callback?: AxiomV2Callback,
     options?: AxiomV2QueryOptions,
@@ -76,7 +88,7 @@ export class QueryBuilderV2 {
     }
   }
 
-  getDataQuery(): DataSubquery[] | undefined {
+  getDataQuery(): UnbuiltSubquery[] | undefined {
     return this.dataQuery;
   }
 
@@ -104,13 +116,23 @@ export class QueryBuilderV2 {
   }
   
   getDataQueryHash(): string {
+    if (this.builtQuery === undefined) {
+      throw new Error(
+        "Query must be built with `.build()` before getting data query hash. If Query is modified after building, you must run `.build()` again."
+      );
+    }
     return getDataQueryHashFromSubqueries(
       this.config.chainId.toString(),
-      this.dataQuery ?? []
+      this.builtQuery.dataQueryStruct.subqueries
     );
   }
 
   getQueryHash(): string {
+    if (this.builtQuery === undefined) {
+      throw new Error(
+        "Query must be built with `.build()` before getting data query hash. If Query is modified after building, you must run `.build()` again."
+      );
+    }
     const computeQuery = this.computeQuery ?? ConstantsV2.EmptyComputeQueryObject;
     return getQueryHashV2(
       this.config.chainId.toString(),
@@ -146,28 +168,18 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Append a `DataSubquery[]` object to the current dataQuery
-   * @param dataQuery A `DataSubquery[]` object to append 
+   * Append a `UnbuiltSubquery[]` object to the current dataQuery
+   * @param dataQuery A `UnbuiltSubquery[]` object to append 
    */
-  append(dataSubqueries: DataSubquery[]): void {
+  append(dataSubqueries: UnbuiltSubquery[]): void {
     this.unsetBuiltQuery();
 
     if (this.dataQuery === undefined) {
-      this.dataQuery = [] as DataSubquery[];
+      this.dataQuery = [] as UnbuiltSubquery[];
     }
 
     if (this.dataQuery?.length + dataSubqueries.length > AxiomV2CircuitConstant.UserMaxSubqueries) {
       throw new Error(`Cannot add more than ${AxiomV2CircuitConstant.UserMaxSubqueries} subqueries`);
-    }
-
-    for (const subquery of dataSubqueries) {
-      // Points to original nested subquery data to lowercase any strings
-      const subqueryCast = subquery.subqueryData as {[key: string]: any};
-      for (const key of Object.keys(subqueryCast)) {
-        if (typeof subqueryCast[key] === "string") {
-          subqueryCast[key] = subqueryCast[key].toLowerCase();
-        }
-      }
     }
 
     // Append new dataSubqueries to existing dataQuery
@@ -180,14 +192,8 @@ export class QueryBuilderV2 {
    * @param type (optional) The type of subquery to append. If not provided, the type will be 
    *             inferred from the keys of the subquery.
    */
-  appendDataSubquery(dataSubquery: Subquery, type?: DataSubqueryType): void {
-    if (type === undefined) {
-      type = getSubqueryTypeFromKeys(Object.keys(dataSubquery));
-    }
-    this.append([{
-      type,
-      subqueryData: dataSubquery,
-    }]);
+  appendDataSubquery(dataSubquery: UnbuiltSubquery): void {
+    this.append([dataSubquery]);
   }
 
   async sendOnchainQuery(
@@ -290,7 +296,7 @@ export class QueryBuilderV2 {
   }
 
   async build(): Promise<BuiltQueryV2> {
-    // Check if Query can be built
+    // Check if Query can be built: needs at least a dataQuery or computeQuery
     let validDataQuery = true;
     if (this.dataQuery === undefined || this.dataQuery.length === 0) {
       validDataQuery = false;
@@ -303,13 +309,16 @@ export class QueryBuilderV2 {
       throw new Error("Cannot build Query without data or compute query");
     }
 
+    // Parse and get fetch appropriate data for all data subqueries
+    let builtDataSubqueries = await this.buildDataSubqueries(this.dataQuery ?? []);
+
     // Encode data query
-    const dataQuery = this.encodeBuilderDataQuery(this.dataQuery ?? []);
+    const dataQuery = this.encodeBuilderDataQuery(builtDataSubqueries);
     const dataQueryHash = getDataQueryHashFromSubqueries(
       this.config.chainId.toString(),
-      this.dataQuery ?? []
+      builtDataSubqueries
     );
-    const dataQueryStruct = this.buildDataQuery(this.dataQuery ?? []);
+    const dataQueryStruct = this.buildDataQuery(builtDataSubqueries);
 
     // Handle compute query
     let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
@@ -364,6 +373,19 @@ export class QueryBuilderV2 {
     return PaymentCalc.calculatePayment(this);
   }
 
+  /**
+   * Builds UnbuiltSubquery[] into DataSubquery[]
+   */
+  private async buildDataSubqueries(subqueries: UnbuiltSubquery[]): Promise<DataSubquery[]> {
+    let dataSubqueries: DataSubquery[] = [];
+    for (const subquery of subqueries) {
+      const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
+      let dataSubquery = await buildDataSubquery(this.config.provider, subquery, type);
+      dataSubqueries.push(dataSubquery);
+    }
+    return dataSubqueries;
+  }
+
   private encodeBuilderDataQuery(allSubqueries: DataSubquery[]): string {
     return encodeDataQuery(
       this.config.chainId, 
@@ -400,51 +422,52 @@ export class QueryBuilderV2 {
     const provider = this.config.provider;
     let validQuery = true;
     for (const subquery of this.dataQuery) {
-      switch (subquery.type) {
+      const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
+      switch (type) {
         case DataSubqueryType.Header:
           validQuery = validQuery && await validateHeaderSubquery(
             provider,
-            subquery.subqueryData as HeaderSubquery
+            subquery as UnbuiltHeaderSubquery
           );
           break;
         case DataSubqueryType.Account:
           validQuery = validQuery && await validateAccountSubquery(
             provider,
-            subquery.subqueryData as AccountSubquery
+            subquery as UnbuiltAccountSubquery
           );
           break;
         case DataSubqueryType.Storage:
           validQuery = validQuery && await validateStorageSubquery(
             provider,
-            subquery.subqueryData as StorageSubquery
+            subquery as UnbuiltStorageSubquery
           );
           break;
         case DataSubqueryType.Transaction:
           validQuery = validQuery && await validateTxSubquery(
             provider,
-            subquery.subqueryData as TxSubquery
+            subquery as UnbuiltTxSubquery
           );
           break;
         case DataSubqueryType.Receipt:
           validQuery = validQuery && await validateReceiptSubquery(
             provider,
-            subquery.subqueryData as ReceiptSubquery
+            subquery as UnbuiltReceiptSubquery
           );
           break;
         case DataSubqueryType.SolidityNestedMapping:
           validQuery = validQuery && await validateSolidityNestedMappingSubquery(
             provider,
-            subquery.subqueryData as SolidityNestedMappingSubquery
+            subquery as UnbuiltSolidityNestedMappingSubquery
           );
           break;
         case DataSubqueryType.BeaconValidator:
           validQuery = validQuery && await validateBeaconSubquery(
             provider,
-            subquery.subqueryData as BeaconValidatorSubquery
+            subquery as UnbuiltBeaconValidatorSubquery
           );
           break;
         default:
-          throw new Error(`Invalid subquery type: ${subquery.type}`);
+          throw new Error(`Invalid subquery type: ${type}`);
       }
     }
     return validQuery;

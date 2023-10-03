@@ -68,13 +68,8 @@ describe("Query Validation Tests", () => {
   test("Validate pass: Tx subquery", async () => {
     const query = aq.new();
     
-    const hash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
-    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, hash);
-    if (!blockNumber || !txIdx) {
-      throw new Error("Failed to get block number and tx idx");
-    }
-
-    const subquery = buildTxSubquery(blockNumber, txIdx)
+    const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
+    const subquery = buildTxSubquery(txHash)
       .field(TxField.To);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
@@ -84,10 +79,8 @@ describe("Query Validation Tests", () => {
   test("Validate pass: Tx subquery calldata", async () => {
     const query = aq.new();
 
-    const hash = "0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5";
-    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, hash) as { blockNumber: number, txIdx: number };
-
-    const subquery = buildTxSubquery(blockNumber, txIdx)
+    const txHash = "0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5";
+    const subquery = buildTxSubquery(txHash)
       .calldata(0);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
@@ -97,10 +90,8 @@ describe("Query Validation Tests", () => {
   test("Validate pass: Receipt subquery", async () => {
     const query = aq.new();
 
-    const hash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
-    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, hash) as { blockNumber: number, txIdx: number };
-
-    const subquery = buildReceiptSubquery(blockNumber, txIdx)
+    const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
+    const subquery = buildReceiptSubquery(txHash)
       .log(0)
       .topic(1)
       .eventSchema("Transfer(address,address,uint256)");
