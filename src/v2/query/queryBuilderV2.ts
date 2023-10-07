@@ -1,21 +1,10 @@
 import { ethers } from "ethers";
 import {
-  AccountSubquery,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
-  BeaconValidatorSubquery,
   DataSubqueryType,
-  HeaderSubquery,
-  ReceiptSubquery,
-  SolidityNestedMappingSubquery,
-  StorageSubquery,
-  TxSubquery,
-  encodeDataQuery,
-  DataSubquery,
-  Subquery,
   bytes32,
   encodeQueryV2,
-  AxiomV2DataQuery,
   getQuerySchemaHash,
   getQueryHashV2,
   getDataQueryHashFromSubqueries,
@@ -48,15 +37,16 @@ import {
 } from "./dataSubquery/validate";
 import {
   convertIpfsCidToBytes32,
-  writeStringIpfs, 
+  writeStringIpfs,
 } from "../../shared/ipfs";
 import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
-import { 
+import {
   buildDataQuery,
   buildDataSubqueries,
   buildDataSubquery,
   encodeBuilderDataQuery
 } from "./dataSubquery/build";
+import { calculateCalldataGas } from "./gasCalc";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -74,10 +64,11 @@ export class QueryBuilderV2 {
     options?: AxiomV2QueryOptions,
   ) {
     this.config = config;
-    
+
     this.options = {
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
+      dataQueryCalldataGasLimit: options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit,
     }
 
     if (dataQuery !== undefined) {
@@ -143,7 +134,7 @@ export class QueryBuilderV2 {
       this.computeQuery?.vkey ?? []
     );
   }
-  
+
   /**
    * Gets the hash of the data query
    * @returns Data query hash
@@ -202,7 +193,7 @@ export class QueryBuilderV2 {
 
   /**
    * Append a `UnbuiltSubquery[]` object to the current dataQuery
-   * @param dataQuery A `UnbuiltSubquery[]` object to append 
+   * @param dataQuery A `UnbuiltSubquery[]` object to append
    */
   append(dataSubqueries: UnbuiltSubquery[]): void {
     this.unsetBuiltQuery();
@@ -222,7 +213,7 @@ export class QueryBuilderV2 {
   /**
    * Appends a single subquery to the current dataQuery
    * @param dataSubquery The data of the subquery to append
-   * @param type (optional) The type of subquery to append. If not provided, the type will be 
+   * @param type (optional) The type of subquery to append. If not provided, the type will be
    *             inferred from the keys of the subquery.
    */
   appendDataSubquery(dataSubquery: UnbuiltSubquery): void {
@@ -237,7 +228,18 @@ export class QueryBuilderV2 {
       throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
-      throw new Error("Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.");
+      throw new Error(
+        "Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again."
+      );
+    }
+
+    // Check dataQuery gas cost
+    const dataQueryGasCost = calculateCalldataGas(this.builtQuery.dataQuery);
+    const dataQueryGasLimit = this?.options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit;
+    if (dataQueryGasCost > dataQueryGasLimit) {
+      throw new Error(
+        `Data query calldata gas cost ${dataQueryGasCost} exceeds limit ${dataQueryGasLimit}. Either increase this limit in options or use 'sendQueryWithIpfs()' instead.`
+      );
     }
 
     const axiomV2Query = new ethers.Contract(
@@ -273,7 +275,7 @@ export class QueryBuilderV2 {
     if (this.builtQuery === undefined) {
       throw new Error("Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.");
     }
-    
+
     // Handle encoding data and uploading to IPFS
     const encodedQuery = encodeQueryV2(
       this.builtQuery.sourceChainId,
@@ -294,10 +296,9 @@ export class QueryBuilderV2 {
       getAxiomQueryAbiForVersion(this.config.version),
       this.config.signer
     );
-    
+
     const tx = await axiomV2Query.sendQueryWithIpfsData(
       this.builtQuery.queryHash,
-      this.builtQuery.querySchema,
       ipfsHashBytes32,
       this.builtQuery.callback,
       this.builtQuery.maxFeePerGas,
@@ -328,7 +329,7 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Queries the required subquery data and builds the entire Query object into the format 
+   * Queries the required subquery data and builds the entire Query object into the format
    * that is required by the backend/ZK circuit
    * @returns A built Query object
    */
@@ -423,8 +424,22 @@ export class QueryBuilderV2 {
     return PaymentCalc.calculatePayment(this);
   }
 
+  async getCurrentBalance(): Promise<string> {
+    const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
+    const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
+    const userAddress = this.config.signer?.address;
+    if (userAddress === undefined) {
+      throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
+    }
+    return PaymentCalc.getCurrentBalance(
+      userAddress,
+      axiomQueryAddr,
+      axiomQueryAbi,
+    );
+  }
+
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
-    computeQuery.vkey = computeQuery.vkey.map((x) => bytes32(x));
+    computeQuery.vkey = computeQuery.vkey.map((x: string) => bytes32(x));
     return computeQuery;
   }
 
@@ -545,7 +560,7 @@ export class QueryBuilderV2 {
 
     // Check resultLen
     if (
-      this.callback.resultLen !== undefined && 
+      this.callback.resultLen !== undefined &&
       this.callback.resultLen > AxiomV2CircuitConstant.UserMaxOutputs
     ) {
       console.warn(`Callback resultLen is greater than maxOutputs (${AxiomV2CircuitConstant.UserMaxOutputs})`);

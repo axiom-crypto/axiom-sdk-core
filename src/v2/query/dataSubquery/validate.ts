@@ -46,7 +46,7 @@ export async function validateHeaderSubquery(
     console.warn(`Block number ${subquery.blockNumber} is in the future`);
   }
 
-  const value = await getHeaderFieldValue(provider, subquery);
+  const value = await getHeaderFieldValue(provider, subquery, console.warn);
   if (value === null) {
     console.error(`Header subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -70,7 +70,7 @@ export async function validateAccountSubquery(
     console.warn(`Block number ${subquery.blockNumber} is in the future`);
   }
 
-  const value = await getAccountFieldValue(provider, subquery);
+  const value = await getAccountFieldValue(provider, subquery, console.warn);
   if (value === null) {
     console.error(`Account subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -90,7 +90,7 @@ export async function validateStorageSubquery(
     console.warn(`Block number ${subquery.blockNumber} is in the future`);
   }
 
-  const value = await getStorageFieldValue(provider, subquery);
+  const value = await getStorageFieldValue(provider, subquery, console.warn);
   if (value === null) {
     console.error(`Storage subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -103,10 +103,10 @@ export async function validateTxSubquery(
   subquery: UnbuiltTxSubquery
 ): Promise<boolean> {
   if (
-    (subquery.fieldOrCalldataIdx > TxField.s && 
-    subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.TxTypeFieldIdx) ||
+    (subquery.fieldOrCalldataIdx > TxField.s &&
+      subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.TxTypeFieldIdx) ||
     (subquery.fieldOrCalldataIdx > AxiomV2FieldConstant.Tx.CalldataHashFieldIdx &&
-    subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.CalldataIdxOffset)
+      subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.CalldataIdxOffset)
   ) {
     console.error(`Invalid tx field/calldata index: ${subquery.fieldOrCalldataIdx}`);
     return false;
@@ -121,7 +121,7 @@ export async function validateTxSubquery(
     blockNumber,
     txIdx,
     fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
-  });
+  }, console.warn);
   if (value === null) {
     console.error(`Tx subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -134,10 +134,10 @@ export async function validateReceiptSubquery(
   subquery: UnbuiltReceiptSubquery
 ): Promise<boolean> {
   if (
-    (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas && 
-    subquery.fieldOrLogIdx < AxiomV2FieldConstant.Receipt.AddressIdx) ||
+    (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas &&
+      subquery.fieldOrLogIdx < AxiomV2FieldConstant.Receipt.AddressIdx) ||
     (subquery.fieldOrLogIdx > AxiomV2FieldConstant.Receipt.TxIndexFieldIdx &&
-    subquery.fieldOrLogIdx < AxiomV2FieldConstant.Receipt.LogIdxOffset)
+      subquery.fieldOrLogIdx < AxiomV2FieldConstant.Receipt.LogIdxOffset)
   ) {
     console.error(`Invalid receipt field/log index: ${subquery.fieldOrLogIdx}`);
     return false;
@@ -152,7 +152,7 @@ export async function validateReceiptSubquery(
     }
   }
   if (
-    subquery.topicOrDataOrAddressIdx > 4 && 
+    subquery.topicOrDataOrAddressIdx > 4 &&
     subquery.topicOrDataOrAddressIdx < AxiomV2FieldConstant.Receipt.LogIdxOffset &&
     subquery.topicOrDataOrAddressIdx !== AxiomV2FieldConstant.Receipt.AddressIdx
   ) {
@@ -171,7 +171,7 @@ export async function validateReceiptSubquery(
     fieldOrLogIdx: subquery.fieldOrLogIdx,
     topicOrDataOrAddressIdx: subquery.topicOrDataOrAddressIdx,
     eventSchema: subquery.eventSchema,
-  });
+  }, console.warn);
   if (value === null) {
     console.error(`Receipt subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -201,7 +201,7 @@ export async function validateSolidityNestedMappingSubquery(
     }
   }
 
-  const value = await getSolidityNestedMappingValue(provider, subquery);
+  const value = await getSolidityNestedMappingValue(provider, subquery, console.warn);
   if (value === null) {
     console.error(`Solidity nested mapping subquery ${JSON.stringify(subquery)} returned null`);
     return false;

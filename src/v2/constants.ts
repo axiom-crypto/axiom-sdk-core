@@ -3,6 +3,8 @@ import { ethers } from "ethers";
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGas: "0x05d21dba00",
   DefaultCallbackGasLimit: 200000,
+  DefaultDataQueryCalldataGasLimit: 100000,
+
   ProofGas: 500000,
   QueryBaseFeeGwei: 5000000,
 

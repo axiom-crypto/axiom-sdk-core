@@ -13,7 +13,7 @@ import {
 
 export type { QueryV2 } from "./query/queryV2";
 export type { QueryBuilderV2 } from "./query/queryBuilderV2";
-export { 
+export {
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   DataSubquery,
@@ -45,6 +45,7 @@ export interface DataQueryRequestV2 {
 export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
   callbackGasLimit?: number;
+  dataQueryCalldataGasLimit?: number;
 }
 
 export interface BuiltQueryV2 {
@@ -60,7 +61,7 @@ export interface BuiltQueryV2 {
   callbackGasLimit: number,
 }
 
-export interface UnbuiltSubquery {}
+export interface UnbuiltSubquery { }
 
 export interface UnbuiltHeaderSubquery extends UnbuiltSubquery {
   blockNumber: number;
