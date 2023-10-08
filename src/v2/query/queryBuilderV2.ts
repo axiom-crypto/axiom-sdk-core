@@ -424,19 +424,20 @@ export class QueryBuilderV2 {
     return PaymentCalc.calculatePayment(this);
   }
 
-  async getCurrentBalance(): Promise<string> {
-    const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
-    const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
-    const userAddress = this.config.signer?.address;
-    if (userAddress === undefined) {
-      throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
-    }
-    return PaymentCalc.getCurrentBalance(
-      userAddress,
-      axiomQueryAddr,
-      axiomQueryAbi,
-    );
-  }
+  // NOTE: Disabled until new contract is deployed
+  // async getCurrentBalance(): Promise<string> {
+  //   const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
+  //   const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
+  //   const userAddress = this.config.signer?.address;
+  //   if (userAddress === undefined) {
+  //     throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
+  //   }
+  //   return PaymentCalc.getCurrentBalance(
+  //     userAddress,
+  //     axiomQueryAddr,
+  //     axiomQueryAbi,
+  //   );
+  // }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
     computeQuery.vkey = computeQuery.vkey.map((x: string) => bytes32(x));
