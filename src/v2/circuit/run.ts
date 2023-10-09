@@ -51,9 +51,6 @@ const padInstances = (halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm) => {
         userInstances.push(witness);
     }
 
-    let lenWitness = halo2Lib.witness((numUserInstances / 2).toString());
-    userInstances = [lenWitness, ...userInstances];
-
     for (let i = numDataInstances; i < SUBQUERY_NUM_INSTANCES; i++) {
         let witness = halo2Lib.witness("0");
         dataInstances.push(witness);
