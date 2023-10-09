@@ -40,6 +40,7 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
+    "@axiom-crypto/halo2-js": "0.1.75",
     "@axiom-crypto/tools": "0.3.14",
     "axios": "^1.4.0",
     "bs58": "^5.0.0",

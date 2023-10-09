@@ -12,3 +12,5 @@ export {
   encodeQueryV1,
   encodeQueryV2,
 } from '@axiom-crypto/tools';
+
+export * from './v2/circuit';
