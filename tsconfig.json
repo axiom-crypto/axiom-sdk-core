@@ -10,7 +10,7 @@
     "importHelpers": true,
     "lib": [
       "es2020",
-      "es6",
+      "es6"
     ],
     "preserveSymlinks": true,
     "preserveWatchOutput": true,
@@ -19,7 +19,10 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "types": ["node", "jest"]
+    "types": [
+      "node",
+      "jest"
+    ]
   },
   "include": [
     "src/**/*.ts",

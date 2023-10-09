@@ -36,8 +36,7 @@ describe("Calculators", () => {
       query.appendDataSubquery(sq);
     }
     const builtQuery = await query.build();
-    console.log(builtQuery.dataQuery);
     const gas = calculateCalldataGas(builtQuery.dataQuery);
-    console.log("gas", gas);
+    expect(gas).toEqual(51264);
   });
 })

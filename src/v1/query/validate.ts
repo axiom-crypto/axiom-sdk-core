@@ -1,5 +1,5 @@
 import { BigNumberish, ethers } from "ethers";
-import { AccountState, QueryRow } from "../../shared/types";
+import { AccountState, QueryRow } from "../types";
 import { getAccountData, getFullBlock } from "@axiom-crypto/tools";
 
 // Ported from axiom-proving-service/services/query/responseValidation.ts

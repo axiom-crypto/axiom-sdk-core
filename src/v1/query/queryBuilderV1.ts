@@ -1,5 +1,5 @@
 import { ZeroAddress, ZeroHash, ethers, keccak256 } from "ethers";
-import { QueryBuilderResponse, QueryData, QueryRow, ResponseTree } from "../../shared/types";
+import { QueryBuilderResponse, QueryData, QueryRow, ResponseTree } from "../types";
 import {
   getBlockResponse,
   getFullAccountResponse,
@@ -7,11 +7,11 @@ import {
 } from "./response";
 import { encodeQuery, encodeQueryData, encodeRowHash } from "./encoder";
 import { InternalConfig } from "../../core/internalConfig";
-import { 
+import {
   concatHexStrings,
   sortAddress,
   sortBlockNumber,
-  sortSlot 
+  sortSlot
 } from "../../shared/utils";
 import { getAccountData } from "@axiom-crypto/tools";
 import { validateQueryRow } from "./validate";
@@ -32,7 +32,7 @@ export class QueryBuilderV1 {
   }
 
   /// Appends a `QueryRow` to the current `QueryBuilder` instance. If the `QueryBuilder`
-  /// has reached its maximum size, or if validation for that `QueryRow` fails then an 
+  /// has reached its maximum size, or if validation for that `QueryRow` fails then an
   /// error will be thrown.
   async append(queryRow: QueryRow) {
     const processedRow = await this.processQueryRow(queryRow);
@@ -40,10 +40,10 @@ export class QueryBuilderV1 {
     this.queries.push(processedRow);
   }
 
-  /// Appends a `QueryRow` to the current `QueryBuilder` instance without validating the 
-  /// the values first. If there are invalid values (such as the account address being an 
-  /// empty account at the specified block number), then the proof generation of the Query 
-  /// will fail after submitting the transaction, making it impossible to fulfill the 
+  /// Appends a `QueryRow` to the current `QueryBuilder` instance without validating the
+  /// the values first. If there are invalid values (such as the account address being an
+  /// empty account at the specified block number), then the proof generation of the Query
+  /// will fail after submitting the transaction, making it impossible to fulfill the
   /// Query on-chain.
   async appendWithoutValidation(queryRow: QueryRow) {
     const processedRow = await this.processQueryRow(queryRow);
