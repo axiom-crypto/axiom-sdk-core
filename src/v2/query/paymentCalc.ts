@@ -13,12 +13,13 @@ export class PaymentCalc {
   }
 
   static async getBalance(
+    providerUri: string,
     userAddress: string,
     axiomQueryAddress: string,
     axiomQueryAbi: any,
   ): Promise<string> {
-    console.log("getBalance", userAddress, axiomQueryAddress, axiomQueryAbi)
-    const contract = new ethers.Contract(axiomQueryAddress, axiomQueryAbi)
-    return await contract.balance(userAddress)
+    const provider = new ethers.JsonRpcProvider(providerUri);
+    const contract = new ethers.Contract(axiomQueryAddress, axiomQueryAbi, provider);
+    return await contract.balances(userAddress);
   }
 }

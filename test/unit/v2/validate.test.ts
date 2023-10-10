@@ -1,10 +1,8 @@
 import {
-  bytes32,
   getSlotForMapping,
   HeaderField,
   AccountField,
   TxField,
-  getBlockNumberAndTxIdx,
 } from "@axiom-crypto/tools";
 import {
   Axiom,
@@ -33,8 +31,8 @@ describe("Query Validation Tests", () => {
     chainId: 1,
   };
   const axiom = new Axiom(config);
-  const aq: QueryV2 = axiom.query;
-  
+  const aq = axiom.query as QueryV2;
+
   test("Validate pass: Header subquery", async () => {
     const query = aq.new();
     const subquery = buildHeaderSubquery(17000000)
@@ -67,7 +65,7 @@ describe("Query Validation Tests", () => {
 
   test("Validate pass: Tx subquery", async () => {
     const query = aq.new();
-    
+
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
     const subquery = buildTxSubquery(txHash)
       .field(TxField.To);
@@ -86,7 +84,7 @@ describe("Query Validation Tests", () => {
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
-  
+
   test("Validate pass: Receipt subquery", async () => {
     const query = aq.new();
 

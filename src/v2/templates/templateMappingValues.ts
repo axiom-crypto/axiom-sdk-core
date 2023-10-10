@@ -1,9 +1,17 @@
-import { DataSubquery, DataSubqueryType, StorageSubquery, getSlotForMapping } from "@axiom-crypto/tools";
+import {
+  DataSubquery,
+  DataSubqueryType,
+  getSlotForMapping,
+} from "@axiom-crypto/tools";
+import {
+  UnbuiltStorageSubquery,
+  UnbuiltSubquery,
+} from "../types";
 
 /**
  * Template for getting mapping values from a contract at a given block number. Useful
- * for getting balances for things like getting storage proofs of balanceOf for many 
- * addresses for an ERC20 contract or balance of NFTs for many addresses  for an 
+ * for getting balances for things like getting storage proofs of balanceOf for many
+ * addresses for an ERC20 contract or balance of NFTs for many addresses  for an
  * ERC721 contract.
  * @param blockNumber Block number to query
  * @param address Contract address
@@ -18,18 +26,15 @@ export function templateMappingValues(
   mappingSlot: string,
   mappingKeyType: string,
   keys: string[],
-): DataSubquery[] {
-  let dataQuery = [] as DataSubquery[];
+): UnbuiltSubquery[] {
+  let dataQuery = [] as UnbuiltSubquery[];
 
   for (const key of keys) {
     const slot = getSlotForMapping(mappingSlot, mappingKeyType, key);
-    const storageSubquery: DataSubquery = {
-      type: DataSubqueryType.Storage,
-      subqueryData: {
-        blockNumber,
-        addr: address,
-        slot,
-      }
+    const storageSubquery: UnbuiltStorageSubquery = {
+      blockNumber,
+      addr: address,
+      slot,
     };
 
     dataQuery.push(storageSubquery);

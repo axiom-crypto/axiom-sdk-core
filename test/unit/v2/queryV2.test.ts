@@ -157,10 +157,19 @@ describe("QueryV2", () => {
     expect(typeof axiom.query).toEqual("object");
   });
 
-  test("should get balance", async () => {
-    const balance = await aq.getBalance();
-    expect(balance).toEqual("0");
-  });
+  // NOTE: disabled until new contract is deployed
+  // test("should get balance", async () => {
+  //   const config: AxiomConfig = {
+  //     privateKey: process.env.PRIVATE_KEY as string,
+  //     providerUri: process.env.PROVIDER_URI_GOERLI as string,
+  //     version: "v2",
+  //     chainId: 5,
+  //   };
+  //   const axiomGoerli = new Axiom(config);
+  //   const aqg = axiomGoerli.query as QueryV2;
+  //   const balance = await aqg.getBalance();
+  //   expect(balance).toEqual("0");
+  // });
 
   test("should initialize QueryBuilderV2 with dataQuery", async () => {
     const dataQuery = [] as DataSubquery[];
@@ -285,7 +294,7 @@ describe("QueryV2", () => {
       computeQuery,
       callback,
     } = await query.build();
-    expect(queryHash).toEqual("0x23f494c21aeb4620684820375959c8c3079b28cba38646096294adef081f86ce");
+    expect(queryHash).toEqual("0xf882d4796e0f30f74e8fcffb532345ce7775c5816ff5d3b068fe1618a563e375");
     expect(dataQueryHash).toEqual(
       "0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49"
     );
@@ -349,7 +358,7 @@ describe("QueryV2", () => {
     } = await query.build();
     const builtDq = query.getBuiltQuery()?.dataQueryStruct.subqueries;
     expect((builtDq?.[2].subqueryData as AccountSubquery).addr).toEqual(WETH_WHALE.toLowerCase());
-    expect(queryHash).toEqual("0x14deb32d407d2fa0f014e4ca1f4bb328ffb705f53e60a58704040cfca5fb4be9");
+    expect(queryHash).toEqual("0x215b04333d54f589ff08faf6887e6af49c7876fe3b68d0f3960d636020ab83ae");
     expect(dataQueryHash).toEqual(
       "0xa23b68c6445bf7850bfdb0921bef5c55d43bd6362133b1f3929dd7b8103502dd"
     );

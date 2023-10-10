@@ -1,5 +1,12 @@
-import { DataSubquery, DataSubqueryType, getSlotForArray } from "@axiom-crypto/tools";
-import { DataQueryRequestV2 } from "../types";
+import {
+  DataSubquery,
+  DataSubqueryType,
+  getSlotForArray,
+} from "@axiom-crypto/tools";
+import {
+  UnbuiltStorageSubquery,
+  UnbuiltSubquery,
+} from "../types";
 
 /**
  * Gets a series of array values from a contract at a given block number.
@@ -20,11 +27,11 @@ export function templateArrayIndexValues(
   arrayIndexEnd: string,
   arrayIndexInterval: string,
   arrayType: string,
-): DataSubquery[] {
+): UnbuiltSubquery[] {
   if (BigInt(arrayIndexInterval) === 0n) {
     throw new Error("Array index interval must be greater than 0");
   }
-  let dataQuery = [] as DataSubquery[];
+  let dataQuery = [] as UnbuiltSubquery[];
 
   const bigIndexStart = BigInt(arrayIndexStart);
   const bigIndexEnd = BigInt(arrayIndexEnd);
@@ -32,13 +39,10 @@ export function templateArrayIndexValues(
   for (let i = bigIndexStart; i < bigIndexEnd; i += bigIndexInterval) {
     // Warning: This will return a packed slot if the arrayType is 16 bytes or less
     const slot = getSlotForArray(arraySlot, arrayType, i.toString());
-    const storageSubquery: DataSubquery = {
-      type: DataSubqueryType.Storage,
-      subqueryData: {
-        blockNumber,
-        addr: address,
-        slot,
-      }
+    const storageSubquery: UnbuiltStorageSubquery = {
+      blockNumber,
+      addr: address,
+      slot,
     };
 
     dataQuery.push(storageSubquery);

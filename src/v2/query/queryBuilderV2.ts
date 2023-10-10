@@ -435,6 +435,7 @@ export class QueryBuilderV2 {
       throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
     }
     const currentBalance = BigInt(await PaymentCalc.getBalance(
+      this.config.providerUri,
       userAddress,
       axiomQueryAddr,
       axiomQueryAbi,

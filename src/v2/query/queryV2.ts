@@ -48,6 +48,7 @@ export class QueryV2 extends Query {
       throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
     }
     return await PaymentCalc.getBalance(
+      this.config.providerUri,
       userAddress,
       axiomQueryAddr,
       axiomQueryAbi,

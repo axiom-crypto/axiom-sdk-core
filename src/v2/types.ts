@@ -1,21 +1,13 @@
 import {
-  AccountSubquery,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   AxiomV2DataQuery,
-  BeaconValidatorSubquery,
-  HeaderSubquery,
-  ReceiptSubquery,
-  SolidityNestedMappingSubquery,
-  StorageSubquery,
-  TxSubquery,
 } from "@axiom-crypto/tools";
 
-export type { QueryV2 } from "./query/queryV2";
-export type { QueryBuilderV2 } from "./query/queryBuilderV2";
 export {
   AxiomV2Callback,
   AxiomV2ComputeQuery,
+  AxiomV2DataQuery,
   DataSubquery,
   HeaderSubquery,
   AccountSubquery,
@@ -31,16 +23,6 @@ export {
   ReceiptField,
   AxiomV2FieldConstant,
 } from '@axiom-crypto/tools';
-
-export interface DataQueryRequestV2 {
-  headerSubqueries?: HeaderSubquery[];
-  accountSubqueries?: AccountSubquery[];
-  storageSubqueries?: StorageSubquery[];
-  txSubqueries?: TxSubquery[];
-  receiptSubqueries?: ReceiptSubquery[];
-  solidityNestedMappingSubqueries?: SolidityNestedMappingSubquery[];
-  beaconSubqueries?: BeaconValidatorSubquery[];
-}
 
 export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
