@@ -28,7 +28,13 @@ export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
   subquery: UnbuiltHeaderSubquery
 ): Promise<boolean> {
-  if (subquery.fieldIdx > HeaderField.WithdrawalsRoot) {
+  if (
+    (subquery.fieldIdx > HeaderField.WithdrawalsRoot &&
+      subquery.fieldIdx < AxiomV2FieldConstant.Header.HashFieldIdx) ||
+    (subquery.fieldIdx > AxiomV2FieldConstant.Header.ExtraDataLenFieldIdx &&
+      subquery.fieldIdx < AxiomV2FieldConstant.Header.LogsBloomFieldIdxOffset) ||
+    subquery.fieldIdx >= AxiomV2FieldConstant.Header.LogsBloomFieldIdxOffset + 8
+  ) {
     console.error(`Invalid header field index: ${subquery.fieldIdx}`);
     return false;
   }
