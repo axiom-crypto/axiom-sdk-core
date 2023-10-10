@@ -130,6 +130,7 @@ export class QueryBuilderV2 {
   getQuerySchema(): string {
     return getQuerySchemaHash(
       this.computeQuery?.k ?? 0,
+      this.computeQuery?.resultLen ?? this.getDefaultResultLen(),
       this.computeQuery?.vkey ?? []
     );
   }
@@ -367,22 +368,23 @@ export class QueryBuilderV2 {
     );
 
     // Handle compute query
+    let defaultResultLen = this.getDefaultResultLen();
     let computeQuery: AxiomV2ComputeQuery = {
       k: 0,
-      resultLen: this.dataQuery?.length ?? 0,
+      resultLen: defaultResultLen,
       vkey: [] as string[],
       computeProof: "0x00",
     }
     if (this.computeQuery !== undefined) {
       computeQuery.k = this.computeQuery.k;
-      computeQuery.resultLen = this?.computeQuery?.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs;
+      computeQuery.resultLen = this.computeQuery?.resultLen ?? defaultResultLen;
       computeQuery.vkey = this.computeQuery.vkey;
       computeQuery.computeProof = this.computeQuery.computeProof;
     }
 
     const querySchema = getQuerySchemaHash(
       computeQuery.k,
-      computeQuery.resultLen,
+      computeQuery.resultLen ?? defaultResultLen,
       computeQuery.vkey
     );
 
@@ -442,9 +444,12 @@ export class QueryBuilderV2 {
     return requiredPayment.toString();
   }
 
+  private getDefaultResultLen(): number {
+    return Math.min(this.dataQuery?.length ?? 0, AxiomV2CircuitConstant.UserMaxOutputs);
+  }
+
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
-    const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
-    computeQuery.resultLen = computeQuery.resultLen ? computeQuery.resultLen : numDataSubqueries;
+    computeQuery.resultLen = computeQuery.resultLen ?? this.getDefaultResultLen();
     computeQuery.vkey = computeQuery.vkey.map((x: string) => bytes32(x));
     return computeQuery;
   }
