@@ -6,10 +6,10 @@ settings:
 
 dependencies:
   '@axiom-crypto/halo2-js':
-    specifier: 0.1.80
+    specifier: ^0.1.80
     version: 0.1.80
   '@axiom-crypto/tools':
-    specifier: 0.3.21
+    specifier: ^0.3.21
     version: 0.3.21
   axios:
     specifier: ^1.4.0
