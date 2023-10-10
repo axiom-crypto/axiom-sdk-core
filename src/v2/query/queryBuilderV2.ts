@@ -43,8 +43,7 @@ import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
 import {
   buildDataQuery,
   buildDataSubqueries,
-  buildDataSubquery,
-  encodeBuilderDataQuery
+  encodeBuilderDataQuery,
 } from "./dataSubquery/build";
 import { calculateCalldataGas } from "./gasCalc";
 
@@ -368,14 +367,22 @@ export class QueryBuilderV2 {
     );
 
     // Handle compute query
-    let computeQuery: AxiomV2ComputeQuery = ConstantsV2.EmptyComputeQueryObject;
+    let computeQuery: AxiomV2ComputeQuery = {
+      k: 0,
+      resultLen: this.dataQuery?.length ?? 0,
+      vkey: [] as string[],
+      computeProof: "0x00",
+    }
     if (this.computeQuery !== undefined) {
       computeQuery.k = this.computeQuery.k;
+      computeQuery.resultLen = this?.computeQuery?.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs;
       computeQuery.vkey = this.computeQuery.vkey;
       computeQuery.computeProof = this.computeQuery.computeProof;
     }
+
     const querySchema = getQuerySchemaHash(
       computeQuery.k,
+      computeQuery.resultLen,
       computeQuery.vkey
     );
 
@@ -387,16 +394,10 @@ export class QueryBuilderV2 {
     );
 
     // Handle callback
-    let resultLen = this.dataQuery?.length ?? 0;
-    if (this.computeQuery !== undefined) {
-      resultLen = this.callback?.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs;
-    }
-    const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
     const callback = {
       callbackAddr: this.callback?.callbackAddr ?? ethers.ZeroAddress,
       callbackFunctionSelector:
         this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
-      resultLen,
       callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
     };
 
@@ -424,31 +425,33 @@ export class QueryBuilderV2 {
     return PaymentCalc.calculatePayment(this);
   }
 
-  // NOTE: Disabled until new contract is deployed
-  // async getCurrentBalance(): Promise<string> {
-  //   const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
-  //   const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
-  //   const userAddress = this.config.signer?.address;
-  //   if (userAddress === undefined) {
-  //     throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
-  //   }
-  //   return PaymentCalc.getCurrentBalance(
-  //     userAddress,
-  //     axiomQueryAddr,
-  //     axiomQueryAbi,
-  //   );
-  // }
+  async calculateRequiredPayment(): Promise<string> {
+    const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
+    const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
+    const userAddress = this.config.signer?.address;
+    if (userAddress === undefined) {
+      throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
+    }
+    const currentBalance = BigInt(await PaymentCalc.getBalance(
+      userAddress,
+      axiomQueryAddr,
+      axiomQueryAbi,
+    ));
+    const totalFee = BigInt(this.calculateFee());
+    const requiredPayment = totalFee - currentBalance;
+    return requiredPayment.toString();
+  }
 
   private handleComputeQueryRequest(computeQuery: AxiomV2ComputeQuery) {
+    const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
+    computeQuery.resultLen = computeQuery.resultLen ? computeQuery.resultLen : numDataSubqueries;
     computeQuery.vkey = computeQuery.vkey.map((x: string) => bytes32(x));
     return computeQuery;
   }
 
   private handleCallback(callback: AxiomV2Callback): AxiomV2Callback {
-    const numDataSubqueries = this.dataQuery ? this.dataQuery.length : 0;
     callback.callbackAddr = callback.callbackAddr.toLowerCase();
     callback.callbackExtraData = callback.callbackExtraData.toLowerCase();
-    callback.resultLen = callback.resultLen ? callback.resultLen : numDataSubqueries;
     callback.callbackFunctionSelector = callback.callbackFunctionSelector.toLowerCase();
     return callback;
   }
@@ -517,6 +520,15 @@ export class QueryBuilderV2 {
     }
     let valid = true;
 
+    // Check resultLen
+    if (
+      this.computeQuery.resultLen !== undefined &&
+      this.computeQuery.resultLen > AxiomV2CircuitConstant.UserMaxOutputs
+    ) {
+      console.warn(`Callback resultLen is greater than maxOutputs (${AxiomV2CircuitConstant.UserMaxOutputs})`);
+      valid = false;
+    }
+
     // Check that vkey and computeProof are not zero if k is nonzero
     if (this.computeQuery.k !== 0) {
       if (this.computeQuery.vkey.length === 0) {
@@ -556,15 +568,6 @@ export class QueryBuilderV2 {
     }
     if (!bytecode.includes(selector)) {
       console.warn("Callback function selector does not exist in callback address bytecode");
-      valid = false;
-    }
-
-    // Check resultLen
-    if (
-      this.callback.resultLen !== undefined &&
-      this.callback.resultLen > AxiomV2CircuitConstant.UserMaxOutputs
-    ) {
-      console.warn(`Callback resultLen is greater than maxOutputs (${AxiomV2CircuitConstant.UserMaxOutputs})`);
       valid = false;
     }
 

@@ -9,8 +9,8 @@ dependencies:
     specifier: 0.1.75
     version: 0.1.75
   '@axiom-crypto/tools':
-    specifier: 0.3.19
-    version: 0.3.19
+    specifier: 0.3.20
+    version: 0.3.20
   axios:
     specifier: ^1.4.0
     version: 1.5.1
@@ -98,8 +98,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@axiom-crypto/tools@0.3.19:
-    resolution: {integrity: sha512-UZDVRa4G1oIOGOmBTiiET/3riLCok/uOBcrolYWByIe76Z0RQs3XluuzZdavYYk/L6CdxKRD6614qsRgEhPLmA==}
+  /@axiom-crypto/tools@0.3.20:
+    resolution: {integrity: sha512-yQUCJ24y8BdQFcFEdVwrUlMbulNO6texHFHe+qsUwJCb1M6EkQihkzjZr+zJEbgoHisUbKQUoo4Y0cB4pFORmQ==}
     dependencies:
       ethers: 6.7.1
     transitivePeerDependencies:

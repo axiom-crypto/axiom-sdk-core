@@ -12,12 +12,13 @@ export class PaymentCalc {
     return payment.toString();
   }
 
-  static async getCurrentBalance(
+  static async getBalance(
     userAddress: string,
-    axiomQueryContractAddress: string,
+    axiomQueryAddress: string,
     axiomQueryAbi: any,
   ): Promise<string> {
-    const contract = new ethers.Contract(axiomQueryContractAddress, axiomQueryAbi)
+    console.log("getBalance", userAddress, axiomQueryAddress, axiomQueryAbi)
+    const contract = new ethers.Contract(axiomQueryAddress, axiomQueryAbi)
     return await contract.balance(userAddress)
   }
 }
