@@ -2,7 +2,8 @@ import { JsonRpcProvider } from "ethers";
 import { fetchDataQueries, getNewDataQuery, getCircuitValue256Witness, getCircuitValueWitness } from "./utils";
 import { SUBQUERY_NUM_INSTANCES, USER_COMPUTE_NUM_INSTANCES } from "./constants";
 import { getInputFunctionSignature } from "@axiom-crypto/halo2-js/shared/utils";
-import { Halo2LibWasm, Halo2Wasm, Halo2Lib, autoConfigCircuit, CircuitConfig } from "@axiom-crypto/halo2-js"
+import { Halo2Lib, autoConfigCircuit, CircuitConfig } from "@axiom-crypto/halo2-js";
+import { Halo2Wasm, Halo2LibWasm } from "@axiom-crypto/halo2-js/wasm/web";
 import { AxiomData } from "./data";
 
 const parseDataInputs = (halo2Lib: Halo2LibWasm, inputs: string) => {

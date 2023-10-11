@@ -1,6 +1,7 @@
 import { SolidityNestedMappingSubquery } from "@axiom-crypto/tools";
 import { CircuitValue256 } from "./CircuitValue256";
-import { Halo2LibWasm, Halo2Wasm, CircuitValue, RawCircuitInput } from "@axiom-crypto/halo2-js";
+import { CircuitValue, RawCircuitInput } from "@axiom-crypto/halo2-js";
+import { Halo2LibWasm } from "@axiom-crypto/halo2-js/wasm/web";
 import { getCircuitValue256Constant, getCircuitValueConstant, PrepData, getCircuitValue256FromCircuitValue } from "./utils";
 
 export interface SolidityMapping {

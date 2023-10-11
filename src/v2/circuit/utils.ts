@@ -15,7 +15,8 @@ import {
 } from "@axiom-crypto/tools";
 import { JsonRpcProvider } from "ethers";
 import { CircuitValue256 } from "./CircuitValue256";
-import { Halo2LibWasm, CircuitValue, convertInput, RawCircuitInput } from "@axiom-crypto/halo2-js";
+import { CircuitValue, convertInput, RawCircuitInput } from "@axiom-crypto/halo2-js";
+import { Halo2LibWasm } from "@axiom-crypto/halo2-js/wasm/web";
 
 export type DataQuery = {
   headerSubqueries: HeaderSubquery[],

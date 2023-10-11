@@ -1,4 +1,5 @@
-import { Halo2LibWasm, CircuitValue, convertInput } from "@axiom-crypto/halo2-js";
+import { CircuitValue, convertInput } from "@axiom-crypto/halo2-js";
+import { Halo2LibWasm } from "@axiom-crypto/halo2-js/wasm/web";
 
 export class CircuitValue256 {
   private _value: bigint;

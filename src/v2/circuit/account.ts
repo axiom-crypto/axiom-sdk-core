@@ -1,7 +1,7 @@
 import { AccountField, AccountSubquery } from "@axiom-crypto/tools";
 import { lowercase } from "./utils";
 import { PrepData } from "./utils";
-import { Halo2LibWasm, Halo2Wasm } from "@axiom-crypto/halo2-js";
+import { Halo2LibWasm, Halo2Wasm } from "@axiom-crypto/halo2-js/wasm/web";
 import { CircuitValue256 } from "./CircuitValue256";
 import { CircuitValue } from "@axiom-crypto/halo2-js";
 import { getCircuitValueConstant } from "./utils";
