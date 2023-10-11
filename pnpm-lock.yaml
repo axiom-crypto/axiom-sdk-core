@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@axiom-crypto/halo2-js':
-    specifier: file:~/axiom/halo2-js/dist
-    version: file:../halo2-js/dist
+    specifier: ^0.1.81
+    version: 0.1.81
   '@axiom-crypto/tools':
     specifier: ^0.3.21
     version: 0.3.21
@@ -72,6 +72,22 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.19
     dev: true
+
+  /@axiom-crypto/halo2-js@0.1.81:
+    resolution: {integrity: sha512-ImSTukq/ErEGIv1is6A+eSmJwGjwW6R1XzXaX/pv43wdW+B10u0Kf4l5zD5k1aQ5lhfV1vO3rpzl3rcY8VyPog==}
+    dependencies:
+      '@axiom-crypto/halo2-wasm': 0.1.46
+      '@axiom-crypto/tools': 0.3.21
+      ethers: 6.7.1
+      prettier: 1.18.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
+
+  /@axiom-crypto/halo2-wasm@0.1.46:
+    resolution: {integrity: sha512-9DwCsXfd1lWi1vrI5i81FpD+CL22ob7RTiaKzmdJcJJbIGhzJh9Q0IBDl3Uvovpi+EB80lxjE3XgAcAKcr4yEA==}
+    dev: false
 
   /@axiom-crypto/tools@0.3.21:
     resolution: {integrity: sha512-8zFW0aHlT9tckn0fbq4JyxI6YBP6tRseBkDZB5Uy/zxFqLP6xO9N2AsoMVBoMDL4/SuiCTUjQjVg1FIvyEhXmg==}
@@ -3491,23 +3507,5 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
-
-  file:../halo2-js/dist:
-    resolution: {directory: ../halo2-js/dist, type: directory}
-    name: '@axiom-crypto/halo2-js'
-    dependencies:
-      '@axiom-crypto/halo2-wasm': file:../halo2-wasm/pkg
-      '@axiom-crypto/tools': 0.3.21
-      ethers: 6.7.1
-      prettier: 1.18.2
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
-
-  file:../halo2-wasm/pkg:
-    resolution: {directory: ../halo2-wasm/pkg, type: directory}
-    name: '@axiom-crypto/halo2-wasm'
-    dev: false
 
 publishDirectory: dist
