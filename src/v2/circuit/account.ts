@@ -1,7 +1,7 @@
 import { AccountField, AccountSubquery } from "@axiom-crypto/tools";
 import { lowercase } from "./utils";
 import { PrepData } from "./utils";
-import { Halo2LibWasm, Halo2Wasm } from "@axiom-crypto/halo2-js/wasm/web";
+import { Halo2LibWasm, Halo2Wasm } from "@axiom-crypto/halo2-js";
 import { CircuitValue256 } from "./CircuitValue256";
 import { CircuitValue } from "@axiom-crypto/halo2-js";
 import { getCircuitValueConstant } from "./utils";
@@ -12,23 +12,23 @@ export interface Account extends AccountEnumKeyFields { };
 
 export const buildAccount = (blockNumber: CircuitValue, address: CircuitValue, halo2Lib: Halo2LibWasm, prepData: PrepData<AccountSubquery>) => {
 
-    const getSubquery = (fieldIdx: CircuitValue) => {
-        let accountSubquery: AccountSubquery = {
-            blockNumber: blockNumber.number(),
-            addr: address.address(),
-            fieldIdx: fieldIdx.number()
-        };
-        return prepData(accountSubquery, [blockNumber, address, fieldIdx]);
-    }
+  const getSubquery = (fieldIdx: CircuitValue) => {
+    let accountSubquery: AccountSubquery = {
+      blockNumber: blockNumber.number(),
+      addr: address.address(),
+      fieldIdx: fieldIdx.number()
+    };
+    return prepData(accountSubquery, [blockNumber, address, fieldIdx]);
+  }
 
-    const functions = Object.fromEntries(
-        Object.keys(AccountField).map((key) => {
-            return [lowercase(key), () => {
-                const accountField = getCircuitValueConstant(halo2Lib, AccountField[key as keyof typeof AccountField])
-                return getSubquery(accountField);
-            }]
-        })
-    ) as Account;
+  const functions = Object.fromEntries(
+    Object.keys(AccountField).map((key) => {
+      return [lowercase(key), () => {
+        const accountField = getCircuitValueConstant(halo2Lib, AccountField[key as keyof typeof AccountField])
+        return getSubquery(accountField);
+      }]
+    })
+  ) as Account;
 
-    return Object.freeze(functions);
+  return Object.freeze(functions);
 }
