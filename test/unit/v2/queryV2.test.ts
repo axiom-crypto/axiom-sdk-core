@@ -197,9 +197,8 @@ describe("QueryV2", () => {
       computeProof,
     };
     const callbackQuery = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const query = aq.new(dataQuery, computeQuery, callbackQuery);
     expect(typeof query).toEqual("object");
@@ -213,9 +212,8 @@ describe("QueryV2", () => {
       computeProof,
     };
     const callbackQuery = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
     const query = aq.new(dataQuery, computeQuery, callbackQuery, options);
@@ -263,9 +261,8 @@ describe("QueryV2", () => {
       computeProof,
     };
     const callbackQuery = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      callbackExtraData: bytes32(ethers.solidityPacked(["address"], [WETH_WHALE])),
+      target: WETH_ADDR,
+      extraData: bytes32(ethers.solidityPacked(["address"], [WETH_WHALE])),
     };
     const options = {};
     const query = aq.new(dataQuery, computeQueryReq, callbackQuery, options);
@@ -337,9 +334,8 @@ describe("QueryV2", () => {
       computeProof,
     };
     const callbackQuery = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options: AxiomV2QueryOptions = {
       maxFeePerGas: BigInt(100000000).toString(),
@@ -371,9 +367,8 @@ describe("QueryV2", () => {
     expect(computeQuery.vkey).toEqual(resizeArray(computeQueryReq.vkey, computeQueryReq.vkey.length, ethers.ZeroHash));
     expect(computeQuery.computeProof).toEqual(computeProof);
     expect(callback).toEqual({
-      callbackAddr: WETH_ADDR.toLowerCase(),
-      callbackExtraData: "0x2e15d7aa0650de1009710fdd45c3468d75ae1392",
-      callbackFunctionSelector: "0x70a08231",
+      target: WETH_ADDR.toLowerCase(),
+      extraData: "0x2e15d7aa0650de1009710fdd45c3468d75ae1392",
     });
   });
 
@@ -381,9 +376,8 @@ describe("QueryV2", () => {
     const query = aq.new();
 
     const callback: AxiomV2Callback = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     query.setCallback(callback);
 
@@ -398,9 +392,8 @@ describe("QueryV2", () => {
     const query = aq.new();
 
     const callback: AxiomV2Callback = {
-      callbackAddr: WETH_ADDR,
-      callbackFunctionSelector: getFunctionSelector("balanceOf", ["address"]),
-      callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     query.setCallback(callback);
     const computeQueryReq: AxiomV2ComputeQuery = {
@@ -421,21 +414,21 @@ describe("QueryV2", () => {
   test("Payment calculation based on options", () => {
     const query = aq.new();
     let fee = query.calculateFee();
-    expect(fee).toEqual("22500000000000000");
+    expect(fee).toEqual("18000000000000000");
 
     const options: AxiomV2QueryOptions = {
       maxFeePerGas: BigInt(10000000000).toString(),
     };
     query.setOptions(options);
     fee = query.calculateFee();
-    expect(fee).toEqual("12000000000000000");
+    expect(fee).toEqual("9000000000000000");
 
     query.setOptions({
       maxFeePerGas: "500000000000",
       callbackGasLimit: 1000000000,
     });
     fee = query.calculateFee();
-    expect(fee).toEqual("500255000000000000000");
+    expect(fee).toEqual("500203000000000000000");
   });
 
   test("Append a Header subquery", async () => {

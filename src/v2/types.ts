@@ -28,6 +28,7 @@ export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
   callbackGasLimit?: number;
   dataQueryCalldataGasLimit?: number;
+  refundee?: string;
 }
 
 export interface BuiltQueryV2 {
@@ -39,8 +40,9 @@ export interface BuiltQueryV2 {
   computeQuery: AxiomV2ComputeQuery;
   querySchema: string;
   callback: AxiomV2Callback;
+  userSalt: string;
   maxFeePerGas: string;
-  callbackGasLimit: number,
+  callbackGasLimit: number;
 }
 
 export interface UnbuiltSubquery { }

@@ -12,7 +12,37 @@
     },
     {
       "inputs": [],
+      "name": "AxiomHeaderVerifierAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "AxiomProverAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "AxiomResultStoreAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "CallbackExtraDataHashDoesNotMatch",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CallbackHashDoesNotMatchQueryWitness",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CanOnlyIncreaseGasOnActiveQuery",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CannotFulfillFromOffchainIfNotInactive",
       "type": "error"
     },
     {
@@ -32,6 +62,11 @@
     },
     {
       "inputs": [],
+      "name": "CannotRefundIfNotRefundee",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "ComputeResultsHashDoesNotMatch",
       "type": "error"
     },
@@ -47,12 +82,47 @@
     },
     {
       "inputs": [],
+      "name": "EscrowAmountExceedsBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "EscrowIsNotActive",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "GuardianAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientFunds",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NewMaxQueryPriMustBeLargerThanPrevious",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "NotAxiomRole",
       "type": "error"
     },
     {
       "inputs": [],
       "name": "NotProverRole",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "OnlyCallerCanIncreaseGas",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "OnlyPayeeCanUnescrow",
       "type": "error"
     },
     {
@@ -67,12 +137,47 @@
     },
     {
       "inputs": [],
-      "name": "QueryNotInactive",
+      "name": "QueryIsNotActive",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "QueryIsNotFulfilled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "QueryIsNotInactive",
       "type": "error"
     },
     {
       "inputs": [],
       "name": "SourceChainIdDoesNotMatch",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "TimelockAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UnescrowAmountExceedsEscrowedAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UnfreezeAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "VerifierAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "WithdrawalAmountExceedsFreeBalance",
       "type": "error"
     },
     {
@@ -132,7 +237,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "amt",
+          "name": "amount",
           "type": "uint256"
         }
       ],
@@ -150,14 +255,14 @@
         },
         {
           "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "amt",
+          "name": "amount",
           "type": "uint256"
         }
       ],
@@ -168,31 +273,6 @@
       "anonymous": false,
       "inputs": [],
       "name": "FreezeAll",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "payor",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amt",
-          "type": "uint256"
-        }
-      ],
-      "name": "IncreaseEscrow",
       "type": "event"
     },
     {
@@ -213,9 +293,9 @@
       "inputs": [
         {
           "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         }
       ],
       "name": "OffchainQueryFulfilled",
@@ -226,9 +306,40 @@
       "inputs": [
         {
           "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "deadlineBlockNumber",
+          "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "maxFeePerGas",
+          "type": "uint64"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint32",
+          "name": "callbackGasLimit",
+          "type": "uint32"
+        }
+      ],
+      "name": "QueryFeeInfoRecorded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "indexed": false,
@@ -245,9 +356,9 @@
       "inputs": [
         {
           "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "indexed": false,
@@ -270,27 +381,45 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "indexed": true,
           "internalType": "bytes32",
           "name": "queryHash",
           "type": "bytes32"
         },
         {
-          "indexed": false,
-          "internalType": "uint32",
-          "name": "deadlineBlockNumber",
-          "type": "uint32"
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "indexed": false,
-          "internalType": "uint64",
-          "name": "maxFeePerGas",
-          "type": "uint64"
+          "internalType": "bytes32",
+          "name": "userSalt",
+          "type": "bytes32"
         },
         {
           "indexed": false,
-          "internalType": "uint32",
-          "name": "callbackGasLimit",
-          "type": "uint32"
+          "internalType": "address",
+          "name": "refundee",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes",
+          "name": "extraData",
+          "type": "bytes"
         }
       ],
       "name": "QueryInitiatedOnchain",
@@ -301,15 +430,27 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "indexed": true,
           "internalType": "bytes32",
           "name": "queryHash",
           "type": "bytes32"
         },
         {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
+        },
+        {
           "indexed": false,
-          "internalType": "uint32",
-          "name": "deadlineBlockNumber",
-          "type": "uint32"
+          "internalType": "bytes32",
+          "name": "userSalt",
+          "type": "bytes32"
         },
         {
           "indexed": false,
@@ -319,15 +460,21 @@
         },
         {
           "indexed": false,
-          "internalType": "uint64",
-          "name": "maxFeePerGas",
-          "type": "uint64"
+          "internalType": "address",
+          "name": "refundee",
+          "type": "address"
         },
         {
           "indexed": false,
-          "internalType": "uint32",
-          "name": "callbackGasLimit",
-          "type": "uint32"
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes",
+          "name": "extraData",
+          "type": "bytes"
         }
       ],
       "name": "QueryInitiatedWithIpfsData",
@@ -338,44 +485,18 @@
       "inputs": [
         {
           "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "QueryRefunded",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "Refund",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "indexed": true,
           "internalType": "address",
-          "name": "payee",
+          "name": "refundee",
           "type": "address"
         }
       ],
-      "name": "Release",
+      "name": "QueryRefunded",
       "type": "event"
     },
     {
@@ -477,9 +598,9 @@
         },
         {
           "indexed": true,
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "indexed": true,
@@ -489,8 +610,14 @@
         },
         {
           "indexed": false,
+          "internalType": "address",
+          "name": "refundee",
+          "type": "address"
+        },
+        {
+          "indexed": false,
           "internalType": "uint256",
-          "name": "amtUsed",
+          "name": "amountUsed",
           "type": "uint256"
         }
       ],
@@ -619,7 +746,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "amt",
+          "name": "amount",
           "type": "uint256"
         },
         {
@@ -832,9 +959,9 @@
         {
           "components": [
             {
-              "internalType": "uint256",
-              "name": "snapshotNumBlocks",
-              "type": "uint256"
+              "internalType": "uint32",
+              "name": "snapshotPmmrSize",
+              "type": "uint32"
             },
             {
               "internalType": "bytes32[]",
@@ -865,23 +992,28 @@
           "components": [
             {
               "internalType": "address",
-              "name": "callbackAddr",
+              "name": "target",
               "type": "address"
             },
             {
-              "internalType": "bytes4",
-              "name": "callbackFunctionSelector",
-              "type": "bytes4"
-            },
-            {
               "internalType": "bytes",
-              "name": "callbackExtraData",
+              "name": "extraData",
               "type": "bytes"
             }
           ],
           "internalType": "struct IAxiomV2Query.AxiomV2Callback",
           "name": "callback",
           "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "caller",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "userSalt",
+          "type": "bytes32"
         }
       ],
       "name": "fulfillOffchainQuery",
@@ -894,9 +1026,9 @@
         {
           "components": [
             {
-              "internalType": "uint256",
-              "name": "snapshotNumBlocks",
-              "type": "uint256"
+              "internalType": "uint32",
+              "name": "snapshotPmmrSize",
+              "type": "uint32"
             },
             {
               "internalType": "bytes32[]",
@@ -927,22 +1059,49 @@
           "components": [
             {
               "internalType": "address",
-              "name": "callbackAddr",
+              "name": "target",
               "type": "address"
             },
             {
-              "internalType": "bytes4",
-              "name": "callbackFunctionSelector",
-              "type": "bytes4"
-            },
-            {
               "internalType": "bytes",
-              "name": "callbackExtraData",
+              "name": "extraData",
               "type": "bytes"
             }
           ],
           "internalType": "struct IAxiomV2Query.AxiomV2Callback",
           "name": "callback",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "caller",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "userSalt",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "queryHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "callbackHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "refundee",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct IAxiomV2Query.AxiomV2QueryWitness",
+          "name": "queryWitness",
           "type": "tuple"
         }
       ],
@@ -1015,9 +1174,9 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         },
         {
           "internalType": "uint64",
@@ -1134,9 +1293,9 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
+          "internalType": "uint256",
           "name": "",
-          "type": "bytes32"
+          "type": "uint256"
         }
       ],
       "name": "queries",
@@ -1153,22 +1312,12 @@
         },
         {
           "internalType": "address",
-          "name": "callerAddr",
-          "type": "address"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "callbackHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
           "name": "payee",
           "type": "address"
         },
         {
           "internalType": "uint256",
-          "name": "paymentAmt",
+          "name": "payment",
           "type": "uint256"
         }
       ],
@@ -1191,9 +1340,36 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "components": [
+            {
+              "internalType": "address",
+              "name": "caller",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "userSalt",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "queryHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "callbackHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "refundee",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct IAxiomV2Query.AxiomV2QueryWitness",
+          "name": "queryWitness",
+          "type": "tuple"
         }
       ],
       "name": "refundQuery",
@@ -1293,23 +1469,23 @@
           "components": [
             {
               "internalType": "address",
-              "name": "callbackAddr",
+              "name": "target",
               "type": "address"
             },
             {
-              "internalType": "bytes4",
-              "name": "callbackFunctionSelector",
-              "type": "bytes4"
-            },
-            {
               "internalType": "bytes",
-              "name": "callbackExtraData",
+              "name": "extraData",
               "type": "bytes"
             }
           ],
           "internalType": "struct IAxiomV2Query.AxiomV2Callback",
           "name": "callback",
           "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "userSalt",
+          "type": "bytes32"
         },
         {
           "internalType": "uint64",
@@ -1322,6 +1498,11 @@
           "type": "uint32"
         },
         {
+          "internalType": "address",
+          "name": "refundee",
+          "type": "address"
+        },
+        {
           "internalType": "bytes",
           "name": "dataQuery",
           "type": "bytes"
@@ -1330,9 +1511,9 @@
       "name": "sendQuery",
       "outputs": [
         {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
         }
       ],
       "stateMutability": "payable",
@@ -1354,23 +1535,23 @@
           "components": [
             {
               "internalType": "address",
-              "name": "callbackAddr",
+              "name": "target",
               "type": "address"
             },
             {
-              "internalType": "bytes4",
-              "name": "callbackFunctionSelector",
-              "type": "bytes4"
-            },
-            {
               "internalType": "bytes",
-              "name": "callbackExtraData",
+              "name": "extraData",
               "type": "bytes"
             }
           ],
           "internalType": "struct IAxiomV2Query.AxiomV2Callback",
           "name": "callback",
           "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "userSalt",
+          "type": "bytes32"
         },
         {
           "internalType": "uint64",
@@ -1381,10 +1562,21 @@
           "internalType": "uint32",
           "name": "callbackGasLimit",
           "type": "uint32"
+        },
+        {
+          "internalType": "address",
+          "name": "refundee",
+          "type": "address"
         }
       ],
       "name": "sendQueryWithIpfsData",
-      "outputs": [],
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "queryId",
+          "type": "uint256"
+        }
+      ],
       "stateMutability": "payable",
       "type": "function"
     },
@@ -1410,13 +1602,40 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "queryHash",
-          "type": "bytes32"
+          "components": [
+            {
+              "internalType": "address",
+              "name": "caller",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "userSalt",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "queryHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "callbackHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "address",
+              "name": "refundee",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct IAxiomV2Query.AxiomV2QueryWitness",
+          "name": "queryWitness",
+          "type": "tuple"
         },
         {
           "internalType": "uint256",
-          "name": "amtUsed",
+          "name": "amountUsed",
           "type": "uint256"
         }
       ],
@@ -1577,7 +1796,7 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "amt",
+          "name": "amount",
           "type": "uint256"
         },
         {

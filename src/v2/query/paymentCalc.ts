@@ -8,7 +8,7 @@ export class PaymentCalc {
       BigInt(query.getOptions().maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas) *
       (BigInt(query.getOptions().callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit) +
         BigInt(ConstantsV2.ProofGas)) +
-      ethers.parseUnits(ConstantsV2.QueryBaseFeeGwei.toString(), "gwei");
+      ethers.parseUnits(ConstantsV2.AxiomQueryBaseFeeGwei.toString(), "gwei");
     return payment.toString();
   }
 

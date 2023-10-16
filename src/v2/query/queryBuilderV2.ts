@@ -248,17 +248,23 @@ export class QueryBuilderV2 {
       this.config.signer
     );
 
+    // Get the refundee address
+    let signerAddress = await this.config.signer?.getAddress();
+    let refundee = this.options?.refundee ?? signerAddress;
+
     const tx = await axiomV2Query.sendQuery(
       this.builtQuery.sourceChainId,
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.userSalt,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
+      refundee,
       this.builtQuery.dataQuery,
       { value: paymentAmountWei }
     );
-    const receipt = await tx.wait();
+    const receipt: ethers.TransactionReceipt = await tx.wait();
 
     if (cb !== undefined) {
       cb(receipt);
@@ -276,14 +282,20 @@ export class QueryBuilderV2 {
       throw new Error("Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.");
     }
 
+    let caller = await this.config.signer?.getAddress();
+    let refundee = this.options?.refundee ?? caller;
+
     // Handle encoding data and uploading to IPFS
     const encodedQuery = encodeQueryV2(
       this.builtQuery.sourceChainId,
-      this.builtQuery.dataQueryStruct,
+      caller,
+      this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.userSalt,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
+      refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
     if (!ipfsHash) {
@@ -397,11 +409,11 @@ export class QueryBuilderV2 {
 
     // Handle callback
     const callback = {
-      callbackAddr: this.callback?.callbackAddr ?? ethers.ZeroAddress,
-      callbackFunctionSelector:
-        this.callback?.callbackFunctionSelector ?? ConstantsV2.EmptyBytes4,
-      callbackExtraData: this.callback?.callbackExtraData ?? ethers.ZeroHash,
+      target: this.callback?.target ?? ethers.ZeroAddress,
+      extraData: this.callback?.extraData ?? ethers.ZeroHash,
     };
+
+    const userSalt = this.calculateUserSalt();
 
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
@@ -412,6 +424,7 @@ export class QueryBuilderV2 {
       computeQuery,
       querySchema,
       callback,
+      userSalt,
       maxFeePerGas: this.options.maxFeePerGas!,
       callbackGasLimit: this.options.callbackGasLimit!,
     };
@@ -445,6 +458,10 @@ export class QueryBuilderV2 {
     return requiredPayment.toString();
   }
 
+  private calculateUserSalt(): string {
+    return ethers.hexlify(ethers.randomBytes(32));
+  }
+
   private getDefaultResultLen(): number {
     return Math.min(this.dataQuery?.length ?? 0, AxiomV2CircuitConstant.UserMaxOutputs);
   }
@@ -456,9 +473,8 @@ export class QueryBuilderV2 {
   }
 
   private handleCallback(callback: AxiomV2Callback): AxiomV2Callback {
-    callback.callbackAddr = callback.callbackAddr.toLowerCase();
-    callback.callbackExtraData = callback.callbackExtraData.toLowerCase();
-    callback.callbackFunctionSelector = callback.callbackFunctionSelector.toLowerCase();
+    callback.target = callback.target.toLowerCase();
+    callback.extraData = callback.extraData.toLowerCase();
     return callback;
   }
 
@@ -557,33 +573,19 @@ export class QueryBuilderV2 {
     let valid = true;
 
     // Check if callback address is a valid contract address
-    const bytecode = await this.config.provider.getCode(this.callback.callbackAddr);
+    const bytecode = await this.config.provider.getCode(this.callback.target);
     if (bytecode.length <= 2) {
       console.warn("Callback address is not a valid contract address");
       valid = false;
     }
 
-    // Check if function selector exists in bytecode
-    let selector = this.callback.callbackFunctionSelector;
-    if (selector.length !== 10) {
-      console.warn("Callback function selector is not 4 bytes");
-      valid = false;
-    }
-    if (selector.startsWith("0x")) {
-      selector = selector.slice(2);
-    }
-    if (!bytecode.includes(selector)) {
-      console.warn("Callback function selector does not exist in callback address bytecode");
-      valid = false;
-    }
-
     // Check if extra data is bytes32-aligned
-    let extraData = this.callback.callbackExtraData;
+    let extraData = this.callback.extraData;
     if (extraData.startsWith("0x")) {
       extraData = extraData.slice(2);
     }
     if (extraData.length % 64 !== 0) {
-      console.warn("Callback extra data is not bytes32-aligned");
+      console.warn("Callback extraData is not bytes32-aligned; EVM will automatically right-append zeros to data that is not a multiple of 32 bytes, which is probably not what you want.");
       valid = false;
     }
 

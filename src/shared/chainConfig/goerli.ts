@@ -1,3 +1,4 @@
+import { AxiomV2CircuitConstant } from "@axiom-crypto/tools";
 import { Endpoints, Path } from "../endpoints";
 
 export let versionDataGoerli: any = {
@@ -66,7 +67,7 @@ export let versionDataGoerli: any = {
   v2: {
     Addresses: {
       Axiom: "",
-      AxiomQuery: "0x8dde5d4a8384f403f888e1419672d94c570440c9",
+      AxiomQuery: "0x189be6043a1f2f8847f59030acc6ca64ab320bc8",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v2",
@@ -84,7 +85,7 @@ export let versionDataGoerli: any = {
       GetQuery: Path.Query + Endpoints.GetQuery,
     },
     Values: {
-      MaxQuerySize: 64,
+      MaxQuerySize: AxiomV2CircuitConstant.UserMaxSubqueries,
       QueryEncodingVersion: 2,
     },
   }
@@ -100,7 +101,7 @@ export let versionOverrideGoerliMock: any = {
   v2: {
     Addresses: {
       Axiom: "",
-      AxiomQuery: "0x8dde5d4a8384f403f888e1419672d94c570440c9",
+      AxiomQuery: "0x189be6043a1f2f8847f59030acc6ca64ab320bc8",
     },
   },
 };

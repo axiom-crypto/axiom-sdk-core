@@ -1,6 +1,6 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "2.2.20",
+  "version": "2.2.21",
   "description": "SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "author": "Intrinsic Technologies",
   "license": "MIT",
@@ -40,10 +40,10 @@
   },
   "dependencies": {
     "@axiom-crypto/halo2-js": "^0.1.81",
-    "@axiom-crypto/tools": "^0.3.21",
+    "@axiom-crypto/tools": "^0.3.22",
     "axios": "^1.4.0",
     "bs58": "^5.0.0",
-    "ethers": "^6.7.1",
+    "ethers": "^6.8.0",
     "merkletreejs": "^0.3.10"
   }
 }
