@@ -86,6 +86,6 @@ describe('Axiom Core tests', () => {
     const ax = new Axiom(config);
     const axiomV2QueryMock = ax.getAxiomQueryAddress();
 
-    expect(axiomV2QueryMock).toEqual("0x189be6043a1f2f8847f59030acc6ca64ab320bc8");
+    expect(axiomV2QueryMock).toEqual("0xa9656276a1eecc404fcd51d30ee0344ee02df8a7");
   });
 });
