@@ -20,7 +20,7 @@ describe("Quickstart V2", () => {
     };
     const overrides = {
       Addresses: {
-        AxiomQuery: "0x189be6043a1f2f8847f59030acc6ca64ab320bc8",
+        AxiomQuery: "0xca877abce11da215a50eca4d4a4ff0c2a73449a4",
       }
     }
     const axiom = new Axiom(config, overrides);
