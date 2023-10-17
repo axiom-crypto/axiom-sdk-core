@@ -9,8 +9,8 @@ dependencies:
     specifier: ^0.1.81
     version: 0.1.81
   '@axiom-crypto/tools':
-    specifier: ^0.3.22
-    version: 0.3.22
+    specifier: ^0.3.23
+    version: 0.3.23
   axios:
     specifier: ^1.4.0
     version: 1.5.1
@@ -77,7 +77,7 @@ packages:
     resolution: {integrity: sha512-ImSTukq/ErEGIv1is6A+eSmJwGjwW6R1XzXaX/pv43wdW+B10u0Kf4l5zD5k1aQ5lhfV1vO3rpzl3rcY8VyPog==}
     dependencies:
       '@axiom-crypto/halo2-wasm': 0.1.46
-      '@axiom-crypto/tools': 0.3.22
+      '@axiom-crypto/tools': 0.3.23
       ethers: 6.8.0
       prettier: 1.18.2
     transitivePeerDependencies:
@@ -89,8 +89,8 @@ packages:
     resolution: {integrity: sha512-9DwCsXfd1lWi1vrI5i81FpD+CL22ob7RTiaKzmdJcJJbIGhzJh9Q0IBDl3Uvovpi+EB80lxjE3XgAcAKcr4yEA==}
     dev: false
 
-  /@axiom-crypto/tools@0.3.22:
-    resolution: {integrity: sha512-s39y+QSXm1/RkAluYmS0sDgl+iJpxgkkjewvsnvnHsxQRXLE2+6P2rV0rI0CsvnTweJQNlWaFqWBLpY5HK7euw==}
+  /@axiom-crypto/tools@0.3.23:
+    resolution: {integrity: sha512-fEtGOmfGKcCCgsvpatd0uhVtLKyt59pCWgo8HzZ94tgtc3eMLacgYyzus6Y/qORRvzEzO0JJ4TmIYldvxos1GQ==}
     dependencies:
       ethers: 6.8.0
     transitivePeerDependencies:
