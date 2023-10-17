@@ -40,10 +40,10 @@ const parseDataInputs = (halo2Lib: Halo2LibWasm, inputs: string) => {
 }
 
 const padInstances = (halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm) => {
-  let userInstances = [...halo2Wasm.get_instances(0)];
+  let userInstances = [...halo2Wasm.getInstances(0)];
   const numUserInstances = userInstances.length;
 
-  const dataInstances = [...halo2Wasm.get_instances(1)];
+  const dataInstances = [...halo2Wasm.getInstances(1)];
   const numDataInstances = dataInstances.length;
 
   for (let i = numUserInstances; i < USER_COMPUTE_NUM_INSTANCES; i++) {
@@ -56,8 +56,9 @@ const padInstances = (halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm) => {
     dataInstances.push(witness);
   }
 
-  halo2Wasm.set_instances(new Uint32Array(userInstances), 0);
-  halo2Wasm.set_instances(new Uint32Array(dataInstances), 1);
+  halo2Wasm.setInstances(new Uint32Array(userInstances), 0);
+  halo2Wasm.setInstances(new Uint32Array(dataInstances), 1);
+  return { numUserInstances };
 }
 
 export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibWasm, config: CircuitConfig, provider: JsonRpcProvider) {
@@ -77,8 +78,8 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
     let results = await fetchDataQueries(provider, dataQuery, cachedResults);
 
-    padInstances(halo2Wasm, halo2LibWasm);
-    halo2Wasm.assign_instances();
+    const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
+    halo2Wasm.assignInstances();
 
     autoConfigCircuit(halo2Wasm, config);
 
@@ -86,6 +87,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
       dataQuery,
       results,
       config,
+      numUserInstances,
     }
   }
 
@@ -100,16 +102,17 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
     await f(halo2Lib, axiomData, parsedInputs);
 
-    padInstances(halo2Wasm, halo2LibWasm);
+    const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
 
     let results = await fetchDataQueries(provider, dataQuery);
     return {
       results,
-      dataQuery
+      dataQuery,
+      numUserInstances,
     };
   }
 
-  async function runFromString(code: string, inputs: string, { results, firstPass }: { results: { [key: string]: string }, firstPass?: boolean }): Promise<{ config: CircuitConfig }> {
+  async function runFromString(code: string, inputs: string, { results, firstPass }: { results: { [key: string]: string }, firstPass?: boolean }) {
     halo2Wasm.clear();
     if (firstPass == undefined) firstPass = true;
 
@@ -125,8 +128,8 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     let fn = eval(`let {${halo2LibFns.join(", ")}} = halo2Lib; let {${axiomDataFns.join(", ")}} = axiomData; (async function({${functionInputs}}) { ${code} })`);
     await fn(parsedInputs);
 
-    padInstances(halo2Wasm, halo2LibWasm);
-    halo2Wasm.assign_instances();
+    const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
+    halo2Wasm.assignInstances();
 
     let newConfig = config;
 
@@ -137,7 +140,8 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     }
 
     return {
-      config: newConfig
+      config: newConfig,
+      numUserInstances
     }
   }
 
@@ -152,8 +156,11 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
     await f(halo2Lib, axiomData, parsedInputs);
 
-    padInstances(halo2Wasm, halo2LibWasm);
-    halo2Wasm.assign_instances();
+    const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
+    halo2Wasm.assignInstances();
+    return {
+      numUserInstances
+    };
   }
 
   return Object.freeze({

@@ -26,6 +26,7 @@
     "crypto"
   ],
   "devDependencies": {
+    "@axiom-crypto/halo2-wasm": "^0.1.50",
     "@swc/cli": "^0.1.62",
     "@swc/core": "^1.3.78",
     "@swc/jest": "^0.2.29",
@@ -39,7 +40,7 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
-    "@axiom-crypto/halo2-js": "^0.1.81",
+    "@axiom-crypto/halo2-js": "^0.1.85",
     "@axiom-crypto/tools": "^0.3.23",
     "axios": "^1.4.0",
     "bs58": "^5.0.0",
