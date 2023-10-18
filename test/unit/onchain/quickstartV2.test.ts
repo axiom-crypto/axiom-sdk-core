@@ -20,7 +20,7 @@ describe("Quickstart V2", () => {
     };
     const overrides = {
       Addresses: {
-        AxiomQuery: "0x0aa81b0b21c72afe5cb2cd63ca7882fd8ef0d36b",
+        AxiomQuery: "0x0aa81B0b21C72AfE5cb2Cd63cA7882FD8Ef0D36b",
       }
     }
     const axiom = new Axiom(config, overrides);
@@ -51,7 +51,7 @@ describe("Quickstart V2", () => {
       .functionSelector();
     query.appendDataSubquery(txSubquery);
 
-    const exampleClientAddr = "0x939c4f4ee93603b27e8a9eb0459e574f4fed9bdb";
+    const exampleClientAddr = "0xbc114c1edf6c018d25d10aa2974ba7c37532841f";
     const callback: AxiomV2Callback = {
       target: exampleClientAddr,
       extraData: bytes32(0),
