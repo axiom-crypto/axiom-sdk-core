@@ -12,13 +12,9 @@ const config: AxiomConfig = {
   providerUri: process.env.PROVIDER_URI_GOERLI as string,
   version: "v2",
   chainId: 5, // Goerli
+  mock: true,
 };
-const overrides = {
-  Addresses: {
-    AxiomQuery: "AxiomV2Query override address",
-  },
-};
-const axiom = new Axiom(config, overrides); // `overrides` is optional
+const axiom = new Axiom(config);
 const query = (axiom.query as QueryV2).new();
 ```
 
@@ -43,8 +39,8 @@ const headerSubquery = buildHeaderSubquery(BLOCK_NUM)
   .field(HeaderField.GasUsed);
 query.appendDataSubquery(headerSubquery);
 
-// Appends a receipt subquery for transaction 
-// 0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b in which we look at 
+// Appends a receipt subquery for transaction
+// 0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b in which we look at
 // log index 4 (Transfer (index_topic_1 address from, index_topic_2 address to, uint256 value))
 // and the second topic (indexed address to) of that log event
 const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
@@ -52,7 +48,7 @@ const swapEventSchema = getEventSchema(
   "Swap(address,uint256,uint256,uint256,uint256,address)"
 );
 const receiptSubquery = buildReceiptSubquery(txHash)
-  .log(4) // event 
+  .log(4) // event
   .topic(0) // event schema
   .eventSchema(swapEventSchema);
 query.appendDataSubquery(receiptSubquery);
@@ -69,9 +65,8 @@ const mappingSubquery = buildSolidityNestedMappingSubquery(BLOCK_NUM)
 query.appendDataSubquery(mappingSubquery);
 
 const callbackQuery = {
-  callbackAddr: WETH_ADDR,
-  callbackFunctionSelector: getFunctionSelector("balanceOf(address)"),
-  callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+  target: WETH_ADDR,
+  extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
 };
 
 query.setCallback(callbackQuery);
@@ -104,10 +99,8 @@ const dataQuery = [
 ];
 
 const callbackQuery = {
-  callbackAddr: WETH_ADDR,
-  callbackFunctionSelector: getFunctionSelector("balanceOf(address)"]),
-  resultLen: 3,
-  callbackExtraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+  target: WETH_ADDR,
+  extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
 };
 
 const query = (axiom.query as QueryV2).new(
@@ -139,27 +132,31 @@ Once a `Query` has been built, it can be submitted via two methods: On-chain or 
 const payment = query.calculateFee();
 await query.sendOnchainQuery(
   payment,
-  (receipt: ethers.TransactionReceipt) => {
-    // do something here
+  (receipt: ethers.ContractTransactionReceipt, queryId: string) => {
+    // You can do something here once you've received the transaction receipt
     console.log("receipt", receipt);
+    console.log("queryId", queryId);
   }
 );
 ```
 
 ### Submitting a Query: IPFS
 
+// WIP: will be supported soon
+
 ```typescript
 // ensure you've already called `await query.build()`
 const payment = query.calculateFee();
 await query.sendQueryWithIpfs(
   payment,
-  (receipt: ethers.TransactionReceipt) => {
-    // do something here
+  (receipt: ethers.ContractTransactionReceipt, queryId: string) => {
+    // You can do something here once you've received the transaction receipt
     console.log("receipt", receipt);
+    console.log("queryId", queryId);
   }
 );
 ```
 
 # Additional examples
 
-There are also numerous up-to-date examples in the `test/unit/v2/` folder. Some slightly older examples exist in the [Examples V2 repo](https://github.com/axiom-crypto/examples-v2). 
+There are also numerous up-to-date examples in the `test/unit/v2/` folder. Some slightly older examples exist in the [Examples V2 repo](https://github.com/axiom-crypto/examples-v2).
