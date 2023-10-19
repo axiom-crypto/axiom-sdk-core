@@ -101,7 +101,7 @@ export let versionOverrideGoerliMock: any = {
   v2: {
     Addresses: {
       Axiom: "",
-      AxiomQuery: "0x0aa81B0b21C72AfE5cb2Cd63cA7882FD8Ef0D36b",
+      AxiomQuery: "0x28CeE427fCD58e5EF1cE4C93F877b621E2Db66df",
     },
   },
 };
