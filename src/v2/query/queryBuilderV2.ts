@@ -274,8 +274,12 @@ export class QueryBuilderV2 {
         const queryInitiated = receipt.logs.find(
           (log: ethers.Log) => log.topics[0] === ConstantsV2.QueryInitiatedOnchainSchema
         );
-        const queryId = queryInitiated?.topics[3];
-        cb(receipt, queryId ?? "");
+        const queryIdRaw = queryInitiated?.topics[3];
+        let queryId = BigInt(queryIdRaw ?? "").toString();
+        if (queryIdRaw === undefined) {
+          queryId = "";
+        }
+        cb(receipt, queryId);
       } else {
         cb(receipt, "");
       }
@@ -339,8 +343,12 @@ export class QueryBuilderV2 {
         const queryInitiated = receipt.logs.find(
           (log: ethers.Log) => log.topics[0] === ConstantsV2.QueryInitiatedWithIpfsDataSchema
         );
-        const queryId = queryInitiated?.topics[3];
-        cb(receipt, queryId ?? "");
+        const queryIdRaw = queryInitiated?.topics[3];
+        let queryId = BigInt(queryIdRaw ?? "").toString();
+        if (queryIdRaw === undefined) {
+          queryId = "";
+        }
+        cb(receipt, queryId);
       } else {
         cb(receipt, "");
       }
