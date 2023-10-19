@@ -91,7 +91,7 @@ export const buildAccountSubquery = (blockNumber: number | string | BigInt) => {
     validateAddress(address);
 
     /**
-     * End of the builder chain for an Account subquery. Specifies the AccountField to 
+     * End of the builder chain for an Account subquery. Specifies the AccountField to
      * query.
      * @param field AccountField to query
      * @returns UnbuiltAccountSubquery struct
@@ -130,7 +130,7 @@ export const buildStorageSubquery = (blockNumber: number | string | BigInt) => {
     validateAddress(address);
 
     /**
-     * End of the builder chain for a Storage subquery. Specifies the storage slot to 
+     * End of the builder chain for a Storage subquery. Specifies the storage slot to
      * query.
      * @param slot Storage slot to query
      * @returns UnbuiltStorageSubquery struct
@@ -165,7 +165,7 @@ export const buildTxSubquery = (
   validateBytes32(txHash);
 
   /**
-   * End of builder chain for a Transaction subquery. 
+   * End of builder chain for a Transaction subquery.
    * @param field The TxField to query
    * @returns UnbuiltTxSubquery struct
    */
@@ -177,7 +177,7 @@ export const buildTxSubquery = (
   }
 
   /**
-   * End of the builder chain for a Transaction subquery. Specifies the calldata data index 
+   * End of the builder chain for a Transaction subquery. Specifies the calldata data index
    * (as an array of bytes32 after the 4-byte function selector) to query.
    * @param dataIdx Calldata index (bytes as bytes32 array) to query
    * @returns UnbuiltTxSubquery struct
@@ -221,7 +221,7 @@ export const buildTxSubquery = (
    * End of the builder chain for a Transaction subquery. Queries the block number.
    * @returns UnbuiltTxSubquery struct
    */
-  const blockNumberQuery = (): UnbuiltTxSubquery => {
+  const blockNumber = (): UnbuiltTxSubquery => {
     return {
       txHash,
       fieldOrCalldataIdx: getFieldIdxTxBlockNumber(),
@@ -251,7 +251,7 @@ export const buildTxSubquery = (
   }
 
   /**
-   * End of the builder chain for a Transaction subquery. Queries the keccak256 hash of 
+   * End of the builder chain for a Transaction subquery. Queries the keccak256 hash of
    * the transaction's calldata.
    * @returns UnbuiltTxSubquery struct
    */
@@ -267,7 +267,7 @@ export const buildTxSubquery = (
     calldata,
     contractData,
     txType,
-    blockNumberQuery,
+    blockNumber,
     txIndex,
     functionSelector,
     calldataHash,
@@ -285,7 +285,7 @@ export const buildReceiptSubquery = (
 
   /**
    * End of the builder chain for a Receipt subquery. Specifies the ReceiptField to query.
-   * @param field 
+   * @param field
    * @returns UnbuiltReceiptSubquery struct
    */
   const field = (field: ReceiptField): UnbuiltReceiptSubquery => {
@@ -315,7 +315,7 @@ export const buildReceiptSubquery = (
   }
 
   /**
-   * Continues building a Receipt subquery for a log (event) index. 
+   * Continues building a Receipt subquery for a log (event) index.
    * @param logIdx Index of the log event to query
    */
   const log = (logIdx: number) => {
@@ -345,14 +345,14 @@ export const buildReceiptSubquery = (
           eventSchema,
         }
       }
-      
+
       return Object.freeze({
         eventSchema,
       });
     }
 
     /**
-     * Continues building a Receipt subquery. Specifies the data index of the 
+     * Continues building a Receipt subquery. Specifies the data index of the
      * log to query.
      * @param dataIdx Index of the data to query (bytes as bytes32 array)
      */
@@ -367,7 +367,7 @@ export const buildReceiptSubquery = (
       const eventSchema = (eventSchema: string): UnbuiltReceiptSubquery => {
         eventSchema = eventSchema.startsWith("0x") ? eventSchema : getEventSchema(eventSchema);
         validateBytes32(eventSchema);
-        
+
         return {
           txHash,
           fieldOrLogIdx: logIdx,
@@ -382,7 +382,7 @@ export const buildReceiptSubquery = (
     }
 
     /**
-     * End of the builder chain for a Receipt subquery. Specifies querying the address 
+     * End of the builder chain for a Receipt subquery. Specifies querying the address
      * of the log event.
      * @returns UnbuiltReceiptSubquery struct
      */
@@ -419,7 +419,7 @@ export const buildReceiptSubquery = (
    * End of the builder chain for a Receipt subquery. Queries the block number.
    * @returns UnbuiltReceiptSubquery struct
    */
-  const blockNumberQuery = (): UnbuiltReceiptSubquery => {
+  const blockNumber = (): UnbuiltReceiptSubquery => {
     return {
       txHash,
       fieldOrLogIdx: getFieldIdxReceiptBlockNumber(),
@@ -446,7 +446,7 @@ export const buildReceiptSubquery = (
     logsBloom,
     log,
     txType,
-    blockNumberQuery,
+    blockNumber,
     txIndex,
   });
 }
@@ -460,15 +460,15 @@ export const buildSolidityNestedMappingSubquery = (blockNumber: number | string 
   const blockNumberNum = Number(blockNumber.toString());
 
   /**
-   * Continues building a Solidity Nested Mapping subquery. Specifies the contract address 
+   * Continues building a Solidity Nested Mapping subquery. Specifies the contract address
    * to query.
    * @param address Contract address to query
    */
   const address = (address: string) => {
     validateAddress(address);
-    
+
     /**
-     * Continues building a Solidity Nested Mapping subquery. Specifies the slot of the 
+     * Continues building a Solidity Nested Mapping subquery. Specifies the slot of the
      * mapping in the contract.
      * @param mappingSlot Slot of the mapping in the contract to query.
      */
