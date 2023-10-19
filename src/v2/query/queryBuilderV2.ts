@@ -66,11 +66,7 @@ export class QueryBuilderV2 {
   ) {
     this.config = config;
 
-    this.options = {
-      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
-      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
-      dataQueryCalldataGasLimit: options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit,
-    }
+    this.options = this.setOptions(options ?? {});
 
     if (dataQuery !== undefined) {
       this.append(dataQuery);
@@ -188,9 +184,15 @@ export class QueryBuilderV2 {
     this.callback = this.handleCallback(callback);
   }
 
-  setOptions(options: AxiomV2QueryOptions) {
+  setOptions(options: AxiomV2QueryOptions): AxiomV2QueryOptions {
     this.unsetBuiltQuery();
-    this.options = options;
+    this.options = {
+      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
+      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
+      dataQueryCalldataGasLimit: options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit,
+      refundee: options?.refundee,
+    }
+    return this.options;
   }
 
   /**
@@ -251,6 +253,8 @@ export class QueryBuilderV2 {
     );
 
     const queryId = await this.getQueryId();
+
+    console.log(this.builtQuery);
 
     const tx = await axiomV2Query.sendQuery(
       this.builtQuery.sourceChainId,

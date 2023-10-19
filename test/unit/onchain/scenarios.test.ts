@@ -12,6 +12,7 @@ import {
   HeaderField,
   buildAccountSubquery,
   AccountField,
+  AxiomV2QueryOptions,
 } from "../../../src";
 
 describe("Quickstart V2", () => {
@@ -28,6 +29,10 @@ describe("Quickstart V2", () => {
 
   test("Send a small on-chain Query", async () => {
     const query = (axiom.query as QueryV2).new();
+    const options: AxiomV2QueryOptions = {
+      callbackGasLimit: 1000000
+    }
+    query.setOptions(options);
 
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
     const swapEventSchema = getEventSchema(
