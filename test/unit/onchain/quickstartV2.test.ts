@@ -63,13 +63,13 @@ describe("Quickstart V2", () => {
     }
     await query.build();
     const paymentAmt = query.calculateFee();
-    await query.sendOnchainQuery(
+    const queryId = await query.sendOnchainQuery(
       paymentAmt,
-      (receipt: ethers.ContractTransactionReceipt, queryId: string) => {
-        // You can do something here once you've received the receipt
+      (receipt: ethers.ContractTransactionReceipt) => {
+        // You can do something here once you've received the transaction receipt
         console.log("receipt", receipt);
-        console.log("queryId", queryId);
       }
     );
+    console.log("queryId", queryId);
   }, 40000);
 });

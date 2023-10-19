@@ -40,8 +40,10 @@ export interface BuiltQueryV2 {
   computeQuery: AxiomV2ComputeQuery;
   querySchema: string;
   callback: AxiomV2Callback;
+  userSalt: string;
   maxFeePerGas: string;
   callbackGasLimit: number;
+  refundee: string;
 }
 
 export interface UnbuiltSubquery { }

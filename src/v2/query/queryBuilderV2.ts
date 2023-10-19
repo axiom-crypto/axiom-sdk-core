@@ -9,6 +9,8 @@ import {
   getQueryHashV2,
   getDataQueryHashFromSubqueries,
   AxiomV2CircuitConstant,
+  getQueryId,
+  getCallbackHash,
 } from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -222,8 +224,8 @@ export class QueryBuilderV2 {
 
   async sendOnchainQuery(
     paymentAmountWei: string,
-    cb?: (receipt: ethers.ContractTransactionReceipt, queryId: string) => void
-  ) {
+    cb?: (receipt: ethers.ContractTransactionReceipt) => void
+  ): Promise<string> {
     if (this.config.signer === undefined) {
       throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
@@ -248,48 +250,33 @@ export class QueryBuilderV2 {
       this.config.signer
     );
 
-    // Get the refundee address
-    let signerAddress = await this.config.signer?.getAddress();
-    let refundee = this.options?.refundee ?? signerAddress;
-
-    // Calculate a salt
-    const userSalt = this.calculateUserSalt();
+    const queryId = await this.getQueryId();
 
     const tx = await axiomV2Query.sendQuery(
       this.builtQuery.sourceChainId,
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
-      userSalt,
+      this.builtQuery.userSalt,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
-      refundee,
+      this.builtQuery.refundee,
       this.builtQuery.dataQuery,
       { value: paymentAmountWei }
     );
     const receipt: ethers.ContractTransactionReceipt = await tx.wait();
 
     if (cb !== undefined) {
-      if (receipt.status === 1) {
-        const queryInitiated = receipt.logs.find(
-          (log: ethers.Log) => log.topics[0] === ConstantsV2.QueryInitiatedOnchainSchema
-        );
-        const queryIdRaw = queryInitiated?.topics[3];
-        let queryId = BigInt(queryIdRaw ?? "").toString();
-        if (queryIdRaw === undefined) {
-          queryId = "";
-        }
-        cb(receipt, queryId);
-      } else {
-        cb(receipt, "");
-      }
+      cb(receipt);
     }
+
+    return queryId;
   }
 
   async sendQueryWithIpfs(
     paymentAmountWei: string,
-    cb?: (receipt: ethers.ContractTransactionReceipt, queryId: string) => void
-  ) {
+    cb?: (receipt: ethers.ContractTransactionReceipt) => void
+  ): Promise<string> {
     if (this.config.signer === undefined) {
       throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
     }
@@ -297,11 +284,7 @@ export class QueryBuilderV2 {
       throw new Error("Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.");
     }
 
-    let caller = await this.config.signer?.getAddress();
-    let refundee = this.options?.refundee ?? caller;
-
-    // Calculate a salt
-    const userSalt = this.calculateUserSalt();
+    const caller = await this.config.signer?.getAddress();
 
     // Handle encoding data and uploading to IPFS
     const encodedQuery = encodeQueryV2(
@@ -310,10 +293,10 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
-      userSalt,
+      this.builtQuery.userSalt,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
-      refundee,
+      this.builtQuery.refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
     if (!ipfsHash) {
@@ -327,11 +310,13 @@ export class QueryBuilderV2 {
       this.config.signer
     );
 
+    const queryId = await this.getQueryId();
+
     const tx = await axiomV2Query.sendQueryWithIpfsData(
       this.builtQuery.queryHash,
       ipfsHashBytes32,
       this.builtQuery.callback,
-      userSalt,
+      this.builtQuery.userSalt,
       this.builtQuery.maxFeePerGas,
       this.builtQuery.callbackGasLimit,
       { value: paymentAmountWei }
@@ -339,20 +324,10 @@ export class QueryBuilderV2 {
     const receipt = await tx.wait();
 
     if (cb !== undefined) {
-      if (receipt.status === 1) {
-        const queryInitiated = receipt.logs.find(
-          (log: ethers.Log) => log.topics[0] === ConstantsV2.QueryInitiatedWithIpfsDataSchema
-        );
-        const queryIdRaw = queryInitiated?.topics[3];
-        let queryId = BigInt(queryIdRaw ?? "").toString();
-        if (queryIdRaw === undefined) {
-          queryId = "";
-        }
-        cb(receipt, queryId);
-      } else {
-        cb(receipt, "");
-      }
+      cb(receipt);
     }
+
+    return queryId;
   }
 
   /**
@@ -444,6 +419,16 @@ export class QueryBuilderV2 {
       extraData: this.callback?.extraData ?? ethers.ZeroHash,
     };
 
+    // Get the refundee address
+    const caller = await this.config.signer?.getAddress();
+    const refundee = this.options?.refundee ?? caller ?? "";
+    if (caller === undefined) {
+      console.warn("No caller address found because privateKey not specified in AxiomConfig. Refundee will be set to empty string.");
+    }
+
+    // Calculate a salt
+    const userSalt = this.calculateUserSalt();
+
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
       queryHash,
@@ -453,11 +438,46 @@ export class QueryBuilderV2 {
       computeQuery,
       querySchema,
       callback,
+      userSalt,
       maxFeePerGas: this.options.maxFeePerGas!,
       callbackGasLimit: this.options.callbackGasLimit!,
+      refundee,
     };
 
     return this.builtQuery;
+  }
+
+  /**
+   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomConfig)
+   * @returns uint256 queryId
+   */
+  async getQueryId(): Promise<string> {
+    if (!this.builtQuery) {
+      throw new Error("Must build query first before getting queryId");
+    }
+
+    // Get required queryId params
+    const caller = await this.config.signer?.getAddress();
+    if (!caller) {
+      throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomConfig");
+    }
+    const refundee = this.options?.refundee ?? caller;
+    const salt = this.builtQuery.userSalt;
+    const queryHash = this.builtQuery.queryHash;
+    const callbackHash = getCallbackHash(
+      this.builtQuery.callback.target,
+      this.builtQuery.callback.extraData,
+    );
+
+    // Calculate the queryId
+    const queryId = getQueryId(
+      caller,
+      salt,
+      queryHash,
+      callbackHash,
+      refundee,
+    );
+    return BigInt(queryId).toString();
   }
 
   /**

@@ -130,14 +130,14 @@ Once a `Query` has been built, it can be submitted via two methods: On-chain or 
 ```typescript
 // ensure you've already called `await query.build()`
 const payment = query.calculateFee();
-await query.sendOnchainQuery(
+const queryId = await query.sendOnchainQuery(
   payment,
-  (receipt: ethers.ContractTransactionReceipt, queryId: string) => {
+  (receipt: ethers.ContractTransactionReceipt) => {
     // You can do something here once you've received the transaction receipt
     console.log("receipt", receipt);
-    console.log("queryId", queryId);
   }
 );
+console.log("queryId", queryId);
 ```
 
 ### Submitting a Query: IPFS
@@ -147,14 +147,14 @@ await query.sendOnchainQuery(
 ```typescript
 // ensure you've already called `await query.build()`
 const payment = query.calculateFee();
-await query.sendQueryWithIpfs(
+const queryId = await query.sendQueryWithIpfs(
   payment,
-  (receipt: ethers.ContractTransactionReceipt, queryId: string) => {
+  (receipt: ethers.ContractTransactionReceipt) => {
     // You can do something here once you've received the transaction receipt
     console.log("receipt", receipt);
-    console.log("queryId", queryId);
   }
 );
+console.log("queryId", queryId);
 ```
 
 # Additional examples
