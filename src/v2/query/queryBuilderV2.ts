@@ -254,8 +254,6 @@ export class QueryBuilderV2 {
 
     const queryId = await this.getQueryId();
 
-    console.log(this.builtQuery);
-
     const tx = await axiomV2Query.sendQuery(
       this.builtQuery.sourceChainId,
       this.builtQuery.dataQueryHash,
@@ -455,15 +453,21 @@ export class QueryBuilderV2 {
    * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomConfig)
    * @returns uint256 queryId
    */
-  async getQueryId(): Promise<string> {
+  async getQueryId(caller?: string): Promise<string> {
     if (!this.builtQuery) {
       throw new Error("Must build query first before getting queryId");
     }
 
     // Get required queryId params
-    const caller = await this.config.signer?.getAddress();
-    if (!caller) {
-      throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomConfig");
+    if (caller === undefined) {
+      if (this.config.signer === undefined) {
+        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomConfig");
+      }
+      const callerAddr = await this.config.signer?.getAddress();
+      if (callerAddr === "") {
+        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomConfig");
+      }
+      caller = callerAddr;
     }
     const refundee = this.options?.refundee ?? caller;
     const salt = this.builtQuery.userSalt;

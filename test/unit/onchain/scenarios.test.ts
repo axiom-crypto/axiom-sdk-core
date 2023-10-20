@@ -14,8 +14,9 @@ import {
   AccountField,
   AxiomV2QueryOptions,
 } from "../../../src";
+import { ConstantsV2 } from "../../../src/v2/constants";
 
-describe("Quickstart V2", () => {
+describe("On-chain scenarios", () => {
   const config: AxiomConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
@@ -90,35 +91,35 @@ describe("Quickstart V2", () => {
     console.log("queryId", queryId);
   }, 40000);
 
-  // test("Send a size-64 on-chain Query", async () => {
-  //   const query = (axiom.query as QueryV2).new();
+  test("Send a size-64 on-chain Query", async () => {
+    const query = (axiom.query as QueryV2).new();
 
-  //   const endBlockNumber = 9800000;
-  //   const interval = 10000;
-  //   for (let i = 64; i > 0; i--) {
-  //     const accountSubquery = buildAccountSubquery(endBlockNumber - i * interval)
-  //       .address("0xB392448932F6ef430555631f765Df0dfaE34efF3")
-  //       .field(AccountField.Balance);
-  //     query.appendDataSubquery(accountSubquery);
-  //   }
-  //   const callback: AxiomV2Callback = {
-  //     target: exampleClientAddr,
-  //     extraData: bytes32(0),
-  //   }
-  //   query.setCallback(callback);
+    const endBlockNumber = 9800000;
+    const interval = 10000;
+    for (let i = 64; i > 0; i--) {
+      const accountSubquery = buildAccountSubquery(endBlockNumber - i * interval)
+        .address("0xB392448932F6ef430555631f765Df0dfaE34efF3")
+        .field(AccountField.Balance);
+      query.appendDataSubquery(accountSubquery);
+    }
+    const callback: AxiomV2Callback = {
+      target: exampleClientAddr,
+      extraData: bytes32(0),
+    }
+    query.setCallback(callback);
 
-  //   if (!query.validate()) {
-  //     throw new Error("Query validation failed");
-  //   }
-  //   await query.build();
-  //   const paymentAmt = query.calculateFee();
-  //   const queryId = await query.sendOnchainQuery(
-  //     paymentAmt,
-  //     (receipt: ethers.ContractTransactionReceipt) => {
-  //       // You can do something here once you've received the receipt
-  //       console.log("receipt", receipt);
-  //     }
-  //   );
-  //   console.log("queryId", queryId);
-  // }, 40000);
+    if (!query.validate()) {
+      throw new Error("Query validation failed");
+    }
+    await query.build();
+    const paymentAmt = query.calculateFee();
+    const queryId = await query.sendOnchainQuery(
+      paymentAmt,
+      (receipt: ethers.ContractTransactionReceipt) => {
+        // You can do something here once you've received the receipt
+        console.log("receipt", receipt);
+      }
+    );
+    console.log("queryId", queryId);
+  }, 40000);
 });

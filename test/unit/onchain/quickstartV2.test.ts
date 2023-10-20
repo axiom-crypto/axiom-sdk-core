@@ -17,13 +17,9 @@ describe("Quickstart V2", () => {
       providerUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
       chainId: 5,
+      mock: true,
     };
-    const overrides = {
-      Addresses: {
-        AxiomQuery: "0x0aa81B0b21C72AfE5cb2Cd63cA7882FD8Ef0D36b",
-      }
-    }
-    const axiom = new Axiom(config, overrides);
+    const axiom = new Axiom(config);
     const query = (axiom.query as QueryV2).new();
 
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
