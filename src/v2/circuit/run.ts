@@ -68,7 +68,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   async function buildFromString(code: string, inputs: string, cachedResults?: { [key: string]: string }) {
     halo2Wasm.clear();
     const halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass: true });
-    const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && key.charAt(0) === '_'));
+    const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && (key.charAt(0) === '_' || key === "makePublic")));
     const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, cachedResults);
     const axiomDataFns = Object.keys(axiomData).filter(key => !(typeof key === 'string' && key.charAt(0) === '_'));
     const functionInputs = getInputFunctionSignature(inputs);
@@ -117,7 +117,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     if (firstPass == undefined) firstPass = true;
 
     const halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass });
-    const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && key.charAt(0) === '_'));
+    const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && (key.charAt(0) === '_' || key === "makePublic")));
 
     const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, results);
     const axiomDataFns = Object.keys(axiomData).filter(key => !(typeof key === 'string' && key.charAt(0) === '_'));
