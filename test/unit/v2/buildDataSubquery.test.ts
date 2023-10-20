@@ -8,7 +8,7 @@ import {
   TxSubquery,
   ReceiptSubquery,
 } from "@axiom-crypto/tools";
-import { 
+import {
   Axiom,
   AxiomConfig,
   QueryV2,
@@ -35,6 +35,7 @@ describe("Build data subquery", () => {
 
   const config: AxiomConfig = {
     providerUri: process.env.PROVIDER_URI as string,
+    privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   }
@@ -134,7 +135,7 @@ describe("Build data subquery", () => {
       .eventSchema("Transfer (address from, address to, uint256 value)");
     query.appendDataSubquery(receiptSubquery);
     const dataQuery = query.getDataQuery();
-    
+
     // Check the unbuilt subquery
     const subquery = dataQuery?.[0] as UnbuiltReceiptSubquery;
     expect(subquery?.txHash).toEqual(txHash);
@@ -166,7 +167,7 @@ describe("Build data subquery", () => {
       .address();
     query.appendDataSubquery(receiptSubquery);
     const dataQuery = query.getDataQuery();
-    
+
     // Check the unbuilt subquery
     const subquery = dataQuery?.[0] as UnbuiltReceiptSubquery;
     expect(subquery?.txHash).toEqual(txHash);
