@@ -52,7 +52,7 @@ export class CircuitValue256 {
     const cell = this._halo2Lib.mul_add(this.hi().cell(), bCell, this.lo().cell());
     this._halo2Lib.range_check(this.hi().cell(), "125");
     if (this.hi().value().toString(2).length > 125) {
-      throw new Error("Value is too large");
+      throw new Error("Cannot convert to CircuitValue (value is > 253 bits). Please use .hi()/.lo() instead.");
     }
     return new CircuitValue(this._halo2Lib, { cell })
   }
