@@ -124,14 +124,12 @@ export class InternalConfig {
   }
 
   private parseMock(mock: boolean | undefined, chainId: BigInt): boolean {
+    if (mock === undefined) {
+      return false;
+    }
     if (chainId === 1n) {
       return false;
-    } else if (chainId === 5n) {
-      return true;
-    } else if (mock === undefined) {
-      return false;
-    } else {
-      return mock;
     }
+    return mock;
   }
 }

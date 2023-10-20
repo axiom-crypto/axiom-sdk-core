@@ -117,11 +117,16 @@ export async function validateTxSubquery(
     console.error("Unable to get blockNumber or txIdx from supplied txHash");
     return false;
   }
+  const tx = await provider.getTransaction(subquery.txHash);
+  if (!tx) {
+    console.error(`Unable to get transaction from txHash ${subquery.txHash}`);
+    return false;
+  }
   const value = await getTxFieldValue(provider, {
     blockNumber,
     txIdx,
     fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
-  }, console.warn);
+  }, console, tx);
   if (value === null) {
     console.error(`Tx subquery ${JSON.stringify(subquery)} returned null`);
     return false;

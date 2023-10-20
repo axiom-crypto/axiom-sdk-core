@@ -411,13 +411,46 @@ describe("QueryV2", () => {
     expect(builtQuery.computeQuery.resultLen).toEqual(4);
   });
 
+  test("Set various options", async () => {
+    const query = aq.new();
+
+    const options: AxiomV2QueryOptions = {
+      maxFeePerGas: "100000000",
+      callbackGasLimit: 50000,
+      refundee: ethers.ZeroAddress,
+    }
+    query.setOptions(options);
+
+    const callback: AxiomV2Callback = {
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    query.setCallback(callback);
+    const computeQueryReq: AxiomV2ComputeQuery = {
+      k: 14,
+      resultLen: 4,
+      vkey,
+      computeProof,
+    };
+    query.setComputeQuery(computeQueryReq);
+
+    query.appendDataSubquery(buildHeaderSubquery(17000000).field(HeaderField.GasLimit));
+    query.appendDataSubquery(buildHeaderSubquery(17000001).field(HeaderField.GasLimit));
+
+    const builtQuery = await query.build();
+    expect(builtQuery.maxFeePerGas).toEqual(options.maxFeePerGas);
+    expect(builtQuery.callbackGasLimit).toEqual(options.callbackGasLimit);
+    expect(builtQuery.refundee).toEqual(ethers.ZeroAddress);
+  });
+
+
   test("Payment calculation based on options", () => {
     const query = aq.new();
     let fee = query.calculateFee();
     expect(fee).toEqual("18000000000000000");
 
     const options: AxiomV2QueryOptions = {
-      maxFeePerGas: BigInt(10000000000).toString(),
+      maxFeePerGas: "10000000000",
     };
     query.setOptions(options);
     fee = query.calculateFee();
