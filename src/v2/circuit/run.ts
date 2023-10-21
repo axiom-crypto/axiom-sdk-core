@@ -65,6 +65,8 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
   let dataQuery = getNewDataQuery();
 
+  config = { ...config };
+
   const clear = () => {
     dataQuery = getNewDataQuery();
     halo2Wasm.clear();
@@ -120,7 +122,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   }
 
   async function runFromString(code: string, inputs: string, { results, firstPass }: { results: { [key: string]: string }, firstPass?: boolean }) {
-    
+
     clear()
     if (firstPass == undefined) firstPass = true;
 
