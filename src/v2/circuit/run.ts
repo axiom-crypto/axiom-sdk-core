@@ -62,11 +62,16 @@ const padInstances = (halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm) => {
 }
 
 export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibWasm, config: CircuitConfig, provider: JsonRpcProvider) {
-
   let dataQuery = getNewDataQuery();
+  config = { ...config };
+  const clear = () => {
+    dataQuery = getNewDataQuery();
+    halo2Wasm.clear();
+    halo2LibWasm.config();
+  }
 
   async function buildFromString(code: string, inputs: string, cachedResults?: { [key: string]: string }) {
-    halo2Wasm.clear();
+    clear()
     const halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass: true });
     const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && (key.charAt(0) === '_' || key === "makePublic")));
     const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, cachedResults);
@@ -92,8 +97,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   }
 
   async function build<T extends { [key: string]: number | string | bigint }>(f: (halo2Lib: Halo2Lib, axiomData: AxiomData, inputs: T) => Promise<void>, inputs: T) {
-
-    halo2Wasm.clear();
+    clear()
     let halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass: true });
     let axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery);
 
@@ -113,7 +117,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   }
 
   async function runFromString(code: string, inputs: string, { results, firstPass }: { results: { [key: string]: string }, firstPass?: boolean }) {
-    halo2Wasm.clear();
+    clear()
     if (firstPass == undefined) firstPass = true;
 
     const halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass });
@@ -146,8 +150,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   }
 
   async function run<T extends { [key: string]: number | string | bigint }>(f: (halo2Lib: Halo2Lib, axiomData: AxiomData, inputs: T) => Promise<void>, inputs: T, results: { [key: string]: string }) {
-
-    halo2Wasm.clear();
+    clear()
     let halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm);
     let axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, results);
 
