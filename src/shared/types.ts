@@ -172,3 +172,9 @@ export interface AccountState {
   storageHash: string;
   codeHash: string;
 }
+
+export interface KeccakResponses {
+  keccakBlockResponse: string;
+  keccakAccountResponse: string;
+  keccakStorageResponse: string;
+}

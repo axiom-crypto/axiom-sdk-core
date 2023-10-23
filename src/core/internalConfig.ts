@@ -59,7 +59,7 @@ export class InternalConfig {
     this.chainId = config.chainId ?? 1;
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs ?? 10000;
-    this.mock = config.mock ?? false;
+    this.mock = this.parseMock(config.mock, this.chainId);
 
     let versionData = setVersionData(this.chainId, this.version, this.mock);
     if (overrides !== undefined) {
@@ -97,7 +97,7 @@ export class InternalConfig {
     }
   }
 
-  parseVersion(version?: string): string {
+  private parseVersion(version?: string): string {
     if (version === undefined) {
       return Versions[Versions.length - 1];
     }
@@ -114,5 +114,15 @@ export class InternalConfig {
     throw new Error(
       "Invalid version number. Valid versions are: " + Versions.join(", ")
     );
+  }
+
+  private parseMock(mock: boolean | undefined, chainId: number): boolean {
+    if (mock === undefined) {
+      return false;
+    }
+    if (chainId === 1) {
+      return false;
+    }
+    return mock;
   }
 }

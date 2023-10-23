@@ -1,5 +1,6 @@
 import axios, { HttpStatusCode } from "axios";
-import { 
+import {
+  KeccakResponses,
   QueryData,
   ResponseTree,
   SolidityAccountResponse,
@@ -14,7 +15,7 @@ import { BigNumberish } from "ethers";
 import { getAxiomQueryAbiForVersion } from "./lib/abi";
 import { QueryBuilder } from "../query/queryBuilder";
 import { InternalConfig } from "./internalConfig";
-import { 
+import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse
@@ -32,7 +33,7 @@ export class Query {
   }
 
   /**
-   * Calls the API to get the QueryData rows for a given Query. Requires either one of 
+   * Calls the API to get the QueryData rows for a given Query. Requires either one of
    * keccakQueryResponse or queryHash to be specified.
    * @param keccakQueryResponse (optional) A keccak256 hash of the entire query data blob
    * @param queryHash (optional) A keccak256 hash of the entire query data blob
@@ -99,7 +100,7 @@ export class Query {
       getAxiomQueryAbiForVersion(this.config.version),
       this.config.provider
     );
-    let logs = tx.logs.map((log) => 
+    let logs = tx.logs.map((log) =>
       contract.interface.parseLog({ data: log.data, topics: log.topics as string[] })
     );
     return logs;
@@ -163,7 +164,7 @@ export class Query {
   }
 
   /**
-   * Gets a ValidationWitnessResponse, which contains the blockResponse, accountResponse, 
+   * Gets a ValidationWitnessResponse, which contains the blockResponse, accountResponse,
    * and storageResponse
    * @param responseTree A `ResponseTree` object
    * @param blockNumber The block number to get the witness for
@@ -197,7 +198,7 @@ export class Query {
     };
     let accountResponse: SolidityAccountResponse | undefined;
     let storageResponse: SolidityStorageResponse | undefined;
-    if (address) {
+    if (address !== undefined) {
       const accountTree = responseTree.accountTree;
       const accountProof = accountTree.getHexProof(
         accountTree.getLeaf(leafIdx),
@@ -222,7 +223,7 @@ export class Query {
         proof: accountProof,
       };
 
-      if (slot) {
+      if (slot !== undefined) {
         const storageTree = responseTree.storageTree;
         const storageProof = storageTree.getHexProof(
           storageTree.getLeaf(leafIdx),
@@ -291,13 +292,26 @@ export class Query {
   }
 
   /**
+   * Convenience function for getting the `KeccakResponses` from a `ResponseTree`
+   * @param responseTree A `ResponseTree` object
+   * @returns KeccakResponses
+   */
+  getResponses(responseTree: ResponseTree): KeccakResponses {
+    return {
+      keccakBlockResponse: responseTree.blockTree.getHexRoot(),
+      keccakAccountResponse: responseTree.accountTree.getHexRoot(),
+      keccakStorageResponse: responseTree.storageTree.getHexRoot(),
+    }
+  }
+
+  /**
    * A passthrough function that identifies the hash function used in `getBlockResponse`
    * @param blockHash Block hash of the block to use
    * @param blockNumber Block number of the block to use
    * @returns string - Keccak hash of the block response
    */
   getKeccakBlockResponse(
-    blockHash: string, 
+    blockHash: string,
     blockNumber: number
   ): string {
     return getBlockResponse(blockHash, blockNumber);
