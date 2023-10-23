@@ -198,7 +198,7 @@ export class Query {
     };
     let accountResponse: SolidityAccountResponse | undefined;
     let storageResponse: SolidityStorageResponse | undefined;
-    if (address) {
+    if (address !== undefined) {
       const accountTree = responseTree.accountTree;
       const accountProof = accountTree.getHexProof(
         accountTree.getLeaf(leafIdx),
@@ -223,7 +223,7 @@ export class Query {
         proof: accountProof,
       };
 
-      if (slot) {
+      if (slot !== undefined) {
         const storageTree = responseTree.storageTree;
         const storageProof = storageTree.getHexProof(
           storageTree.getLeaf(leafIdx),
