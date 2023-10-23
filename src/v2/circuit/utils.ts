@@ -183,3 +183,18 @@ export const getCircuitValue256FromCircuitValue = (halo2Lib: Halo2LibWasm, value
 export const lowercase = (str: string) => {
   return str.charAt(0).toLowerCase() + str.slice(1)
 }
+
+export const convertToBytes32 = (inputArray: Uint8Array) => {
+  let result: string[] = [];
+  for (let i = 0; i < inputArray.length; i += 32) {
+      let slice = inputArray.slice(i, i + 32);
+      let hex = Buffer.from(slice).toString('hex').padStart(64, '0');
+      result.push(hex);
+  }
+  return result;
+}
+
+export const convertToBytes = (inputArray: Uint8Array): string => {
+  let hex = Buffer.from(inputArray).toString('hex');
+  return hex;
+}
