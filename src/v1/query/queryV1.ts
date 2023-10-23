@@ -1,5 +1,5 @@
 import axios, { HttpStatusCode } from "axios";
-import { 
+import {
   KeccakResponses,
   QueryData,
   ResponseTree,
@@ -15,7 +15,7 @@ import { BigNumberish } from "ethers";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { QueryBuilderV1 } from "./queryBuilderV1";
 import { InternalConfig } from "../../core/internalConfig";
-import { 
+import {
   getBlockResponse,
   getFullAccountResponse,
   getFullStorageResponse
@@ -36,7 +36,7 @@ export class QueryV1 extends Query {
   }
 
   /**
-   * Calls the API to get the QueryData rows for a given Query. Requires either one of 
+   * Calls the API to get the QueryData rows for a given Query. Requires either one of
    * keccakQueryResponse or queryHash to be specified.
    * @param keccakQueryResponse (optional) A keccak256 hash of the entire query data blob
    * @param queryHash (optional) A keccak256 hash of the entire query data blob
@@ -103,7 +103,7 @@ export class QueryV1 extends Query {
       getAxiomQueryAbiForVersion(this.config.version),
       this.config.provider
     );
-    let logs = tx.logs.map((log) => 
+    let logs = tx.logs.map((log) =>
       contract.interface.parseLog({ data: log.data, topics: log.topics as string[] })
     );
     return logs;
@@ -167,7 +167,7 @@ export class QueryV1 extends Query {
   }
 
   /**
-   * Gets a ValidationWitnessResponse, which contains the blockResponse, accountResponse, 
+   * Gets a ValidationWitnessResponse, which contains the blockResponse, accountResponse,
    * and storageResponse
    * @param responseTree A `ResponseTree` object
    * @param blockNumber The block number to get the witness for
@@ -201,7 +201,7 @@ export class QueryV1 extends Query {
     };
     let accountResponse: SolidityAccountResponse | undefined;
     let storageResponse: SolidityStorageResponse | undefined;
-    if (address) {
+    if (address !== undefined) {
       const accountTree = responseTree.accountTree;
       const accountProof = accountTree.getHexProof(
         accountTree.getLeaf(leafIdx),
@@ -226,7 +226,7 @@ export class QueryV1 extends Query {
         proof: accountProof,
       };
 
-      if (slot) {
+      if (slot !== undefined) {
         const storageTree = responseTree.storageTree;
         const storageProof = storageTree.getHexProof(
           storageTree.getLeaf(leafIdx),
@@ -314,7 +314,7 @@ export class QueryV1 extends Query {
    * @returns string - Keccak hash of the block response
    */
   getKeccakBlockResponse(
-    blockHash: string, 
+    blockHash: string,
     blockNumber: number
   ): string {
     return getBlockResponse(blockHash, blockNumber);
