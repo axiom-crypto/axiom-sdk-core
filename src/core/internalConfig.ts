@@ -97,7 +97,7 @@ export class InternalConfig {
     }
   }
 
-  parseVersion(version?: string): string {
+  private parseVersion(version?: string): string {
     if (version === undefined) {
       return Versions[Versions.length - 1];
     }
@@ -116,15 +116,13 @@ export class InternalConfig {
     );
   }
 
-  parseMock(mock: boolean | undefined, chainId: number): boolean {
+  private parseMock(mock: boolean | undefined, chainId: number): boolean {
+    if (mock === undefined) {
+      return false;
+    }
     if (chainId === 1) {
       return false;
-    } else if (chainId === 5) {
-      return true;
-    } else if (mock === undefined) {
-      return false;
-    } else {
-      return mock;
     }
+    return mock;
   }
 }
