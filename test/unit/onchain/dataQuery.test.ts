@@ -16,7 +16,7 @@ import {
 } from "../../../src";
 import { ConstantsV2 } from "../../../src/v2/constants";
 
-describe("On-chain scenarios", () => {
+describe("On-chain Data Query scenarios", () => {
   const config: AxiomConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,

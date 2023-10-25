@@ -163,11 +163,6 @@ export class QueryBuilderV2 {
     );
   }
 
-  unsetBuiltQuery() {
-    // Reset built query if any data is changed
-    this.builtQuery = undefined;
-  }
-
   setDataQuery(dataQuery: UnbuiltSubquery[]) {
     this.unsetBuiltQuery();
     this.dataQuery = undefined;
@@ -222,6 +217,107 @@ export class QueryBuilderV2 {
    */
   appendDataSubquery(dataSubquery: UnbuiltSubquery): void {
     this.append([dataSubquery]);
+  }
+
+  /**
+    * Queries the required subquery data and builds the entire Query object into the format
+    * that is required by the backend/ZK circuit
+    * @returns A built Query object
+    */
+  async build(): Promise<BuiltQueryV2> {
+    // Check if Query can be built: needs at least a dataQuery or computeQuery
+    let validDataQuery = true;
+    if (this.dataQuery === undefined || this.dataQuery.length === 0) {
+      validDataQuery = false;
+    }
+    let validComputeQuery = true;
+    if (this.computeQuery === undefined || this.computeQuery.k === 0) {
+      validComputeQuery = false;
+    }
+    if (!validDataQuery && !validComputeQuery) {
+      throw new Error("Cannot build Query without data or compute query");
+    }
+
+    // Parse and get fetch appropriate data for all data subqueries
+    const builtDataSubqueries = await buildDataSubqueries(
+      this.config.provider,
+      this.dataQuery ?? []
+    );
+
+    // Encode & build data query
+    const dataQuery = encodeBuilderDataQuery(
+      this.config.chainId,
+      builtDataSubqueries
+    );
+    const dataQueryHash = getDataQueryHashFromSubqueries(
+      this.config.chainId.toString(),
+      builtDataSubqueries
+    );
+    const dataQueryStruct = buildDataQuery(
+      this.config.chainId,
+      builtDataSubqueries
+    );
+
+    // Handle compute query
+    let defaultResultLen = this.getDefaultResultLen();
+    let computeQuery: AxiomV2ComputeQuery = {
+      k: 0,
+      resultLen: defaultResultLen,
+      vkey: [] as string[],
+      computeProof: "0x00",
+    }
+    if (this.computeQuery !== undefined) {
+      computeQuery.k = this.computeQuery.k;
+      computeQuery.resultLen = this.computeQuery?.resultLen ?? defaultResultLen;
+      computeQuery.vkey = this.computeQuery.vkey;
+      computeQuery.computeProof = this.computeQuery.computeProof;
+    }
+
+    const querySchema = getQuerySchemaHash(
+      computeQuery.k,
+      computeQuery.resultLen ?? defaultResultLen,
+      computeQuery.vkey
+    );
+
+    // Get the hash of the full Query
+    const queryHash = getQueryHashV2(
+      this.config.chainId.toString(),
+      dataQueryHash,
+      computeQuery
+    );
+
+    // Handle callback
+    const callback = {
+      target: this.callback?.target ?? ethers.ZeroAddress,
+      extraData: this.callback?.extraData ?? ethers.ZeroHash,
+    };
+
+    // Get the refundee address
+    const caller = await this.config.signer?.getAddress();
+    const refundee = this.options?.refundee ?? caller ?? "";
+    if (caller === undefined) {
+      console.warn("No caller address found because privateKey not specified in AxiomConfig. Refundee will be set to empty string.");
+    }
+
+    // Calculate a salt
+    const userSalt = this.calculateUserSalt();
+
+    this.builtQuery = {
+      sourceChainId: this.config.chainId.toString(),
+      queryHash,
+      dataQuery,
+      dataQueryHash,
+      dataQueryStruct,
+      computeQuery,
+      querySchema,
+      callback,
+      userSalt,
+      maxFeePerGas: this.options.maxFeePerGas!,
+      callbackGasLimit: this.options.callbackGasLimit!,
+      refundee,
+    };
+
+    return this.builtQuery;
   }
 
   async sendOnchainQuery(
@@ -349,107 +445,6 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Queries the required subquery data and builds the entire Query object into the format
-   * that is required by the backend/ZK circuit
-   * @returns A built Query object
-   */
-  async build(): Promise<BuiltQueryV2> {
-    // Check if Query can be built: needs at least a dataQuery or computeQuery
-    let validDataQuery = true;
-    if (this.dataQuery === undefined || this.dataQuery.length === 0) {
-      validDataQuery = false;
-    }
-    let validComputeQuery = true;
-    if (this.computeQuery === undefined || this.computeQuery.k === 0) {
-      validComputeQuery = false;
-    }
-    if (!validDataQuery && !validComputeQuery) {
-      throw new Error("Cannot build Query without data or compute query");
-    }
-
-    // Parse and get fetch appropriate data for all data subqueries
-    const builtDataSubqueries = await buildDataSubqueries(
-      this.config.provider,
-      this.dataQuery ?? []
-    );
-
-    // Encode & build data query
-    const dataQuery = encodeBuilderDataQuery(
-      this.config.chainId,
-      builtDataSubqueries
-    );
-    const dataQueryHash = getDataQueryHashFromSubqueries(
-      this.config.chainId.toString(),
-      builtDataSubqueries
-    );
-    const dataQueryStruct = buildDataQuery(
-      this.config.chainId,
-      builtDataSubqueries
-    );
-
-    // Handle compute query
-    let defaultResultLen = this.getDefaultResultLen();
-    let computeQuery: AxiomV2ComputeQuery = {
-      k: 0,
-      resultLen: defaultResultLen,
-      vkey: [] as string[],
-      computeProof: "0x00",
-    }
-    if (this.computeQuery !== undefined) {
-      computeQuery.k = this.computeQuery.k;
-      computeQuery.resultLen = this.computeQuery?.resultLen ?? defaultResultLen;
-      computeQuery.vkey = this.computeQuery.vkey;
-      computeQuery.computeProof = this.computeQuery.computeProof;
-    }
-
-    const querySchema = getQuerySchemaHash(
-      computeQuery.k,
-      computeQuery.resultLen ?? defaultResultLen,
-      computeQuery.vkey
-    );
-
-    // Get the hash of the full Query
-    const queryHash = getQueryHashV2(
-      this.config.chainId.toString(),
-      dataQueryHash,
-      computeQuery
-    );
-
-    // Handle callback
-    const callback = {
-      target: this.callback?.target ?? ethers.ZeroAddress,
-      extraData: this.callback?.extraData ?? ethers.ZeroHash,
-    };
-
-    // Get the refundee address
-    const caller = await this.config.signer?.getAddress();
-    const refundee = this.options?.refundee ?? caller ?? "";
-    if (caller === undefined) {
-      console.warn("No caller address found because privateKey not specified in AxiomConfig. Refundee will be set to empty string.");
-    }
-
-    // Calculate a salt
-    const userSalt = this.calculateUserSalt();
-
-    this.builtQuery = {
-      sourceChainId: this.config.chainId.toString(),
-      queryHash,
-      dataQuery,
-      dataQueryHash,
-      dataQueryStruct,
-      computeQuery,
-      querySchema,
-      callback,
-      userSalt,
-      maxFeePerGas: this.options.maxFeePerGas!,
-      callbackGasLimit: this.options.callbackGasLimit!,
-      refundee,
-    };
-
-    return this.builtQuery;
-  }
-
-  /**
    * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomConfig)
    * @returns uint256 queryId
    */
@@ -512,6 +507,11 @@ export class QueryBuilderV2 {
     const totalFee = BigInt(this.calculateFee());
     const requiredPayment = totalFee - currentBalance;
     return requiredPayment.toString();
+  }
+
+  private unsetBuiltQuery() {
+    // Reset built query if any data is changed
+    this.builtQuery = undefined;
   }
 
   private calculateUserSalt(): string {
