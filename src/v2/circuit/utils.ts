@@ -63,7 +63,7 @@ export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: Dat
       continue;
     }
     let result = await getHeaderFieldValue(provider, headerSubquery);
-    if (!result) throw new Error(`Failed to fetch header subquery: ${JSON.stringify(headerSubquery)}`);
+    if (result === null) throw new Error(`Failed to fetch header subquery: ${JSON.stringify(headerSubquery)}`);
     results[key] = result.toString();
   }
 
@@ -74,7 +74,7 @@ export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: Dat
       continue;
     }
     let result = await getAccountFieldValue(provider, accountSubquery);
-    if (!result) throw new Error(`Failed to fetch account subquery: ${JSON.stringify(accountSubquery)}`);
+    if (result === null) throw new Error(`Failed to fetch account subquery: ${JSON.stringify(accountSubquery)}`);
     results[key] = result;
   }
 
@@ -85,7 +85,7 @@ export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: Dat
       continue;
     }
     let result = await getStorageFieldValue(provider, storageSubquery);
-    if (!result) throw new Error(`Failed to fetch storage subquery: ${JSON.stringify(storageSubquery)}`);
+    if (result === null) throw new Error(`Failed to fetch storage subquery: ${JSON.stringify(storageSubquery)}`);
     results[key] = result;
   }
 
@@ -96,7 +96,7 @@ export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: Dat
       continue;
     }
     let result = await getTxFieldValue(provider, txSubquery);
-    if (!result) throw new Error(`Failed to fetch tx subquery: ${JSON.stringify(txSubquery)}`);
+    if (result === null) throw new Error(`Failed to fetch tx subquery: ${JSON.stringify(txSubquery)}`);
     results[key] = BigInt(result).toString();
   }
 
@@ -107,7 +107,7 @@ export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: Dat
       continue;
     }
     let result = await getReceiptFieldValue(provider, receiptSubquery);
-    if (!result) throw new Error(`Failed to fetch receipt subquery: ${JSON.stringify(receiptSubquery)}`);
+    if (result === null) throw new Error(`Failed to fetch receipt subquery: ${JSON.stringify(receiptSubquery)}`);
     results[key] = BigInt(result).toString();
   }
 
@@ -118,7 +118,7 @@ export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: Dat
       continue;
     }
     let result = await getSolidityNestedMappingValue(provider, solidityNestedMappingSubquery);
-    if (!result) throw new Error(`Failed to fetch solidity nested mapping subquery: ${JSON.stringify(solidityNestedMappingSubquery)}`);
+    if (result === null) throw new Error(`Failed to fetch solidity nested mapping subquery: ${JSON.stringify(solidityNestedMappingSubquery)}`);
     results[key] = result;
   }
 

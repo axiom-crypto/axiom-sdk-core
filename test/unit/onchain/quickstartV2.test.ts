@@ -23,9 +23,7 @@ describe("Quickstart V2", () => {
     const query = (axiom.query as QueryV2).new();
 
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
-    const swapEventSchema = getEventSchema(
-      "Swap(address,uint256,uint256,uint256,uint256,address)"
-    );
+    const swapEventSchema = getEventSchema("Swap(address,uint256,uint256,uint256,uint256,address)");
 
     // First, we'll build a Receipt Subquery that queries the event schema at the specified
     // transaction hash
@@ -43,29 +41,25 @@ describe("Quickstart V2", () => {
     query.appendDataSubquery(receiptSubquery1);
 
     // Finally, we'll also query the function selector of this transaction hash as well
-    const txSubquery = buildTxSubquery(txHash)
-      .functionSelector();
+    const txSubquery = buildTxSubquery(txHash).functionSelector();
     query.appendDataSubquery(txSubquery);
 
     const exampleClientAddr = "0xbc114c1edf6c018d25d10aa2974ba7c37532841f";
     const callback: AxiomV2Callback = {
       target: exampleClientAddr,
       extraData: bytes32(0),
-    }
+    };
     query.setCallback(callback);
 
-    if (!query.validate()) {
+    if (!(await query.validate())) {
       throw new Error("Query validation failed");
     }
     await query.build();
     const paymentAmt = query.calculateFee();
-    const queryId = await query.sendOnchainQuery(
-      paymentAmt,
-      (receipt: ethers.ContractTransactionReceipt) => {
-        // You can do something here once you've received the transaction receipt
-        console.log("receipt", receipt);
-      }
-    );
+    const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
+      // You can do something here once you've received the transaction receipt
+      console.log("receipt", receipt);
+    });
     console.log("queryId", queryId);
   }, 40000);
 });

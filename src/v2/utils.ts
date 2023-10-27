@@ -1,4 +1,4 @@
-export function convertVkeyNumArrToBytes32Arr(vk: number[]): string[] {
+export function convertVkeyUint8ArrToBytes32Arr(vk: number[]): string[] {
   const vkHex = vk.map((x) => BigInt(x).toString(16))
   let vkey: string[] = [];
   let vkeyElement = "";

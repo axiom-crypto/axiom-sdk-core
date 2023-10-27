@@ -1,7 +1,7 @@
 import {
   AxiomV2Callback,
   AxiomV2ComputeQuery,
-  AxiomV2DataQuery,
+  AxiomV2DataQuery
 } from "@axiom-crypto/tools";
 
 export {
@@ -21,8 +21,8 @@ export {
   AccountField,
   TxField,
   ReceiptField,
-  AxiomV2FieldConstant,
-} from '@axiom-crypto/tools';
+  AxiomV2FieldConstant
+} from "@axiom-crypto/tools";
 
 export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
@@ -46,7 +46,16 @@ export interface BuiltQueryV2 {
   refundee: string;
 }
 
-export interface UnbuiltSubquery { }
+export interface DataSubqueryCount {
+  header: number;
+  account: number;
+  storage: number;
+  transaction: number;
+  receipt: number;
+  solidityNestedMapping: number;
+}
+
+export interface UnbuiltSubquery {}
 
 export interface UnbuiltHeaderSubquery extends UnbuiltSubquery {
   blockNumber: number;

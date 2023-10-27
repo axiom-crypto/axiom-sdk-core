@@ -21,22 +21,16 @@ describe("Calculators", () => {
     const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
     const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
-
     const query = (axiom.query as QueryV2).new();
     for (let i = 0; i < 32; i++) {
       const sq = buildSolidityNestedMappingSubquery(18000000)
         .address(UNI_V3_FACTORY_ADDR)
         .mappingSlot(3)
-        .keys([
-          WETH_ADDR,
-          WSOL_ADDR,
-          10000,
-          5000,
-        ]);
+        .keys([WETH_ADDR, WSOL_ADDR, 10000, 5000]);
       query.appendDataSubquery(sq);
     }
     const builtQuery = await query.build();
     const gas = calculateCalldataGas(builtQuery.dataQuery);
     expect(gas).toEqual(51264);
   });
-})
+});

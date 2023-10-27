@@ -24,6 +24,7 @@ import {
   UnbuiltReceiptSubquery,
   UnbuiltSolidityNestedMappingSubquery,
   UnbuiltBeaconValidatorSubquery,
+  DataSubqueryCount,
 } from "../types";
 import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
@@ -48,6 +49,7 @@ import {
   encodeBuilderDataQuery,
 } from "./dataSubquery/build";
 import { calculateCalldataGas } from "./gasCalc";
+import { deepCopyObject } from "../../shared/utils";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -56,6 +58,7 @@ export class QueryBuilderV2 {
   private computeQuery?: AxiomV2ComputeQuery;
   private callback?: AxiomV2Callback;
   private options: AxiomV2QueryOptions;
+  private dataSubqueryCount: DataSubqueryCount;
 
   constructor(
     config: InternalConfig,
@@ -67,6 +70,7 @@ export class QueryBuilderV2 {
     this.config = config;
 
     this.options = this.setOptions(options ?? {});
+    this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
 
     if (dataQuery !== undefined) {
       this.append(dataQuery);
@@ -114,6 +118,14 @@ export class QueryBuilderV2 {
   }
 
   /**
+   * Gets the current count of each type of data subquery
+   * @returns Subquery counts
+   */
+  getDataSubqueryCount(): DataSubqueryCount {
+    return this.dataSubqueryCount;
+  }
+
+  /**
    * Gets the built Query. Built Query resets if any data is changed.
    * @returns The built Query; undefined if Query has not been built yet
    */
@@ -155,7 +167,7 @@ export class QueryBuilderV2 {
         "Query must first be built with `.build()` before getting query hash. If Query is modified after building, you will need to run `.build()` again."
       );
     }
-    const computeQuery = this.computeQuery ?? ConstantsV2.EmptyComputeQueryObject;
+    const computeQuery = this.computeQuery ?? deepCopyObject(ConstantsV2.EmptyComputeQueryObject);
     return getQueryHashV2(
       this.config.chainId.toString(),
       this.getDataQueryHash(),
@@ -166,6 +178,7 @@ export class QueryBuilderV2 {
   setDataQuery(dataQuery: UnbuiltSubquery[]) {
     this.unsetBuiltQuery();
     this.dataQuery = undefined;
+    this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
     this.append(dataQuery);
   }
 
@@ -201,8 +214,49 @@ export class QueryBuilderV2 {
       this.dataQuery = [] as UnbuiltSubquery[];
     }
 
-    if (this.dataQuery?.length + dataSubqueries.length > AxiomV2CircuitConstant.UserMaxSubqueries) {
-      throw new Error(`Cannot add more than ${AxiomV2CircuitConstant.UserMaxSubqueries} subqueries`);
+    if (this.dataQuery?.length + dataSubqueries.length > ConstantsV2.MaxDataQuerySize) {
+      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
+    }
+
+    for (const subquery of dataSubqueries) {
+      const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
+      switch(type) {
+        case DataSubqueryType.Header:
+          this.dataSubqueryCount.header++;
+          break;
+        case DataSubqueryType.Account:
+          this.dataSubqueryCount.account++;
+          if (this.dataSubqueryCount.account > ConstantsV2.MaxSameSubqueryType) {
+            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account subqueries`)
+          }
+          break;
+        case DataSubqueryType.Storage:
+          this.dataSubqueryCount.storage++;
+          if (this.dataSubqueryCount.storage > ConstantsV2.MaxSameSubqueryType) {
+            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Storage subqueries`)
+          }
+          break;
+        case DataSubqueryType.Transaction:
+          this.dataSubqueryCount.transaction++;
+          if (this.dataSubqueryCount.transaction > ConstantsV2.MaxSameSubqueryType) {
+            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Transaction subqueries`)
+          }
+          break;
+        case DataSubqueryType.Receipt:
+          this.dataSubqueryCount.receipt++;
+          if (this.dataSubqueryCount.receipt > ConstantsV2.MaxSameSubqueryType) {
+            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Receipt subqueries`)
+          }
+          break;
+        case DataSubqueryType.SolidityNestedMapping:
+          this.dataSubqueryCount.solidityNestedMapping++;
+          if (this.dataSubqueryCount.solidityNestedMapping > ConstantsV2.MaxSameSubqueryType) {
+            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Nested Mapping subqueries`)
+          }
+          break;
+        default:
+          throw new Error(`Unknown subquery type: ${type}`);
+      }
     }
 
     // Append new dataSubqueries to existing dataQuery
@@ -397,7 +451,7 @@ export class QueryBuilderV2 {
       this.builtQuery.refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
-    if (!ipfsHash) {
+    if (ipfsHash === null) {
       throw new Error("Failed to write Query to IPFS.");
     }
     const ipfsHashBytes32 = convertIpfsCidToBytes32(ipfsHash);
@@ -449,8 +503,8 @@ export class QueryBuilderV2 {
    * @returns uint256 queryId
    */
   async getQueryId(caller?: string): Promise<string> {
-    if (!this.builtQuery) {
-      throw new Error("Must build query first before getting queryId");
+    if (this.builtQuery === undefined) {
+      throw new Error("Must query with `build()` first before getting queryId");
     }
 
     // Get required queryId params
@@ -535,7 +589,7 @@ export class QueryBuilderV2 {
   }
 
   private async validateDataSubqueries(): Promise<boolean> {
-    if (!this.dataQuery) {
+    if (this.dataQuery === undefined || this.dataQuery.length === 0) {
       return true;
     }
     const provider = this.config.provider;

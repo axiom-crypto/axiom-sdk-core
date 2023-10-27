@@ -98,7 +98,7 @@ describe("Build data subquery", () => {
 
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
     const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash);
-    if (!blockNumber || !txIdx) {
+    if (blockNumber === null || txIdx === null) {
       throw new Error("Failed to get block number and tx idx");
     }
 
@@ -125,7 +125,7 @@ describe("Build data subquery", () => {
 
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
     const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash);
-    if (!blockNumber || !txIdx) {
+    if (blockNumber === null || txIdx === null) {
       throw new Error("Failed to get block number and tx idx");
     }
 
@@ -158,7 +158,7 @@ describe("Build data subquery", () => {
 
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
     const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash);
-    if (!blockNumber || !txIdx) {
+    if (blockNumber === null || txIdx === null) {
       throw new Error("Failed to get block number and tx idx");
     }
 

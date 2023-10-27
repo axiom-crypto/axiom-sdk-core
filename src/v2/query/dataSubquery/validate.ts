@@ -26,11 +26,10 @@ import {
 
 export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltHeaderSubquery
+  subquery: UnbuiltHeaderSubquery,
 ): Promise<boolean> {
   if (
-    (subquery.fieldIdx > HeaderField.WithdrawalsRoot &&
-      subquery.fieldIdx < AxiomV2FieldConstant.Header.HashFieldIdx) ||
+    (subquery.fieldIdx > HeaderField.WithdrawalsRoot && subquery.fieldIdx < AxiomV2FieldConstant.Header.HashFieldIdx) ||
     (subquery.fieldIdx > AxiomV2FieldConstant.Header.ExtraDataLenFieldIdx &&
       subquery.fieldIdx < AxiomV2FieldConstant.Header.LogsBloomFieldIdxOffset) ||
     subquery.fieldIdx >= AxiomV2FieldConstant.Header.LogsBloomFieldIdxOffset + 8
@@ -39,7 +38,7 @@ export async function validateHeaderSubquery(
     return false;
   }
   const latestBlock = await provider.getBlock("latest");
-  if (!latestBlock) {
+  if (latestBlock === null) {
     throw new Error("Failed to get latest block; check your internet connection or provider RPC");
   }
   if (subquery.blockNumber > latestBlock.number) {
@@ -56,14 +55,14 @@ export async function validateHeaderSubquery(
 
 export async function validateAccountSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltAccountSubquery
+  subquery: UnbuiltAccountSubquery,
 ): Promise<boolean> {
   if (subquery.fieldIdx > AccountField.CodeHash) {
     console.error(`Invalid account field index: ${subquery.fieldIdx}`);
     return false;
   }
   const latestBlock = await provider.getBlock("latest");
-  if (!latestBlock) {
+  if (latestBlock === null) {
     throw new Error("Failed to get latest block; check your internet connection or provider RPC");
   }
   if (subquery.blockNumber > latestBlock.number) {
@@ -80,10 +79,10 @@ export async function validateAccountSubquery(
 
 export async function validateStorageSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltStorageSubquery
+  subquery: UnbuiltStorageSubquery,
 ): Promise<boolean> {
   const latestBlock = await provider.getBlock("latest");
-  if (!latestBlock) {
+  if (latestBlock === null) {
     throw new Error("Failed to get latest block; check your internet connection or provider RPC");
   }
   if (subquery.blockNumber > latestBlock.number) {
@@ -100,11 +99,10 @@ export async function validateStorageSubquery(
 
 export async function validateTxSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltTxSubquery
+  subquery: UnbuiltTxSubquery,
 ): Promise<boolean> {
   if (
-    (subquery.fieldOrCalldataIdx > TxField.s &&
-      subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.TxTypeFieldIdx) ||
+    (subquery.fieldOrCalldataIdx > TxField.s && subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.TxTypeFieldIdx) ||
     (subquery.fieldOrCalldataIdx > AxiomV2FieldConstant.Tx.CalldataHashFieldIdx &&
       subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.CalldataIdxOffset)
   ) {
@@ -113,20 +111,19 @@ export async function validateTxSubquery(
   }
 
   const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
-  if (!blockNumber || !txIdx) {
+  if (blockNumber === null || txIdx === null) {
     console.error("Unable to get blockNumber or txIdx from supplied txHash");
     return false;
   }
-  const tx = await provider.getTransaction(subquery.txHash);
-  if (!tx) {
-    console.error(`Unable to get transaction from txHash ${subquery.txHash}`);
-    return false;
-  }
-  const value = await getTxFieldValue(provider, {
-    blockNumber,
-    txIdx,
-    fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
-  }, console, tx);
+  const value = await getTxFieldValue(
+    provider,
+    {
+      blockNumber,
+      txIdx,
+      fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
+    },
+    console,
+  );
   if (value === null) {
     console.error(`Tx subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -136,7 +133,7 @@ export async function validateTxSubquery(
 
 export async function validateReceiptSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltReceiptSubquery
+  subquery: UnbuiltReceiptSubquery,
 ): Promise<boolean> {
   if (
     (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas &&
@@ -148,10 +145,7 @@ export async function validateReceiptSubquery(
     return false;
   }
   if (subquery.fieldOrLogIdx >= AxiomV2FieldConstant.Receipt.LogIdxOffset) {
-    if (
-      !ethers.isBytesLike(subquery.eventSchema) ||
-      getNumBytes(subquery.eventSchema) !== 32
-    ) {
+    if (!ethers.isBytesLike(subquery.eventSchema) || getNumBytes(subquery.eventSchema) !== 32) {
       console.error(`Must define event schema when using log index: ${subquery.eventSchema}`);
       return false;
     }
@@ -166,17 +160,21 @@ export async function validateReceiptSubquery(
   }
 
   const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
-  if (!blockNumber || !txIdx) {
+  if (blockNumber === null || txIdx === null) {
     console.error("Unable to get blockNumber or txIdx from supplied txHash");
     return false;
   }
-  const value = await getReceiptFieldValue(provider, {
-    blockNumber,
-    txIdx,
-    fieldOrLogIdx: subquery.fieldOrLogIdx,
-    topicOrDataOrAddressIdx: subquery.topicOrDataOrAddressIdx,
-    eventSchema: subquery.eventSchema,
-  }, console.warn);
+  const value = await getReceiptFieldValue(
+    provider,
+    {
+      blockNumber,
+      txIdx,
+      fieldOrLogIdx: subquery.fieldOrLogIdx,
+      topicOrDataOrAddressIdx: subquery.topicOrDataOrAddressIdx,
+      eventSchema: subquery.eventSchema,
+    },
+    console.warn,
+  );
   if (value === null) {
     console.error(`Receipt subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -186,14 +184,16 @@ export async function validateReceiptSubquery(
 
 export async function validateSolidityNestedMappingSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltSolidityNestedMappingSubquery
+  subquery: UnbuiltSolidityNestedMappingSubquery,
 ): Promise<boolean> {
   if (subquery.keys.length !== subquery.mappingDepth) {
-    console.error(`Nested mapping keys length ${subquery.keys.length} does not match mapping depth ${subquery.mappingDepth}`);
+    console.error(
+      `Nested mapping keys length ${subquery.keys.length} does not match mapping depth ${subquery.mappingDepth}`,
+    );
     return false;
   }
   const latestBlock = await provider.getBlock("latest");
-  if (!latestBlock) {
+  if (latestBlock === null) {
     throw new Error("Failed to get latest block; check your internet connection or provider RPC");
   }
   if (subquery.blockNumber > latestBlock.number) {
@@ -216,7 +216,7 @@ export async function validateSolidityNestedMappingSubquery(
 
 export async function validateBeaconSubquery(
   provider: ethers.JsonRpcProvider,
-  subquery: BeaconValidatorSubquery
+  subquery: BeaconValidatorSubquery,
 ): Promise<boolean> {
   // WIP
   return true;

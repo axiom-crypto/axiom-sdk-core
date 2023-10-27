@@ -31,14 +31,12 @@ describe("On-chain Data Query scenarios", () => {
   test("Send a small on-chain Query", async () => {
     const query = (axiom.query as QueryV2).new();
     const options: AxiomV2QueryOptions = {
-      callbackGasLimit: 1000000
-    }
+      callbackGasLimit: 1000000,
+    };
     query.setOptions(options);
 
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
-    const swapEventSchema = getEventSchema(
-      "Swap(address,uint256,uint256,uint256,uint256,address)"
-    );
+    const swapEventSchema = getEventSchema("Swap(address,uint256,uint256,uint256,uint256,address)");
     const blockNumber = 9500000;
 
     // First, we'll build a Receipt Subquery that queries the event schema at the specified
@@ -57,12 +55,10 @@ describe("On-chain Data Query scenarios", () => {
     query.appendDataSubquery(receiptSubquery1);
 
     // Finally, we'll also query the function selector of this transaction hash as well
-    const txSubquery = buildTxSubquery(txHash)
-      .functionSelector();
+    const txSubquery = buildTxSubquery(txHash).functionSelector();
     query.appendDataSubquery(txSubquery);
 
-    const headerSubquery = buildHeaderSubquery(blockNumber)
-      .field(HeaderField.BaseFeePerGas);
+    const headerSubquery = buildHeaderSubquery(blockNumber).field(HeaderField.BaseFeePerGas);
     query.appendDataSubquery(headerSubquery);
 
     const accountSubquery = buildAccountSubquery(blockNumber)
@@ -73,21 +69,18 @@ describe("On-chain Data Query scenarios", () => {
     const callback: AxiomV2Callback = {
       target: exampleClientAddr,
       extraData: bytes32(0),
-    }
+    };
     query.setCallback(callback);
 
-    if (!query.validate()) {
+    if (!(await query.validate())) {
       throw new Error("Query validation failed");
     }
     await query.build();
     const paymentAmt = query.calculateFee();
-    const queryId = await query.sendOnchainQuery(
-      paymentAmt,
-      (receipt: ethers.ContractTransactionReceipt) => {
-        // You can do something here once you've received the receipt
-        console.log("receipt", receipt);
-      }
-    );
+    const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
+      // You can do something here once you've received the receipt
+      console.log("receipt", receipt);
+    });
     console.log("queryId", queryId);
   }, 40000);
 
@@ -105,21 +98,18 @@ describe("On-chain Data Query scenarios", () => {
     const callback: AxiomV2Callback = {
       target: exampleClientAddr,
       extraData: bytes32(0),
-    }
+    };
     query.setCallback(callback);
 
-    if (!query.validate()) {
+    if (!(await query.validate())) {
       throw new Error("Query validation failed");
     }
     await query.build();
     const paymentAmt = query.calculateFee();
-    const queryId = await query.sendOnchainQuery(
-      paymentAmt,
-      (receipt: ethers.ContractTransactionReceipt) => {
-        // You can do something here once you've received the receipt
-        console.log("receipt", receipt);
-      }
-    );
+    const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
+      // You can do something here once you've received the receipt
+      console.log("receipt", receipt);
+    });
     console.log("queryId", queryId);
   }, 40000);
 });

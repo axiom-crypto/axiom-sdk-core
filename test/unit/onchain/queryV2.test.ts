@@ -51,7 +51,7 @@ describe("Quickstart V2", () => {
     }
     query.setCallback(callback);
 
-    if (!query.validate()) {
+    if (!(await query.validate())) {
       throw new Error("Query validation failed");
     }
     await query.build();
@@ -119,7 +119,7 @@ describe("Quickstart V2", () => {
     }
     query.setCallback(callback);
 
-    if (!query.validate()) {
+    if (!(await query.validate())) {
       throw new Error("Query validation failed");
     }
     const builtQuery = await query.build();

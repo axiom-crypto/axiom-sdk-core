@@ -1,9 +1,4 @@
-import {
-  getSlotForMapping,
-  HeaderField,
-  AccountField,
-  TxField,
-} from "@axiom-crypto/tools";
+import { getSlotForMapping, HeaderField, AccountField, TxField } from "@axiom-crypto/tools";
 import {
   Axiom,
   AxiomConfig,
@@ -35,8 +30,7 @@ describe("Query Validation Tests", () => {
 
   test("Validate pass: Header subquery", async () => {
     const query = aq.new();
-    const subquery = buildHeaderSubquery(17000000)
-      .field(HeaderField.GasUsed);
+    const subquery = buildHeaderSubquery(17000000).field(HeaderField.GasUsed);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
@@ -67,8 +61,7 @@ describe("Query Validation Tests", () => {
     const query = aq.new();
 
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
-    const subquery = buildTxSubquery(txHash)
-      .field(TxField.To);
+    const subquery = buildTxSubquery(txHash).field(TxField.To);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
@@ -77,12 +70,21 @@ describe("Query Validation Tests", () => {
   test("Validate pass: Tx subquery calldata", async () => {
     const query = aq.new();
 
-    const txHash = "0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5";
-    const subquery = buildTxSubquery(txHash)
-      .calldata(0);
+    const txHash = "0x192bc136b4637e0c31dc80b7c4e8cd63328c7c411ba8574af1841ed2c4a6dd80";
+    const subquery = buildTxSubquery(txHash).calldata(0);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
+  });
+
+  test("Validate pass: Tx subquery contractData (too large, returns null)", async () => {
+    const query = aq.new();
+
+    const txHash = "0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5";
+    const subquery = buildTxSubquery(txHash).contractData(0);
+    query.appendDataSubquery(subquery);
+    const isValid = await query.validate();
+    expect(isValid).toEqual(false);
   });
 
   test("Validate pass: Receipt subquery", async () => {
@@ -103,11 +105,7 @@ describe("Query Validation Tests", () => {
     const subquery = buildSolidityNestedMappingSubquery(17000000)
       .address(UNI_V3_FACTORY_ADDR)
       .mappingSlot(5)
-      .keys([
-        WETH_ADDR,
-        WSOL_ADDR,
-        10000,
-      ]);
+      .keys([WETH_ADDR, WSOL_ADDR, 10000]);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
@@ -116,14 +114,13 @@ describe("Query Validation Tests", () => {
   test("Validate fail: Header subquery", async () => {
     const query = aq.new();
     const test = () => {
-      const subquery = buildHeaderSubquery("0x480aa3cf46a1813d543e169314d56831aa002d932444723fee6b9e31d01f8c28")
-        .field(HeaderField.Miner);
+      const subquery = buildHeaderSubquery("0x480aa3cf46a1813d543e169314d56831aa002d932444723fee6b9e31d01f8c28").field(
+        HeaderField.Miner,
+      );
       query.appendDataSubquery(subquery);
-    }
+    };
     expect(test).toThrow();
   });
 
-  test("Validate pass: Callback", async () => {
-
-  });
+  test("Validate pass: Callback", async () => {});
 });

@@ -35,9 +35,7 @@ import {
 } from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
-import {
-  resizeArray,
-} from "../../../src/shared/utils";
+import { resizeArray } from "../../../src/shared/utils";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537394;
@@ -141,7 +139,7 @@ describe("QueryV2", () => {
     "0x0a402861a2d79ae8ebb9287c67a37c5fbab5ef17c428f4ef1b62c23f738fd423",
     "0x706b5e2d8b8e8550391b9d10fd8ac4462cb71677e2dc12aab4d4514daad0d512",
     "0xde7b9d73817e10ca37b5f2cab8ab5bcb549127d90229e0533bf97cb80252f709",
-    "0xd902d285a5395f96ea452bd4a4053df580879c9ce50c3a14f06e2ed43ffe6ba1"
+    "0xd902d285a5395f96ea452bd4a4053df580879c9ce50c3a14f06e2ed43ffe6ba1",
   ];
   const computeProof = ethers.concat(computeProofRaw);
 
@@ -151,7 +149,6 @@ describe("QueryV2", () => {
     version: "v2",
   };
   const axiom = new Axiom(config);
-  const aq = axiom.query as QueryV2;
 
   test("should initialize QueryV2", () => {
     expect(typeof axiom.query).toEqual("object");
@@ -173,7 +170,7 @@ describe("QueryV2", () => {
 
   test("should initialize QueryBuilderV2 with dataQuery", async () => {
     const dataQuery = [] as DataSubquery[];
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     query.append(dataQuery);
     expect(typeof query).toEqual("object");
   });
@@ -185,7 +182,7 @@ describe("QueryV2", () => {
       vkey,
       computeProof,
     };
-    const query = aq.new(dataQuery, computeQuery);
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery);
     expect(typeof query).toEqual("object");
   });
 
@@ -200,7 +197,7 @@ describe("QueryV2", () => {
       target: WETH_ADDR,
       extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
-    const query = aq.new(dataQuery, computeQuery, callbackQuery);
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery);
     expect(typeof query).toEqual("object");
   });
 
@@ -216,7 +213,7 @@ describe("QueryV2", () => {
       extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
     };
     const options = {};
-    const query = aq.new(dataQuery, computeQuery, callbackQuery, options);
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery, options);
     expect(typeof query).toEqual("object");
   });
 
@@ -265,7 +262,7 @@ describe("QueryV2", () => {
       extraData: bytes32(ethers.solidityPacked(["address"], [WETH_WHALE])),
     };
     const options = {};
-    const query = aq.new(dataQuery, computeQueryReq, callbackQuery, options);
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQueryReq, callbackQuery, options);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
   });
@@ -281,7 +278,8 @@ describe("QueryV2", () => {
         fieldIdx: HeaderField.GasUsed,
       },
     ];
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
+    console.log("subqueryCount", dataQueryReq.length, query.getDataSubqueryCount());
     query.append(dataQueryReq);
 
     const {
@@ -291,6 +289,9 @@ describe("QueryV2", () => {
       computeQuery,
       callback,
     } = await query.build();
+    const subqueryCount = query.getDataSubqueryCount();
+    console.log("subqueryCount", dataQueryReq.length, subqueryCount);
+    console.log("dataQuery", query.getDataQuery());
     expect(queryHash).toEqual("0xf882d4796e0f30f74e8fcffb532345ce7775c5816ff5d3b068fe1618a563e375");
     expect(dataQueryHash).toEqual(
       "0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49"
@@ -340,11 +341,13 @@ describe("QueryV2", () => {
     const options: AxiomV2QueryOptions = {
       maxFeePerGas: BigInt(100000000).toString(),
     };
-    const query = aq.new(dataQueryReq, computeQueryReq, callbackQuery, options);
+    const query = (axiom.query as QueryV2).new(dataQueryReq, computeQueryReq, callbackQuery, options);
 
     const unbiltDq = query.getDataQuery();
     expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
-
+    const subqueryCount = query.getDataSubqueryCount();
+    console.log("subqueryCount", dataQueryReq.length, subqueryCount);
+    console.log("dataQuery", query.getDataQuery());
     const {
       queryHash,
       dataQueryHash,
@@ -373,7 +376,7 @@ describe("QueryV2", () => {
   });
 
   test("Compute callback resultLen based on number of subqueries", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
 
     const callback: AxiomV2Callback = {
       target: WETH_ADDR,
@@ -389,7 +392,7 @@ describe("QueryV2", () => {
   });
 
   test("Use specified callback resultLen if there is a computeQuery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
 
     const callback: AxiomV2Callback = {
       target: WETH_ADDR,
@@ -412,7 +415,7 @@ describe("QueryV2", () => {
   });
 
   test("Set various options", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
 
     const options: AxiomV2QueryOptions = {
       maxFeePerGas: "100000000",
@@ -443,9 +446,8 @@ describe("QueryV2", () => {
     expect(builtQuery.refundee).toEqual(ethers.ZeroAddress);
   });
 
-
   test("Payment calculation based on options", () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     let fee = query.calculateFee();
     expect(fee).toEqual("18000000000000000");
 
@@ -465,7 +467,7 @@ describe("QueryV2", () => {
   });
 
   test("Append a Header subquery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     const subquery = buildHeaderSubquery(17000000)
       .field(HeaderField.GasLimit);
     query.appendDataSubquery(subquery);
@@ -477,7 +479,7 @@ describe("QueryV2", () => {
   });
 
   test("Append an Account subquery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     const subquery = buildAccountSubquery(17000000)
       .address(WETH_WHALE)
       .field(AccountField.Nonce);
@@ -491,7 +493,7 @@ describe("QueryV2", () => {
   });
 
   test("Append a Storage subquery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     const slot = getSlotForMapping("3", "address", WETH_WHALE);
     const subquery = buildStorageSubquery(18000000)
       .address(WETH_ADDR)
@@ -507,7 +509,7 @@ describe("QueryV2", () => {
   });
 
   test("Append a Tx subquery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
     const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash) as { blockNumber: number, txIdx: number };
     const subquery = buildTxSubquery(txHash)
@@ -523,7 +525,7 @@ describe("QueryV2", () => {
   });
 
   test("Append a Receipt subquery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
 
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
@@ -548,7 +550,7 @@ describe("QueryV2", () => {
   });
 
   test("Append a Solidity Nested Mapping subquery", async () => {
-    const query = aq.new();
+    const query = (axiom.query as QueryV2).new();
     const subquery = buildSolidityNestedMappingSubquery(17000000)
       .address(UNI_V3_FACTORY_ADDR)
       .mappingSlot(5)
@@ -571,5 +573,28 @@ describe("QueryV2", () => {
       bytes32(WSOL_ADDR),
       bytes32(10000),
     ]);
+  });
+
+  test("Append an too many Account subqueries", async () => {
+    const query = (axiom.query as QueryV2).new();
+    const subquery = buildAccountSubquery(17000000)
+      .address(WETH_WHALE)
+      .field(AccountField.Nonce);
+    const testSingleAppend = () => {
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+      query.appendDataSubquery(subquery);
+    };
+    expect(testSingleAppend).toThrow();
+    const testBatchAppend = () => {
+      query.append([subquery, subquery, subquery, subquery, subquery, subquery, subquery, subquery, subquery]);
+    };
+    expect(testBatchAppend).toThrow();
   });
 });
