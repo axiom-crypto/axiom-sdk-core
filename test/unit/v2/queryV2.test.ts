@@ -279,7 +279,6 @@ describe("QueryV2", () => {
       },
     ];
     const query = (axiom.query as QueryV2).new();
-    console.log("subqueryCount", dataQueryReq.length, query.getDataSubqueryCount());
     query.append(dataQueryReq);
 
     const {
@@ -289,9 +288,6 @@ describe("QueryV2", () => {
       computeQuery,
       callback,
     } = await query.build();
-    const subqueryCount = query.getDataSubqueryCount();
-    console.log("subqueryCount", dataQueryReq.length, subqueryCount);
-    console.log("dataQuery", query.getDataQuery());
     expect(queryHash).toEqual("0xf882d4796e0f30f74e8fcffb532345ce7775c5816ff5d3b068fe1618a563e375");
     expect(dataQueryHash).toEqual(
       "0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49"
@@ -345,9 +341,6 @@ describe("QueryV2", () => {
 
     const unbiltDq = query.getDataQuery();
     expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
-    const subqueryCount = query.getDataSubqueryCount();
-    console.log("subqueryCount", dataQueryReq.length, subqueryCount);
-    console.log("dataQuery", query.getDataQuery());
     const {
       queryHash,
       dataQueryHash,

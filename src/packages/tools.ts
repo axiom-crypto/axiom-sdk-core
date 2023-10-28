@@ -13,6 +13,7 @@ export {
   getSlotForMapping,
   getSlotForArray,
   getRawTransaction,
+  getRawReceipt,
   getFullBlock,
   getAccountData,
   getTxHash,

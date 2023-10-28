@@ -45,7 +45,7 @@ export async function validateHeaderSubquery(
     console.warn(`Block number ${subquery.blockNumber} is in the future`);
   }
 
-  const value = await getHeaderFieldValue(provider, subquery, console.warn);
+  const value = await getHeaderFieldValue(provider, subquery, console);
   if (value === null) {
     console.error(`Header subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -69,7 +69,7 @@ export async function validateAccountSubquery(
     console.warn(`Block number ${subquery.blockNumber} is in the future`);
   }
 
-  const value = await getAccountFieldValue(provider, subquery, console.warn);
+  const value = await getAccountFieldValue(provider, subquery, console);
   if (value === null) {
     console.error(`Account subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -89,7 +89,7 @@ export async function validateStorageSubquery(
     console.warn(`Block number ${subquery.blockNumber} is in the future`);
   }
 
-  const value = await getStorageFieldValue(provider, subquery, console.warn);
+  const value = await getStorageFieldValue(provider, subquery, console);
   if (value === null) {
     console.error(`Storage subquery ${JSON.stringify(subquery)} returned null`);
     return false;
@@ -206,7 +206,7 @@ export async function validateSolidityNestedMappingSubquery(
     }
   }
 
-  const value = await getSolidityNestedMappingValue(provider, subquery, console.warn);
+  const value = await getSolidityNestedMappingValue(provider, subquery, console);
   if (value === null) {
     console.error(`Solidity nested mapping subquery ${JSON.stringify(subquery)} returned null`);
     return false;

@@ -13,6 +13,7 @@ import {
   buildAccountSubquery,
   AccountField,
   AxiomV2QueryOptions,
+  buildSolidityNestedMappingSubquery,
 } from "../../../src";
 import { ConstantsV2 } from "../../../src/v2/constants";
 
@@ -22,13 +23,56 @@ describe("On-chain Data Query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
-    mock: true,
+    // mock: true,
   };
   const axiom = new Axiom(config);
 
   const exampleClientAddr = "0x8fb73ce80fdb8f15877b161e4fe08b2a0a9979a9";
 
-  test("Send a small on-chain Query", async () => {
+  const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+  const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
+  const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
+  const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+
+  test("Send a small DataQuery", async () => {
+    const query = (axiom.query as QueryV2).new();
+    const options: AxiomV2QueryOptions = {
+      callbackGasLimit: 1000000,
+    };
+    query.setOptions(options);
+
+    const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
+    const swapEventSchema = getEventSchema("Swap(address,uint256,uint256,uint256,uint256,address)");
+    const blockNumber = 9500000;
+
+    // First, we'll build a Receipt Subquery that queries the event schema at the specified
+    // transaction hash
+    const receiptSubquery0 = buildReceiptSubquery(txHash)
+      .log(4) // event
+      .topic(0) // event schema
+      .eventSchema(swapEventSchema);
+    query.appendDataSubquery(receiptSubquery0);
+
+    // Second, we'll build another Receipt Subquery to query topic idx 2 (address to)
+    const receiptSubquery1 = buildReceiptSubquery(txHash)
+      .log(4) // event
+      .topic(2) // to field
+      .eventSchema(swapEventSchema);
+    query.appendDataSubquery(receiptSubquery1);
+
+    if (!(await query.validate())) {
+      throw new Error("Query validation failed");
+    }
+    await query.build();
+    const paymentAmt = query.calculateFee();
+    const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
+      // You can do something here once you've received the receipt
+      console.log("receipt", receipt);
+    });
+    console.log("queryId", queryId);
+  }, 60000);
+
+  test("Send one of each DataQuery", async () => {
     const query = (axiom.query as QueryV2).new();
     const options: AxiomV2QueryOptions = {
       callbackGasLimit: 1000000,
@@ -66,6 +110,12 @@ describe("On-chain Data Query scenarios", () => {
       .field(AccountField.Balance);
     query.appendDataSubquery(accountSubquery);
 
+    const mappingSubquery = buildSolidityNestedMappingSubquery(blockNumber)
+      .address(UNI_V3_FACTORY_ADDR)
+      .mappingSlot(3)
+      .keys([WETH_ADDR, WSOL_ADDR, 10000, 5000]);
+    query.appendDataSubquery(mappingSubquery);
+
     const callback: AxiomV2Callback = {
       target: exampleClientAddr,
       extraData: bytes32(0),
@@ -82,9 +132,36 @@ describe("On-chain Data Query scenarios", () => {
       console.log("receipt", receipt);
     });
     console.log("queryId", queryId);
-  }, 40000);
+  }, 60000);
 
-  test("Send a size-64 on-chain Query", async () => {
+  test("Send a size-32 header DataQuery", async () => {
+    const query = (axiom.query as QueryV2).new();
+
+    const endBlockNumber = 9800000;
+    const interval = 10000;
+    for (let i = 32; i > 0; i--) {
+      const accountSubquery = buildHeaderSubquery(endBlockNumber - i * interval).field(HeaderField.Nonce);
+      query.appendDataSubquery(accountSubquery);
+    }
+    const callback: AxiomV2Callback = {
+      target: exampleClientAddr,
+      extraData: bytes32(0),
+    };
+    query.setCallback(callback);
+
+    if (!(await query.validate())) {
+      throw new Error("Query validation failed");
+    }
+    await query.build();
+    const paymentAmt = query.calculateFee();
+    const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
+      // You can do something here once you've received the receipt
+      console.log("receipt", receipt);
+    });
+    console.log("queryId", queryId);
+  }, 60000);
+
+  test("Send a size-64 account DataQuery", async () => {
     const query = (axiom.query as QueryV2).new();
 
     const endBlockNumber = 9800000;
@@ -111,5 +188,5 @@ describe("On-chain Data Query scenarios", () => {
       console.log("receipt", receipt);
     });
     console.log("queryId", queryId);
-  }, 40000);
+  }, 60000);
 });
