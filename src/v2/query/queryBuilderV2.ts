@@ -644,17 +644,34 @@ export class QueryBuilderV2 {
     switch (type) {
       case DataSubqueryType.Header:
         this.dataSubqueryCount.header++;
+        if (this.dataSubqueryCount.header > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Header subqueries`);
+        }
         break;
       case DataSubqueryType.Account:
         this.dataSubqueryCount.account++;
-        if (this.dataSubqueryCount.account + this.dataSubqueryCount.storage + this.dataSubqueryCount.solidityNestedMapping >= ConstantsV2.MaxSameSubqueryType) {
-          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType - 1} Account + Storage + Nested Mapping subqueries`);
+        if (
+          this.dataSubqueryCount.account +
+            this.dataSubqueryCount.storage +
+            this.dataSubqueryCount.solidityNestedMapping >=
+          ConstantsV2.MaxSameSubqueryType
+        ) {
+          throw new Error(
+            `Cannot add more than ${ConstantsV2.MaxSameSubqueryType - 1} Account + Storage + Nested Mapping subqueries`,
+          );
         }
         break;
       case DataSubqueryType.Storage:
         this.dataSubqueryCount.storage++;
-        if (this.dataSubqueryCount.account + this.dataSubqueryCount.storage + this.dataSubqueryCount.solidityNestedMapping >= ConstantsV2.MaxSameSubqueryType) {
-          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType - 1} Account + Storage + Nested Mapping subqueries`);
+        if (
+          this.dataSubqueryCount.account +
+            this.dataSubqueryCount.storage +
+            this.dataSubqueryCount.solidityNestedMapping >=
+          ConstantsV2.MaxSameSubqueryType
+        ) {
+          throw new Error(
+            `Cannot add more than ${ConstantsV2.MaxSameSubqueryType - 1} Account + Storage + Nested Mapping subqueries`,
+          );
         }
         break;
       case DataSubqueryType.Transaction:
@@ -671,8 +688,15 @@ export class QueryBuilderV2 {
         break;
       case DataSubqueryType.SolidityNestedMapping:
         this.dataSubqueryCount.solidityNestedMapping++;
-        if (this.dataSubqueryCount.account + this.dataSubqueryCount.storage + this.dataSubqueryCount.solidityNestedMapping >= ConstantsV2.MaxSameSubqueryType) {
-          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType - 1} Account + Storage + Nested Mapping subqueries`);
+        if (
+          this.dataSubqueryCount.account +
+            this.dataSubqueryCount.storage +
+            this.dataSubqueryCount.solidityNestedMapping >=
+          ConstantsV2.MaxSameSubqueryType
+        ) {
+          throw new Error(
+            `Cannot add more than ${ConstantsV2.MaxSameSubqueryType - 1} Account + Storage + Nested Mapping subqueries`,
+          );
         }
         break;
       default:

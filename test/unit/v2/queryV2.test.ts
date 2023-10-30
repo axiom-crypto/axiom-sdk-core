@@ -608,6 +608,7 @@ describe("QueryV2", () => {
 
     const unbiltDq = query.getDataQuery();
     expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
+
     const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
     const builtDq = query.getBuiltQuery()?.dataQueryStruct;
     if (builtDq === undefined) {
@@ -631,5 +632,30 @@ describe("QueryV2", () => {
     expect(dataQuery).toEqual(dataQuery2);
     expect(computeQuery).toEqual(computeQuery2);
     expect(callback).toEqual(callback2);
+  });
+
+  test("Set a built empty DataQuery", async () => {
+    const computeQueryReq: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    const callbackQuery = {
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    const options: AxiomV2QueryOptions = {
+      maxFeePerGas: BigInt(100000000).toString(),
+    };
+    const query = (axiom.query as QueryV2).new(undefined, computeQueryReq, callbackQuery, options);
+    query.setBuiltDataQuery({
+      sourceChainId: "5",
+      subqueries: [],
+    });
+    await query.build();
+    const builtDq = query.getBuiltQuery()?.dataQueryStruct;
+    if (builtDq === undefined) {
+      throw new Error("builtDq is undefined");
+    }
   });
 });

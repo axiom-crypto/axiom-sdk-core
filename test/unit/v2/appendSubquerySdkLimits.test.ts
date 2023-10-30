@@ -22,20 +22,20 @@ describe("Append subquery: SDK-enforced limits", () => {
   };
   const axiom = new Axiom(config);
 
-  test("Append 31 Header subqueries", () => {
+  test("Append 8 Header subqueries", () => {
     const blockNumber = 18000000;
     const query = (axiom.query as QueryV2).new();
-    for (let i = 0; i < 31; i++) {
+    for (let i = 0; i < 8; i++) {
       const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
       query.appendDataSubquery(subquery);
     }
   });
 
-  test("Append 32 Header subqueries", () => {
+  test("Append 9 Header subqueries", () => {
     const testFn = () => {
       const blockNumber = 18000000;
       const query = (axiom.query as QueryV2).new();
-      for (let i = 0; i < 32; i++) {
+      for (let i = 0; i < 9; i++) {
         const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
         query.appendDataSubquery(subquery);
       }
