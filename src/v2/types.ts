@@ -44,6 +44,7 @@ export interface BuiltQueryV2 {
 }
 
 export interface DataSubqueryCount {
+  total: number;
   header: number;
   account: number;
   storage: number;

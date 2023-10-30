@@ -167,7 +167,7 @@ export class QueryBuilderV2 {
   setDataQuery(dataQuery: UnbuiltSubquery[]) {
     this.unsetBuiltQuery();
     this.dataQuery = undefined;
-    this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
+    this.resetSubqueryCount();
     this.append(dataQuery);
   }
 
@@ -209,43 +209,7 @@ export class QueryBuilderV2 {
 
     for (const subquery of dataSubqueries) {
       const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
-      switch (type) {
-        case DataSubqueryType.Header:
-          this.dataSubqueryCount.header++;
-          break;
-        case DataSubqueryType.Account:
-          this.dataSubqueryCount.account++;
-          if (this.dataSubqueryCount.account > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account subqueries`);
-          }
-          break;
-        case DataSubqueryType.Storage:
-          this.dataSubqueryCount.storage++;
-          if (this.dataSubqueryCount.storage > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Storage subqueries`);
-          }
-          break;
-        case DataSubqueryType.Transaction:
-          this.dataSubqueryCount.transaction++;
-          if (this.dataSubqueryCount.transaction > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Transaction subqueries`);
-          }
-          break;
-        case DataSubqueryType.Receipt:
-          this.dataSubqueryCount.receipt++;
-          if (this.dataSubqueryCount.receipt > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Receipt subqueries`);
-          }
-          break;
-        case DataSubqueryType.SolidityNestedMapping:
-          this.dataSubqueryCount.solidityNestedMapping++;
-          if (this.dataSubqueryCount.solidityNestedMapping > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Nested Mapping subqueries`);
-          }
-          break;
-        default:
-          throw new Error(`Unknown subquery type: ${type}`);
-      }
+      this.updateSubqueryCount(type);
     }
 
     // Append new dataSubqueries to existing dataQuery
@@ -267,6 +231,10 @@ export class QueryBuilderV2 {
    * Setting this will take precedence over setting any UnbuiltSubqueries via `append()`.
    */
   setBuiltDataQuery(dataQuery: AxiomV2DataQuery): void {
+    this.resetSubqueryCount();
+    for (const subquery of dataQuery.subqueries) {
+      this.updateSubqueryCount(subquery.type);
+    }
     this.builtDataQuery = dataQuery;
   }
 
@@ -662,5 +630,53 @@ export class QueryBuilderV2 {
     }
 
     return valid;
+  }
+
+  private resetSubqueryCount() {
+    this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
+  }
+
+  private updateSubqueryCount(type: DataSubqueryType) {
+    this.dataSubqueryCount.total++;
+    if (this.dataSubqueryCount.total > ConstantsV2.MaxDataQuerySize) {
+      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
+    }
+    switch (type) {
+      case DataSubqueryType.Header:
+        this.dataSubqueryCount.header++;
+        break;
+      case DataSubqueryType.Account:
+        this.dataSubqueryCount.account++;
+        if (this.dataSubqueryCount.account > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account subqueries`);
+        }
+        break;
+      case DataSubqueryType.Storage:
+        this.dataSubqueryCount.storage++;
+        if (this.dataSubqueryCount.storage > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Storage subqueries`);
+        }
+        break;
+      case DataSubqueryType.Transaction:
+        this.dataSubqueryCount.transaction++;
+        if (this.dataSubqueryCount.transaction > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Transaction subqueries`);
+        }
+        break;
+      case DataSubqueryType.Receipt:
+        this.dataSubqueryCount.receipt++;
+        if (this.dataSubqueryCount.receipt > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Receipt subqueries`);
+        }
+        break;
+      case DataSubqueryType.SolidityNestedMapping:
+        this.dataSubqueryCount.solidityNestedMapping++;
+        if (this.dataSubqueryCount.solidityNestedMapping > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Nested Mapping subqueries`);
+        }
+        break;
+      default:
+        throw new Error(`Unknown subquery type: ${type}`);
+    }
   }
 }

@@ -26,6 +26,7 @@ export const ConstantsV2 = Object.freeze({
     extraData: ethers.ZeroHash,
   } as AxiomV2Callback,
   EmptyDataSubqueryCount: {
+    total: 0,
     header: 0,
     account: 0,
     storage: 0,
