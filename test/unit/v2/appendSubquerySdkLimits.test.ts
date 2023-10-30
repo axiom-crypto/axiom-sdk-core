@@ -1,5 +1,13 @@
 import { buildStorageSubquery } from "../../../dist";
-import { AccountField, Axiom, AxiomConfig, QueryV2, buildSolidityNestedMappingSubquery } from "../../../src";
+import {
+  AccountField,
+  Axiom,
+  AxiomConfig,
+  HeaderField,
+  QueryV2,
+  buildHeaderSubquery,
+  buildSolidityNestedMappingSubquery,
+} from "../../../src";
 
 describe("Append subquery: SDK-enforced limits", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -13,6 +21,27 @@ describe("Append subquery: SDK-enforced limits", () => {
     version: "v2",
   };
   const axiom = new Axiom(config);
+
+  test("Append 31 Header subqueries", () => {
+    const blockNumber = 18000000;
+    const query = (axiom.query as QueryV2).new();
+    for (let i = 0; i < 31; i++) {
+      const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
+      query.appendDataSubquery(subquery);
+    }
+  });
+
+  test("Append 32 Header subqueries", () => {
+    const testFn = () => {
+      const blockNumber = 18000000;
+      const query = (axiom.query as QueryV2).new();
+      for (let i = 0; i < 32; i++) {
+        const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
+        query.appendDataSubquery(subquery);
+      }
+    };
+    expect(testFn).toThrow();
+  });
 
   test("Append 8 Account subqueries", () => {
     const testFn = () => {
