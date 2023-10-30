@@ -6,9 +6,10 @@ import { buildStorage } from "./storage";
 import { buildTx } from "./tx";
 import { buildHeader } from "./header";
 import { buildMapping } from "./mapping";
-import { DataQuery, PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant } from "./utils";
+import { DataQuery, PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant, getNewDataQuery } from "./utils";
 import { CircuitValue256 } from "./CircuitValue256";
 import { DataSubqueryType } from "@axiom-crypto/tools";
+import { UnbuiltSubquery } from "../types";
 
 export class AxiomData {
 
@@ -16,14 +17,24 @@ export class AxiomData {
   private _halo2Lib: Halo2LibWasm;
   private _dataQuery: DataQuery;
   private _MAX_BITS: string;
+  private _orderedDataQuery: UnbuiltSubquery[];
   private _results?: { [key: string]: string };
 
-  constructor(halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm, dataQuery: DataQuery, results?: { [key: string]: string }) {
+  constructor(halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm, results?: { [key: string]: string }) {
     this._halo2Lib = halo2Lib;
     this._halo2Wasm = halo2Wasm;
-    this._dataQuery = dataQuery;
+    this._dataQuery = getNewDataQuery();
     this._results = results;
-    this._MAX_BITS = this.getPaddedNumBits("253");
+    this._MAX_BITS = this.getMaxNumBits("253");
+    this._orderedDataQuery = []
+  }
+
+  _getDataQuery() {
+    return this._dataQuery;
+  }
+
+  _getOrderedDataQuery() {
+    return this._orderedDataQuery;
   }
 
   private prepData<T extends object>(subqueryArr: T[], type: DataSubqueryType): PrepData<T> {
@@ -35,6 +46,7 @@ export class AxiomData {
         val = BigInt(lookup).toString();
       }
       subqueryArr.push(subquery);
+      this._orderedDataQuery.push(subquery);
       let witness = getCircuitValue256Witness(this._halo2Lib, val);
       let circuitType = getCircuitValueConstant(this._halo2Lib, type);
       this._halo2Lib.make_public(this._halo2Wasm, circuitType.cell(), 1);
@@ -50,7 +62,7 @@ export class AxiomData {
     };
   }
 
-  private getPaddedNumBits(numBits: string) {
+  private getMaxNumBits(numBits: string) {
     let numBitsNum = Number(numBits);
     const lookupBits = this._halo2Lib.lookup_bits();
     let paddedC = Math.floor(numBitsNum / lookupBits) * lookupBits - 1;
