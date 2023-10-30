@@ -6,38 +6,31 @@ import { buildStorage } from "./storage";
 import { buildTx } from "./tx";
 import { buildHeader } from "./header";
 import { buildMapping } from "./mapping";
-import { DataQuery, PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant, getNewDataQuery } from "./utils";
+import { PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant, getNewDataQuery } from "./utils";
 import { CircuitValue256 } from "./CircuitValue256";
 import { DataSubquery, DataSubqueryType } from "@axiom-crypto/tools";
-import { UnbuiltSubquery } from "../types";
 
 export class AxiomData {
 
   private _halo2Wasm: Halo2Wasm;
   private _halo2Lib: Halo2LibWasm;
-  private _dataQuery: DataQuery;
   private _MAX_BITS: string;
-  private _orderedDataQuery: DataSubquery[];
+  private _dataQuery: DataSubquery[];
   private _results?: { [key: string]: string };
 
   constructor(halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm, results?: { [key: string]: string }) {
     this._halo2Lib = halo2Lib;
     this._halo2Wasm = halo2Wasm;
-    this._dataQuery = getNewDataQuery();
     this._results = results;
     this._MAX_BITS = this.getMaxNumBits("253");
-    this._orderedDataQuery = []
+    this._dataQuery = []
   }
 
   _getDataQuery() {
     return this._dataQuery;
   }
 
-  _getOrderedDataQuery() {
-    return this._orderedDataQuery;
-  }
-
-  private prepData<T extends object>(subqueryArr: T[], type: DataSubqueryType): PrepData<T> {
+  private prepData<T extends object>(type: DataSubqueryType): PrepData<T> {
 
     return (subquery, queryArr) => {
       let val = "0";
@@ -45,8 +38,7 @@ export class AxiomData {
       if (lookup) {
         val = BigInt(lookup).toString();
       }
-      subqueryArr.push(subquery);
-      this._orderedDataQuery.push({ subqueryData: subquery, type });
+      this._dataQuery.push({ subqueryData: subquery, type });
       let witness = getCircuitValue256Witness(this._halo2Lib, val);
       let circuitType = getCircuitValueConstant(this._halo2Lib, type);
       this._halo2Lib.make_public(this._halo2Wasm, circuitType.cell(), 1);
@@ -83,7 +75,7 @@ export class AxiomData {
     if (typeof blockNumber === "number") {
       blockNumber = new CircuitValue(this._halo2Lib, { value: BigInt(blockNumber) });
     }
-    return buildAccount(blockNumber, address, this._halo2Lib, this.prepData(this._dataQuery.accountSubqueries, DataSubqueryType.Account));
+    return buildAccount(blockNumber, address, this._halo2Lib, this.prepData(DataSubqueryType.Account));
   };
 
   /**
@@ -100,7 +92,7 @@ export class AxiomData {
     if (typeof txIdx === "number") {
       txIdx = new CircuitValue(this._halo2Lib, { value: BigInt(txIdx) });
     }
-    return buildReceipt(blockNumber, txIdx, this._halo2Lib, this.prepData(this._dataQuery.receiptSubqueries, DataSubqueryType.Receipt));
+    return buildReceipt(blockNumber, txIdx, this._halo2Lib, this.prepData(DataSubqueryType.Receipt));
   };
 
   /**
@@ -117,7 +109,7 @@ export class AxiomData {
     if (typeof blockNumber === "number") {
       blockNumber = new CircuitValue(this._halo2Lib, { value: BigInt(blockNumber) });
     }
-    return buildStorage(blockNumber, address, this._halo2Lib, this.prepData(this._dataQuery.storageSubqueries, DataSubqueryType.Storage));
+    return buildStorage(blockNumber, address, this._halo2Lib, this.prepData(DataSubqueryType.Storage));
   };
 
   /**
@@ -134,7 +126,7 @@ export class AxiomData {
     if (typeof txIdx === "number") {
       txIdx = new CircuitValue(this._halo2Lib, { value: BigInt(txIdx) });
     }
-    return buildTx(blockNumber, txIdx, this._halo2Lib, this.prepData(this._dataQuery.txSubqueries, DataSubqueryType.Transaction));
+    return buildTx(blockNumber, txIdx, this._halo2Lib, this.prepData(DataSubqueryType.Transaction));
   };
 
   /**
@@ -147,7 +139,7 @@ export class AxiomData {
     if (typeof blockNumber === "number") {
       blockNumber = new CircuitValue(this._halo2Lib, { value: BigInt(blockNumber) });
     }
-    return buildHeader(blockNumber, this._halo2Lib, this.prepData(this._dataQuery.headerSubqueries, DataSubqueryType.Header))
+    return buildHeader(blockNumber, this._halo2Lib, this.prepData(DataSubqueryType.Header))
   }
 
   /**
@@ -168,7 +160,7 @@ export class AxiomData {
     if (typeof slot === "number" || typeof slot === "bigint" || typeof slot === "string") {
       slot = new CircuitValue256(this._halo2Lib, { value: BigInt(slot) });
     }
-    return buildMapping(blockNumber, address, slot, this._halo2Lib, this.prepData(this._dataQuery.solidityNestedMappingSubqueries, DataSubqueryType.SolidityNestedMapping));
+    return buildMapping(blockNumber, address, slot, this._halo2Lib, this.prepData(DataSubqueryType.SolidityNestedMapping));
   }
 
   /**

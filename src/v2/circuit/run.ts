@@ -80,7 +80,6 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     await fn(parsedInputs);
 
     let dataQuery = axiomData._getDataQuery();
-    let orderedDataQuery = axiomData._getOrderedDataQuery();
     let results = await fetchDataQueries(provider, dataQuery, cachedResults);
 
     const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
@@ -90,7 +89,6 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
     return {
       dataQuery,
-      orderedDataQuery,
       results,
       config,
       numUserInstances,
@@ -110,13 +108,11 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
 
     let dataQuery = axiomData._getDataQuery();
-    let orderedDataQuery = axiomData._getOrderedDataQuery();
     let results = await fetchDataQueries(provider, dataQuery);
 
     return {
       results,
       dataQuery,
-      orderedDataQuery,
       numUserInstances,
     };
   }

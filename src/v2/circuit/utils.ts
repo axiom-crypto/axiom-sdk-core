@@ -12,6 +12,8 @@ import {
   ReceiptSubquery,
   SolidityNestedMappingSubquery,
   BeaconValidatorSubquery,
+  DataSubquery,
+  DataSubqueryType,
 } from "@axiom-crypto/tools";
 import { JsonRpcProvider } from "ethers";
 import { CircuitValue256 } from "./CircuitValue256";
@@ -52,74 +54,50 @@ export const isDataQueryEmpty = (dataQuery: DataQuery): boolean => {
 
 export type PrepData<T> = (subquery: T, subqueryCells: CircuitValue[]) => CircuitValue256;
 
-export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: DataQuery, cachedResults?: { [key: string]: string }) => {
+export const fetchDataQueries = async (provider: JsonRpcProvider, dataQuery: DataSubquery[], cachedResults?: { [key: string]: string }) => {
 
   let results: { [key: string]: string } = {};
 
-  for (let headerSubquery of dataQuery.headerSubqueries) {
-    let key = JSON.stringify(headerSubquery);
+  for (let subquery of dataQuery) {
+    let key = JSON.stringify(subquery.subqueryData);
     if (cachedResults && key in cachedResults) {
       results[key] = cachedResults[key];
       continue;
     }
-    let result = await getHeaderFieldValue(provider, headerSubquery);
-    if (result === null) throw new Error(`Failed to fetch header subquery: ${JSON.stringify(headerSubquery)}`);
-    results[key] = result.toString();
-  }
-
-  for (let accountSubquery of dataQuery.accountSubqueries) {
-    let key = JSON.stringify(accountSubquery);
-    if (cachedResults && key in cachedResults) {
-      results[key] = cachedResults[key];
-      continue;
+    switch (subquery.type) {
+      case DataSubqueryType.Header:
+        let result = await getHeaderFieldValue(provider, subquery.subqueryData as HeaderSubquery);
+        if (result === null) throw new Error(`Failed to fetch header subquery: ${JSON.stringify(subquery.subqueryData)}`);
+        results[key] = result.toString();
+        break;
+      case DataSubqueryType.Account:
+        let result2 = await getAccountFieldValue(provider, subquery.subqueryData as AccountSubquery);
+        if (result2 === null) throw new Error(`Failed to fetch account subquery: ${JSON.stringify(subquery.subqueryData)}`);
+        results[key] = result2;
+        break;
+      case DataSubqueryType.Storage:
+        let result3 = await getStorageFieldValue(provider, subquery.subqueryData as StorageSubquery);
+        if (result3 === null) throw new Error(`Failed to fetch storage subquery: ${JSON.stringify(subquery.subqueryData)}`);
+        results[key] = result3;
+        break;
+      case DataSubqueryType.Transaction:
+        let result4 = await getTxFieldValue(provider, subquery.subqueryData as TxSubquery);
+        if (result4 === null) throw new Error(`Failed to fetch tx subquery: ${JSON.stringify(subquery.subqueryData)}`);
+        results[key] = BigInt(result4).toString();
+        break;
+      case DataSubqueryType.Receipt:
+        let result5 = await getReceiptFieldValue(provider, subquery.subqueryData as ReceiptSubquery);
+        if (result5 === null) throw new Error(`Failed to fetch receipt subquery: ${JSON.stringify(subquery.subqueryData)}`);
+        results[key] = BigInt(result5).toString();
+        break;
+      case DataSubqueryType.SolidityNestedMapping:
+        let result6 = await getSolidityNestedMappingValue(provider, subquery.subqueryData as SolidityNestedMappingSubquery);
+        if (result6 === null) throw new Error(`Failed to fetch solidity nested mapping subquery: ${JSON.stringify(subquery.subqueryData)}`);
+        results[key] = result6;
+        break;
+      default:
+        throw new Error(`Invalid data subquery type: ${subquery.type}`);
     }
-    let result = await getAccountFieldValue(provider, accountSubquery);
-    if (result === null) throw new Error(`Failed to fetch account subquery: ${JSON.stringify(accountSubquery)}`);
-    results[key] = result;
-  }
-
-  for (let storageSubquery of dataQuery.storageSubqueries) {
-    let key = JSON.stringify(storageSubquery);
-    if (cachedResults && key in cachedResults) {
-      results[key] = cachedResults[key];
-      continue;
-    }
-    let result = await getStorageFieldValue(provider, storageSubquery);
-    if (result === null) throw new Error(`Failed to fetch storage subquery: ${JSON.stringify(storageSubquery)}`);
-    results[key] = result;
-  }
-
-  for (let txSubquery of dataQuery.txSubqueries) {
-    let key = JSON.stringify(txSubquery);
-    if (cachedResults && key in cachedResults) {
-      results[key] = cachedResults[key];
-      continue;
-    }
-    let result = await getTxFieldValue(provider, txSubquery);
-    if (result === null) throw new Error(`Failed to fetch tx subquery: ${JSON.stringify(txSubquery)}`);
-    results[key] = BigInt(result).toString();
-  }
-
-  for (let receiptSubquery of dataQuery.receiptSubqueries) {
-    let key = JSON.stringify(receiptSubquery);
-    if (cachedResults && key in cachedResults) {
-      results[key] = cachedResults[key];
-      continue;
-    }
-    let result = await getReceiptFieldValue(provider, receiptSubquery);
-    if (result === null) throw new Error(`Failed to fetch receipt subquery: ${JSON.stringify(receiptSubquery)}`);
-    results[key] = BigInt(result).toString();
-  }
-
-  for (let solidityNestedMappingSubquery of dataQuery.solidityNestedMappingSubqueries) {
-    let key = JSON.stringify(solidityNestedMappingSubquery);
-    if (cachedResults && key in cachedResults) {
-      results[key] = cachedResults[key];
-      continue;
-    }
-    let result = await getSolidityNestedMappingValue(provider, solidityNestedMappingSubquery);
-    if (result === null) throw new Error(`Failed to fetch solidity nested mapping subquery: ${JSON.stringify(solidityNestedMappingSubquery)}`);
-    results[key] = result;
   }
 
   return results;
@@ -187,9 +165,9 @@ export const lowercase = (str: string) => {
 export const convertToBytes32 = (inputArray: Uint8Array) => {
   let result: string[] = [];
   for (let i = 0; i < inputArray.length; i += 32) {
-      let slice = inputArray.slice(i, i + 32);
-      let hex = Buffer.from(slice).toString('hex').padStart(64, '0');
-      result.push(hex);
+    let slice = inputArray.slice(i, i + 32);
+    let hex = Buffer.from(slice).toString('hex').padStart(64, '0');
+    result.push(hex);
   }
   return result;
 }
