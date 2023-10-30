@@ -1,11 +1,6 @@
 import { ethers } from "ethers";
+import { bytes32, getBlockNumberAndTxIdx, encodeDataQuery, AxiomV2DataQuery } from "@axiom-crypto/tools";
 import {
-  bytes32,
-  getBlockNumberAndTxIdx,
-  encodeDataQuery,
-  AxiomV2DataQuery,
-} from '@axiom-crypto/tools';
-import { 
   DataSubquery,
   DataSubqueryType,
   UnbuiltAccountSubquery,
@@ -23,7 +18,7 @@ import { getUnbuiltSubqueryTypeFromKeys } from "./utils";
  */
 export async function buildDataSubqueries(
   provider: ethers.JsonRpcProvider,
-  subqueries: UnbuiltSubquery[]
+  subqueries: UnbuiltSubquery[],
 ): Promise<DataSubquery[]> {
   let dataSubqueries: DataSubquery[] = [];
   for (const subquery of subqueries) {
@@ -34,31 +29,22 @@ export async function buildDataSubqueries(
   return dataSubqueries;
 }
 
-export function encodeBuilderDataQuery(
-  chainId: number | string | BigInt,
-  allSubqueries: DataSubquery[]
-): string {
-  return encodeDataQuery(
-    chainId, 
-    allSubqueries
-  );
+export function encodeBuilderDataQuery(chainId: number | string | BigInt, allSubqueries: DataSubquery[]): string {
+  return encodeDataQuery(chainId, allSubqueries);
 }
 
-export function buildDataQuery(
-  chainId: number | string | BigInt,
-  allSubqueries: DataSubquery[]
-): AxiomV2DataQuery {
+export function buildDataQuery(chainId: number | string | BigInt, allSubqueries: DataSubquery[]): AxiomV2DataQuery {
   const sourceChainId = chainId.toString();
   return {
     sourceChainId,
     subqueries: allSubqueries,
-  }
+  };
 }
 
 export async function buildDataSubquery(
   provider: ethers.JsonRpcProvider,
   subquery: UnbuiltSubquery,
-  type: DataSubqueryType
+  type: DataSubqueryType,
 ): Promise<DataSubquery> {
   switch (type) {
     case DataSubqueryType.Header:
@@ -78,21 +64,17 @@ export async function buildDataSubquery(
   }
 }
 
-async function buildDataSubqueryHeader(
-  subquery: UnbuiltHeaderSubquery
-): Promise<DataSubquery> {
+async function buildDataSubqueryHeader(subquery: UnbuiltHeaderSubquery): Promise<DataSubquery> {
   return {
     type: DataSubqueryType.Header,
     subqueryData: {
       blockNumber: subquery.blockNumber,
       fieldIdx: subquery.fieldIdx,
     },
-  }
+  };
 }
 
-async function buildDataSubqueryAccount(
-  subquery: UnbuiltAccountSubquery
-): Promise<DataSubquery> {
+async function buildDataSubqueryAccount(subquery: UnbuiltAccountSubquery): Promise<DataSubquery> {
   return {
     type: DataSubqueryType.Account,
     subqueryData: {
@@ -100,12 +82,10 @@ async function buildDataSubqueryAccount(
       addr: subquery.addr.toLowerCase(),
       fieldIdx: subquery.fieldIdx,
     },
-  }
+  };
 }
 
-async function buildDataSubqueryStorage(
-  subquery: UnbuiltStorageSubquery
-): Promise<DataSubquery> {
+async function buildDataSubqueryStorage(subquery: UnbuiltStorageSubquery): Promise<DataSubquery> {
   return {
     type: DataSubqueryType.Storage,
     subqueryData: {
@@ -113,12 +93,12 @@ async function buildDataSubqueryStorage(
       addr: subquery.addr.toLowerCase(),
       slot: subquery.slot,
     },
-  }
+  };
 }
 
 async function buildDataSubqueryTx(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltTxSubquery
+  subquery: UnbuiltTxSubquery,
 ): Promise<DataSubquery> {
   const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
   return {
@@ -128,12 +108,12 @@ async function buildDataSubqueryTx(
       txIdx,
       fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
     },
-  }
+  };
 }
 
 async function buildDataSubqueryReceipt(
   provider: ethers.JsonRpcProvider,
-  subquery: UnbuiltReceiptSubquery
+  subquery: UnbuiltReceiptSubquery,
 ): Promise<DataSubquery> {
   const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
   return {
@@ -145,11 +125,11 @@ async function buildDataSubqueryReceipt(
       topicOrDataOrAddressIdx: subquery.topicOrDataOrAddressIdx,
       eventSchema: subquery.eventSchema.toLowerCase(),
     },
-  }
+  };
 }
 
 async function buildDataSubquerySolidityNestedMapping(
-  subquery: UnbuiltSolidityNestedMappingSubquery
+  subquery: UnbuiltSolidityNestedMappingSubquery,
 ): Promise<DataSubquery> {
   return {
     type: DataSubqueryType.SolidityNestedMapping,
@@ -160,5 +140,5 @@ async function buildDataSubquerySolidityNestedMapping(
       mappingDepth: subquery.mappingDepth,
       keys: subquery.keys.map((key) => bytes32(key.toLowerCase())),
     },
-  }
+  };
 }

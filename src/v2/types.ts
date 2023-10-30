@@ -1,8 +1,4 @@
-import {
-  AxiomV2Callback,
-  AxiomV2ComputeQuery,
-  AxiomV2DataQuery
-} from "@axiom-crypto/tools";
+import { AxiomV2Callback, AxiomV2ComputeQuery, AxiomV2DataQuery } from "@axiom-crypto/tools";
 
 export {
   AxiomV2Callback,
@@ -14,6 +10,7 @@ export {
   StorageSubquery,
   TxSubquery,
   ReceiptSubquery,
+  Subquery,
   SolidityNestedMappingSubquery,
   BeaconValidatorSubquery,
   DataSubqueryType,
@@ -21,7 +18,7 @@ export {
   AccountField,
   TxField,
   ReceiptField,
-  AxiomV2FieldConstant
+  AxiomV2FieldConstant,
 } from "@axiom-crypto/tools";
 
 export interface AxiomV2QueryOptions {

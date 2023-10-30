@@ -281,20 +281,10 @@ describe("QueryV2", () => {
     const query = (axiom.query as QueryV2).new();
     query.append(dataQueryReq);
 
-    const {
-      queryHash,
-      dataQueryHash,
-      dataQuery,
-      computeQuery,
-      callback,
-    } = await query.build();
+    const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
     expect(queryHash).toEqual("0xf882d4796e0f30f74e8fcffb532345ce7775c5816ff5d3b068fe1618a563e375");
-    expect(dataQueryHash).toEqual(
-      "0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49"
-    );
-    expect(dataQuery).toEqual(
-      "0x00000000000000010002000100ed14f20000000a000100ed14f30000000a"
-    );
+    expect(dataQueryHash).toEqual("0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49");
+    expect(dataQuery).toEqual("0x00000000000000010002000100ed14f20000000a000100ed14f30000000a");
     expect(computeQuery.k).toEqual(0);
     expect(computeQuery.vkey.length).toEqual(0);
     expect(computeQuery.vkey).toEqual([]);
@@ -341,21 +331,13 @@ describe("QueryV2", () => {
 
     const unbiltDq = query.getDataQuery();
     expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
-    const {
-      queryHash,
-      dataQueryHash,
-      dataQuery,
-      computeQuery,
-      callback,
-    } = await query.build();
+    const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
     const builtDq = query.getBuiltQuery()?.dataQueryStruct.subqueries;
     expect((builtDq?.[2].subqueryData as AccountSubquery).addr).toEqual(WETH_WHALE.toLowerCase());
     expect(queryHash).toEqual("0x215b04333d54f589ff08faf6887e6af49c7876fe3b68d0f3960d636020ab83ae");
-    expect(dataQueryHash).toEqual(
-      "0xa23b68c6445bf7850bfdb0921bef5c55d43bd6362133b1f3929dd7b8103502dd"
-    );
+    expect(dataQueryHash).toEqual("0xa23b68c6445bf7850bfdb0921bef5c55d43bd6362133b1f3929dd7b8103502dd");
     expect(dataQuery).toEqual(
-      "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae1392000000000005011247db0022000000020000000a0000000000000000000000000000000000000000000000000000000000000000"
+      "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae1392000000000005011247db0022000000020000000a0000000000000000000000000000000000000000000000000000000000000000",
     );
     expect(computeQuery.k).toEqual(computeQueryReq.k);
     expect(computeQuery.resultLen).toEqual(4);
@@ -414,7 +396,7 @@ describe("QueryV2", () => {
       maxFeePerGas: "100000000",
       callbackGasLimit: 50000,
       refundee: ethers.ZeroAddress,
-    }
+    };
     query.setOptions(options);
 
     const callback: AxiomV2Callback = {
@@ -461,8 +443,7 @@ describe("QueryV2", () => {
 
   test("Append a Header subquery", async () => {
     const query = (axiom.query as QueryV2).new();
-    const subquery = buildHeaderSubquery(17000000)
-      .field(HeaderField.GasLimit);
+    const subquery = buildHeaderSubquery(17000000).field(HeaderField.GasLimit);
     query.appendDataSubquery(subquery);
     await query.build();
     const builtQuery = query.getBuiltQuery();
@@ -473,9 +454,7 @@ describe("QueryV2", () => {
 
   test("Append an Account subquery", async () => {
     const query = (axiom.query as QueryV2).new();
-    const subquery = buildAccountSubquery(17000000)
-      .address(WETH_WHALE)
-      .field(AccountField.Nonce);
+    const subquery = buildAccountSubquery(17000000).address(WETH_WHALE).field(AccountField.Nonce);
     query.appendDataSubquery(subquery);
     await query.build();
     const builtQuery = query.getBuiltQuery();
@@ -488,9 +467,7 @@ describe("QueryV2", () => {
   test("Append a Storage subquery", async () => {
     const query = (axiom.query as QueryV2).new();
     const slot = getSlotForMapping("3", "address", WETH_WHALE);
-    const subquery = buildStorageSubquery(18000000)
-      .address(WETH_ADDR)
-      .slot(slot);
+    const subquery = buildStorageSubquery(18000000).address(WETH_ADDR).slot(slot);
     query.appendDataSubquery(subquery);
 
     await query.build();
@@ -504,9 +481,11 @@ describe("QueryV2", () => {
   test("Append a Tx subquery", async () => {
     const query = (axiom.query as QueryV2).new();
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
-    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash) as { blockNumber: number, txIdx: number };
-    const subquery = buildTxSubquery(txHash)
-      .field(TxField.To);
+    const { blockNumber, txIdx } = (await getBlockNumberAndTxIdx(provider, txHash)) as {
+      blockNumber: number;
+      txIdx: number;
+    };
+    const subquery = buildTxSubquery(txHash).field(TxField.To);
     query.appendDataSubquery(subquery);
 
     await query.build();
@@ -522,12 +501,12 @@ describe("QueryV2", () => {
     const eventSchema = getEventSchema("Transfer", ["address", "address", "uint256"]);
 
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
-    const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash) as { blockNumber: number, txIdx: number };
+    const { blockNumber, txIdx } = (await getBlockNumberAndTxIdx(provider, txHash)) as {
+      blockNumber: number;
+      txIdx: number;
+    };
 
-    const subquery = buildReceiptSubquery(txHash)
-      .log(0)
-      .topic(1)
-      .eventSchema("Transfer(address,address,uint256)");
+    const subquery = buildReceiptSubquery(txHash).log(0).topic(1).eventSchema("Transfer(address,address,uint256)");
     query.appendDataSubquery(subquery);
 
     await query.build();
@@ -538,7 +517,9 @@ describe("QueryV2", () => {
     expect((builtDataQuery?.[0].subqueryData as ReceiptSubquery).blockNumber).toEqual(blockNumber);
     expect((builtDataQuery?.[0].subqueryData as ReceiptSubquery).txIdx).toEqual(txIdx);
     expect((builtDataQuery?.[0].subqueryData as ReceiptSubquery).fieldOrLogIdx).toEqual(fieldOrLogIdx);
-    expect((builtDataQuery?.[0].subqueryData as ReceiptSubquery).topicOrDataOrAddressIdx).toEqual(topicOrDataOrAddressIdx);
+    expect((builtDataQuery?.[0].subqueryData as ReceiptSubquery).topicOrDataOrAddressIdx).toEqual(
+      topicOrDataOrAddressIdx,
+    );
     expect((builtDataQuery?.[0].subqueryData as ReceiptSubquery).eventSchema).toEqual(eventSchema);
   });
 
@@ -547,18 +528,16 @@ describe("QueryV2", () => {
     const subquery = buildSolidityNestedMappingSubquery(17000000)
       .address(UNI_V3_FACTORY_ADDR)
       .mappingSlot(5)
-      .keys([
-        WETH_ADDR,
-        WSOL_ADDR,
-        10000,
-      ]);
+      .keys([WETH_ADDR, WSOL_ADDR, 10000]);
     query.appendDataSubquery(subquery);
 
     await query.build();
     const builtQuery = query.getBuiltQuery();
     const builtDataQuery = builtQuery?.dataQueryStruct.subqueries;
     expect((builtDataQuery?.[0].subqueryData as SolidityNestedMappingSubquery).blockNumber).toEqual(17000000);
-    expect((builtDataQuery?.[0].subqueryData as SolidityNestedMappingSubquery).addr).toEqual(UNI_V3_FACTORY_ADDR.toLowerCase());
+    expect((builtDataQuery?.[0].subqueryData as SolidityNestedMappingSubquery).addr).toEqual(
+      UNI_V3_FACTORY_ADDR.toLowerCase(),
+    );
     expect((builtDataQuery?.[0].subqueryData as SolidityNestedMappingSubquery).mappingSlot).toEqual(bytes32(5));
     expect((builtDataQuery?.[0].subqueryData as SolidityNestedMappingSubquery).mappingDepth).toEqual(3);
     expect((builtDataQuery?.[0].subqueryData as SolidityNestedMappingSubquery).keys).toEqual([
@@ -570,9 +549,7 @@ describe("QueryV2", () => {
 
   test("Append an too many Account subqueries", async () => {
     const query = (axiom.query as QueryV2).new();
-    const subquery = buildAccountSubquery(17000000)
-      .address(WETH_WHALE)
-      .field(AccountField.Nonce);
+    const subquery = buildAccountSubquery(17000000).address(WETH_WHALE).field(AccountField.Nonce);
     const testSingleAppend = () => {
       query.appendDataSubquery(subquery);
       query.appendDataSubquery(subquery);
@@ -589,5 +566,70 @@ describe("QueryV2", () => {
       query.append([subquery, subquery, subquery, subquery, subquery, subquery, subquery, subquery, subquery]);
     };
     expect(testBatchAppend).toThrow();
+  });
+
+  test("Set a built DataQuery", async () => {
+    const dataQueryReq = [
+      {
+        blockNumber: BLOCK_NUMBER,
+        fieldIdx: 0,
+      },
+      {
+        blockNumber: BLOCK_NUMBER + 1,
+        fieldIdx: 1,
+      },
+      {
+        blockNumber: BLOCK_NUMBER,
+        addr: WETH_WHALE,
+        fieldIdx: AccountField.Nonce,
+      },
+      {
+        // blockNumber: 17975259,
+        // txIdx: 34,
+        txHash: "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
+        fieldOrLogIdx: ReceiptField.CumulativeGas,
+        topicOrDataOrAddressIdx: 10,
+        eventSchema: ethers.ZeroHash,
+      },
+    ];
+    const computeQueryReq: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    const callbackQuery = {
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    const options: AxiomV2QueryOptions = {
+      maxFeePerGas: BigInt(100000000).toString(),
+    };
+    const query = (axiom.query as QueryV2).new(dataQueryReq, computeQueryReq, callbackQuery, options);
+
+    const unbiltDq = query.getDataQuery();
+    expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
+    const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
+    const builtDq = query.getBuiltQuery()?.dataQueryStruct;
+    if (builtDq === undefined) {
+      throw new Error("builtDq is undefined");
+    }
+
+    const query2 = (axiom.query as QueryV2).new();
+    query2.setBuiltDataQuery(builtDq);
+    query2.setComputeQuery(computeQueryReq);
+    query2.setCallback(callbackQuery);
+    const {
+      queryHash: queryHash2,
+      dataQueryHash: dataQueryHash2,
+      dataQuery: dataQuery2,
+      computeQuery: computeQuery2,
+      callback: callback2,
+    } = await query2.build();
+
+    expect(queryHash).toEqual(queryHash2);
+    expect(dataQueryHash).toEqual(dataQueryHash2);
+    expect(dataQuery).toEqual(dataQuery2);
+    expect(computeQuery).toEqual(computeQuery2);
+    expect(callback).toEqual(callback2);
   });
 });
