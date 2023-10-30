@@ -62,10 +62,8 @@ const padInstances = (halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm) => {
 }
 
 export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibWasm, config: CircuitConfig, provider: JsonRpcProvider) {
-  let dataQuery = getNewDataQuery();
   config = { ...config };
   const clear = () => {
-    dataQuery = getNewDataQuery();
     halo2Wasm.clear();
     halo2LibWasm.config();
   }
@@ -74,13 +72,15 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     clear()
     const halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass: true });
     const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && (key.charAt(0) === '_' || key === "makePublic")));
-    const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, cachedResults);
+    const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, cachedResults);
     const axiomDataFns = Object.keys(axiomData).filter(key => !(typeof key === 'string' && key.charAt(0) === '_'));
     const functionInputs = getInputFunctionSignature(inputs);
     const parsedInputs = parseDataInputs(halo2LibWasm, inputs);
     const fn = eval(`let {${halo2LibFns.join(", ")}} = halo2Lib; let {${axiomDataFns.join(", ")}} = axiomData; (async function({${functionInputs}}) { ${code} })`);
     await fn(parsedInputs);
 
+    let dataQuery = axiomData._getDataQuery();
+    let orderedDataQuery = axiomData._getOrderedDataQuery();
     let results = await fetchDataQueries(provider, dataQuery, cachedResults);
 
     const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
@@ -90,6 +90,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
     return {
       dataQuery,
+      orderedDataQuery,
       results,
       config,
       numUserInstances,
@@ -99,7 +100,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   async function build<T extends { [key: string]: number | string | bigint }>(f: (halo2Lib: Halo2Lib, axiomData: AxiomData, inputs: T) => Promise<void>, inputs: T) {
     clear()
     let halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass: true });
-    let axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery);
+    let axiomData = new AxiomData(halo2Wasm, halo2LibWasm);
 
     let stringifiedInputs = JSON.stringify(inputs);
     let parsedInputs = parseDataInputs(halo2LibWasm, stringifiedInputs);
@@ -108,10 +109,14 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
 
     const { numUserInstances } = padInstances(halo2Wasm, halo2LibWasm);
 
+    let dataQuery = axiomData._getDataQuery();
+    let orderedDataQuery = axiomData._getOrderedDataQuery();
     let results = await fetchDataQueries(provider, dataQuery);
+
     return {
       results,
       dataQuery,
+      orderedDataQuery,
       numUserInstances,
     };
   }
@@ -123,7 +128,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
     const halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm, { firstPass });
     const halo2LibFns = Object.keys(halo2Lib).filter(key => !(typeof key === 'string' && (key.charAt(0) === '_' || key === "makePublic")));
 
-    const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, results);
+    const axiomData = new AxiomData(halo2Wasm, halo2LibWasm, results);
     const axiomDataFns = Object.keys(axiomData).filter(key => !(typeof key === 'string' && key.charAt(0) === '_'));
 
     let functionInputs = getInputFunctionSignature(inputs);
@@ -152,7 +157,7 @@ export function AxiomCircuitRunner(halo2Wasm: Halo2Wasm, halo2LibWasm: Halo2LibW
   async function run<T extends { [key: string]: number | string | bigint }>(f: (halo2Lib: Halo2Lib, axiomData: AxiomData, inputs: T) => Promise<void>, inputs: T, results: { [key: string]: string }) {
     clear()
     let halo2Lib = new Halo2Lib(halo2Wasm, halo2LibWasm);
-    let axiomData = new AxiomData(halo2Wasm, halo2LibWasm, dataQuery, results);
+    let axiomData = new AxiomData(halo2Wasm, halo2LibWasm, results);
 
     let stringifiedInputs = JSON.stringify(inputs);
     let parsedInputs = parseDataInputs(halo2LibWasm, stringifiedInputs);
