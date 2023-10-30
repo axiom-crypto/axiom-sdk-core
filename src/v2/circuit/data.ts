@@ -8,7 +8,7 @@ import { buildHeader } from "./header";
 import { buildMapping } from "./mapping";
 import { DataQuery, PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant, getNewDataQuery } from "./utils";
 import { CircuitValue256 } from "./CircuitValue256";
-import { DataSubqueryType } from "@axiom-crypto/tools";
+import { DataSubquery, DataSubqueryType } from "@axiom-crypto/tools";
 import { UnbuiltSubquery } from "../types";
 
 export class AxiomData {
@@ -17,7 +17,7 @@ export class AxiomData {
   private _halo2Lib: Halo2LibWasm;
   private _dataQuery: DataQuery;
   private _MAX_BITS: string;
-  private _orderedDataQuery: UnbuiltSubquery[];
+  private _orderedDataQuery: DataSubquery[];
   private _results?: { [key: string]: string };
 
   constructor(halo2Wasm: Halo2Wasm, halo2Lib: Halo2LibWasm, results?: { [key: string]: string }) {
@@ -46,7 +46,7 @@ export class AxiomData {
         val = BigInt(lookup).toString();
       }
       subqueryArr.push(subquery);
-      this._orderedDataQuery.push(subquery);
+      this._orderedDataQuery.push({ subqueryData: subquery, type });
       let witness = getCircuitValue256Witness(this._halo2Lib, val);
       let circuitType = getCircuitValueConstant(this._halo2Lib, type);
       this._halo2Lib.make_public(this._halo2Wasm, circuitType.cell(), 1);
