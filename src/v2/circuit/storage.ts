@@ -1,8 +1,7 @@
 import { StorageSubquery } from "@axiom-crypto/tools"
 import { PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Constant } from "./utils";
-import { CircuitValue, RawCircuitInput } from "@axiom-crypto/halo2-js";
-import { Halo2LibWasm } from "@axiom-crypto/halo2-js/wasm/web";
-import { CircuitValue256 } from "./CircuitValue256";
+import { CircuitValue, RawCircuitInput, CircuitValue256 } from "@axiom-crypto/halo2-lib-js";
+import { Halo2LibWasm } from "@axiom-crypto/halo2-lib-js/wasm/web";
 
 /**
  * Represents the storage of a contract.
