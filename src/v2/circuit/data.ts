@@ -1,13 +1,12 @@
-import { CircuitValue, RawCircuitInput } from "@axiom-crypto/halo2-js";
-import { Halo2Wasm, Halo2LibWasm } from "@axiom-crypto/halo2-js/wasm/web";
+import { CircuitValue, RawCircuitInput, CircuitValue256 } from "@axiom-crypto/halo2-lib-js";
+import { Halo2Wasm, Halo2LibWasm } from "@axiom-crypto/halo2-lib-js/wasm/web";
 import { buildAccount } from "./account";
 import { buildReceipt } from "./receipt";
 import { buildStorage } from "./storage";
 import { buildTx } from "./tx";
 import { buildHeader } from "./header";
 import { buildMapping } from "./mapping";
-import { DataQuery, PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant, getNewDataQuery } from "./utils";
-import { CircuitValue256 } from "./CircuitValue256";
+import { PrepData, getCircuitValue256FromCircuitValue, getCircuitValue256Witness, getCircuitValueConstant, getNewDataQuery, DataQuery } from "./utils";
 import { DataSubquery, DataSubqueryType } from "@axiom-crypto/tools";
 import { UnbuiltSubquery } from "../types";
 

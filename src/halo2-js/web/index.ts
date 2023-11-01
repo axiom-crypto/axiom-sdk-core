@@ -1,1 +1,1 @@
-export * from '@axiom-crypto/halo2-js/wasm/web';
+export * from '@axiom-crypto/halo2-lib-js/wasm/web';
