@@ -5,6 +5,7 @@ import {
   AxiomConfig,
   HeaderField,
   QueryV2,
+  buildAccountSubquery,
   buildHeaderSubquery,
   buildSolidityNestedMappingSubquery,
 } from "../../../src";
@@ -22,20 +23,20 @@ describe("Append subquery: SDK-enforced limits", () => {
   };
   const axiom = new Axiom(config);
 
-  test("Append 8 Header subqueries", () => {
+  test("Append 32 Header subqueries", () => {
     const blockNumber = 18000000;
     const query = (axiom.query as QueryV2).new();
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 32; i++) {
       const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
       query.appendDataSubquery(subquery);
     }
   });
 
-  test("Append 9 Header subqueries", () => {
+  test("Append 33 Header subqueries", () => {
     const testFn = () => {
       const blockNumber = 18000000;
       const query = (axiom.query as QueryV2).new();
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < 33; i++) {
         const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
         query.appendDataSubquery(subquery);
       }
@@ -43,61 +44,25 @@ describe("Append subquery: SDK-enforced limits", () => {
     expect(testFn).toThrow();
   });
 
-  test("Append 8 Account subqueries", () => {
+  test("Append 33 Account subqueries", () => {
     const testFn = () => {
       const blockNumber = 18000000;
-      const dataQueryReq = [
-        {
-          blockNumber: blockNumber,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 1,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 2,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 3,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 4,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 5,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 6,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 7,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-      ];
-      const query = (axiom.query as QueryV2).new(dataQueryReq);
+      const query = (axiom.query as QueryV2).new();
+      for (let i = 0; i < 33; i++) {
+        const subquery = buildAccountSubquery(blockNumber + i)
+          .address(WETH_WHALE)
+          .field(AccountField.Balance);
+        query.appendDataSubquery(subquery);
+      }
     };
     expect(testFn).toThrow();
   });
 
-  test("Append 8 Storage subqueries", () => {
+  test("Append 33 Storage subqueries", () => {
     const testFn = () => {
       const blockNumber = 18000000;
       const query = (axiom.query as QueryV2).new();
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 33; i++) {
         const subquery = buildStorageSubquery(blockNumber + i)
           .address(WETH_ADDR)
           .slot(0);
@@ -107,57 +72,48 @@ describe("Append subquery: SDK-enforced limits", () => {
     expect(testFn).toThrow();
   });
 
-  test("Append 3 Account + 3 Storage + 3 Nested Mapping subqueries", () => {
+  test("Append 11 Account + 11 Storage + 10 Nested Mapping subqueries", () => {
+    const blockNumber = 18000000;
+    const query = (axiom.query as QueryV2).new();
+    for (let i = 0; i < 11; i++) {
+      const accountSubquery = buildAccountSubquery(blockNumber + i)
+        .address(WETH_WHALE)
+        .field(AccountField.Balance);
+      query.appendDataSubquery(accountSubquery);
+      const account = buildStorageSubquery(blockNumber + i)
+        .address(WETH_ADDR)
+        .slot(0);
+      query.appendDataSubquery(account);
+      if (i === 10) {
+        continue;
+      }
+      const mapping = buildSolidityNestedMappingSubquery(blockNumber + i)
+        .address(UNI_V3_FACTORY_ADDR)
+        .mappingSlot(5)
+        .keys([WETH_ADDR, WSOL_ADDR, 10000]);
+      query.appendDataSubquery(mapping);
+    }
+  });
+
+  test("Append 11 Account + 11 Storage + 11 Nested Mapping subqueries", () => {
     const testFn = () => {
       const blockNumber = 18000000;
-      const dataQueryReq = [
-        {
-          blockNumber: blockNumber,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 1,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber + 2,
-          addr: WETH_WHALE,
-          fieldIdx: AccountField.Nonce,
-        },
-        {
-          blockNumber: blockNumber,
-          addr: WETH_ADDR,
-          slot: 0,
-        },
-        {
-          blockNumber: blockNumber,
-          addr: WETH_ADDR,
-          slot: 1,
-        },
-        {
-          blockNumber: blockNumber,
-          addr: WETH_ADDR,
-          slot: 2,
-        },
-      ];
-      const query = (axiom.query as QueryV2).new(dataQueryReq);
-      const mapping0 = buildSolidityNestedMappingSubquery(blockNumber)
-        .address(UNI_V3_FACTORY_ADDR)
-        .mappingSlot(5)
-        .keys([WETH_ADDR, WSOL_ADDR, 10000]);
-      query.appendDataSubquery(mapping0);
-      const mapping1 = buildSolidityNestedMappingSubquery(blockNumber + 1)
-        .address(UNI_V3_FACTORY_ADDR)
-        .mappingSlot(5)
-        .keys([WETH_ADDR, WSOL_ADDR, 10000]);
-      query.appendDataSubquery(mapping1);
-      const mapping2 = buildSolidityNestedMappingSubquery(blockNumber + 2)
-        .address(UNI_V3_FACTORY_ADDR)
-        .mappingSlot(5)
-        .keys([WETH_ADDR, WSOL_ADDR, 10000]);
-      query.appendDataSubquery(mapping2);
+      const query = (axiom.query as QueryV2).new();
+      for (let i = 0; i < 11; i++) {
+        const accountSubquery = buildAccountSubquery(blockNumber + i)
+          .address(WETH_WHALE)
+          .field(AccountField.Balance);
+        query.appendDataSubquery(accountSubquery);
+        const account = buildStorageSubquery(blockNumber + i)
+          .address(WETH_ADDR)
+          .slot(0);
+        query.appendDataSubquery(account);
+        const mapping = buildSolidityNestedMappingSubquery(blockNumber + i)
+          .address(UNI_V3_FACTORY_ADDR)
+          .mappingSlot(5)
+          .keys([WETH_ADDR, WSOL_ADDR, 10000]);
+        query.appendDataSubquery(mapping);
+      }
     };
     expect(testFn).toThrow();
   });
