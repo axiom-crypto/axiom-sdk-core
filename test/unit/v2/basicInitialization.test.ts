@@ -1,7 +1,15 @@
-import { Axiom, AxiomConfig } from "../../../src";
+import { ethers } from "ethers";
+import { Axiom, AxiomConfig, AxiomV2ComputeQuery, DataSubquery, QueryV2 } from "../../../src";
 import { Versions } from "../../../src/shared/constants";
 
+// Test coverage areas:
+// - Basic initialization
+
 describe("Basic Initialization", () => {
+  const BLOCK_NUMBER = 15537394;
+  const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+  const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
+
   test("should initialize without an API key", () => {
     const config: AxiomConfig = {
       providerUri: process.env.PROVIDER_URI as string,
@@ -77,5 +85,54 @@ describe("Basic Initialization", () => {
     const axiomV2QueryMock = ax.getAxiomQueryAddress();
 
     expect(axiomV2QueryMock).toEqual("0x28CeE427fCD58e5EF1cE4C93F877b621E2Db66df");
+  });
+
+  test("should initialize QueryBuilderV2 with dataQuery", async () => {
+    const dataQuery = [] as DataSubquery[];
+    const query = (axiom.query as QueryV2).new();
+    query.append(dataQuery);
+    expect(typeof query).toEqual("object");
+  });
+
+  test("should initialize QueryBuilderV2 with computeQuery", async () => {
+    const dataQuery = [] as DataSubquery[];
+    const computeQuery: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery);
+    expect(typeof query).toEqual("object");
+  });
+
+  test("should initialize QueryBuilderV2 with callback", async () => {
+    const dataQuery = [] as DataSubquery[];
+    const computeQuery: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    const callbackQuery = {
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery);
+    expect(typeof query).toEqual("object");
+  });
+
+  test("should initialize QueryBuilderV2 with options", async () => {
+    const dataQuery = [] as DataSubquery[];
+    const computeQuery: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    const callbackQuery = {
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    const options = {};
+    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery, options);
+    expect(typeof query).toEqual("object");
   });
 });

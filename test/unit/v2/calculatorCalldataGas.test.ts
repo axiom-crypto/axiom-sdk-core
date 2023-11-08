@@ -1,7 +1,17 @@
-import { Axiom, AxiomConfig, QueryV2, buildSolidityNestedMappingSubquery } from "../../../src";
+import {
+  Axiom,
+  AxiomConfig,
+  HeaderField,
+  QueryV2,
+  buildHeaderSubquery,
+  buildSolidityNestedMappingSubquery,
+} from "../../../src";
 import { calculateCalldataGas } from "../../../src/v2/query/gasCalc";
 
-describe("Calculators", () => {
+// Test coverage areas:
+// - Calldata gas calculator
+
+describe("Calldata Gas Calculator", () => {
   const config: AxiomConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
@@ -10,12 +20,12 @@ describe("Calculators", () => {
   };
   const axiom = new Axiom(config);
 
-  test("Gas test", () => {
+  test("basic calculator test", () => {
     const gas = calculateCalldataGas("0x123456789000");
     expect(gas).toEqual(84);
   });
 
-  test("Large dataQuery gas test", async () => {
+  test("large dataQuery gas test", async () => {
     const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
     const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
     const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
@@ -32,5 +42,20 @@ describe("Calculators", () => {
     const builtQuery = await query.build();
     const gas = calculateCalldataGas(builtQuery.dataQuery);
     expect(gas).toEqual(51264);
+  });
+
+  test("hit calldata gas limit", async () => {
+    const query = (axiom.query as QueryV2).new();
+    query.setOptions({
+      dataQueryCalldataGasLimit: 10,
+    });
+    const blockNumber = 18200000;
+    for (let i = 0; i < 20; i++) {
+      const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.StateRoot);
+      query.appendDataSubquery(subquery);
+    }
+    const builtQuery = await query.build();
+
+    // NOTE: Test should pass; we don't do anything yet
   });
 });

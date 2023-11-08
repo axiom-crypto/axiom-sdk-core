@@ -1,6 +1,10 @@
-import { Axiom, AxiomConfig, AxiomV2ComputeQuery, QueryV2 } from "../../../src";
+import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../../src";
 
-describe("Build ComputeQuery standalone", () => {
+// Test coverage areas:
+// - ComputeQuery
+// - Callback
+
+describe("Build ComputeQuery Standalone", () => {
   const config: AxiomConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
@@ -9,7 +13,26 @@ describe("Build ComputeQuery standalone", () => {
   };
   const axiom = new Axiom(config);
 
+  const callback: AxiomV2Callback = {
+    target: "0x41a7a901ef58d383801272d2408276d96973550d",
+    extraData: bytes32("0xbbd0d3671093a36d6e3b608a7e3b1fdc96da1116"),
+  };
+
   test("simple computeQuery w/ no data subqueries", async () => {
+    /** Code
+    // x^2 + y
+    const x_2 = mul(x, x);
+    const val = add(x_2, y);
+    addToCallback(val)
+    */
+
+    /** Inputs
+    {
+        "x": 10,
+        "y": 50
+    }
+    */
+
     const computeQuery: AxiomV2ComputeQuery = {
       k: 13,
       resultLen: 1,
@@ -35,6 +58,7 @@ describe("Build ComputeQuery standalone", () => {
 
     const query = (axiom.query as QueryV2).new();
     query.setComputeQuery(computeQuery);
+    query.setCallback(callback);
     const builtQuery = await query.build();
     console.log(builtQuery);
     expect(builtQuery.computeQuery).toEqual(computeQuery);
@@ -42,6 +66,72 @@ describe("Build ComputeQuery standalone", () => {
   });
 
   test("larger computeQuery w/ no data subqueries", async () => {
+    /** Code
+    let xRes = [];
+    for (let i = 0; i < x.length; i++) {
+        // x^2 + y
+        const x_2 = mul(x[i], x[i]);
+        const val = add(x_2, y[i]);
+        xRes.push(val);
+    }
+
+    let yRes = [];
+    for (let i = 0; i < y.length; i++) {
+        // x^2 + y
+        const y_2 = mul(y[i], y[i]);
+        const val = add(y_2, x[i]);
+        yRes.push(val);
+    }
+
+    let zRes = [];
+    for (let i = 0; i < xRes.length; i++) {
+        const val = mul(xRes[i], yRes[i]);
+        zRes.push(val);
+    }
+
+    let aRes = [];
+    for (let i = 0; i < xRes.length; i++) {
+        for (let j = 0; j < yRes.length; j++) {
+            const val = mul(xRes[i], yRes[j]);
+            aRes.push(val);
+        }
+    }
+
+    let bRes = [];
+    for (let i = 0; i < yRes.length; i++) {
+        for (let j = 0; j < zRes.length; j++) {
+            const val = mul(yRes[i], zRes[j]);
+            bRes.push(val);
+        }
+    }
+
+    let cRes = [];
+    for (let i = 0; i < zRes.length; i++) {
+        for (let j = 0; j < xRes.length; j++) {
+            const val = mul(zRes[i], xRes[j]);
+            cRes.push(val);
+        }
+    }
+
+    for (let i = 0; i < xRes.length; i++) {
+        addToCallback(xRes[i]);
+        addToCallback(yRes[i]);
+        addToCallback(zRes[i]);
+    }
+
+    for (let i = 0; i < aRes.length; i++) {
+        const val = mul(cRes[i], mul(aRes[i], bRes[i]));
+        addToCallback(val);
+    }
+    */
+
+    /** Inputs
+    {
+        "x": [100,50,200,150,80,95,25,88,12,50,11,20,55,18,955,36,29,603,90,111],
+        "y": [81,22,56,69,28,182,20,205,53,27,291,53,59,22,8,225,37,50,22,409]
+    }
+    */
+
     const computeQuery: AxiomV2ComputeQuery = {
       k: 17,
       resultLen: 460,
@@ -67,6 +157,7 @@ describe("Build ComputeQuery standalone", () => {
 
     const query = (axiom.query as QueryV2).new();
     query.setComputeQuery(computeQuery);
+    query.setCallback(callback);
     const builtQuery = await query.build();
     console.log(builtQuery);
     expect(builtQuery.computeQuery).toEqual(computeQuery);
