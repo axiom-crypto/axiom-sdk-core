@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+      - v2
+  pull_request:
+
+jobs:
+  build:
+    name: Jest Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18.x
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Unit Tests
+        run: |
+          export PROVIDER_URI=${{ secrets.PROVIDER_URI }}
+          export PROVIDER_URI_GOERLI=${{ secrets.PROVIDER_URI_GOERLI }}
+          npm test test/unit
