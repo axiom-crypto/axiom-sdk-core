@@ -4,7 +4,7 @@ import { AxiomV2Callback, AxiomV2ComputeQuery, DataSubqueryCount } from "./types
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGas: "0x05d21dba00",
   DefaultCallbackGasLimit: 200000,
-  DefaultDataQueryCalldataGasLimit: 100000,
+  DefaultDataQueryCalldataGasWarningThreshold: 100000,
 
   ProofGas: 400000,
   AxiomQueryBaseFeeGwei: 3000000,

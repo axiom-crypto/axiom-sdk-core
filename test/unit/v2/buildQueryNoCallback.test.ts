@@ -56,7 +56,7 @@ describe("Build a Query with no Callback", () => {
     const query = (axiom.query as QueryV2).new();
     query.setComputeQuery(computeQuery);
     const builtQuery = await query.build();
-    console.log(builtQuery);
+
     expect(builtQuery.computeQuery).toEqual(computeQuery);
     expect(builtQuery.dataQueryStruct.subqueries).toEqual([]);
     expect(builtQuery.callback).toEqual({

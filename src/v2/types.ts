@@ -24,7 +24,7 @@ export {
 export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
   callbackGasLimit?: number;
-  dataQueryCalldataGasLimit?: number;
+  dataQueryCalldataGasWarningThreshold?: number;
   refundee?: string;
 }
 

@@ -27,6 +27,10 @@ import {
 } from "../../../src";
 import { ethers } from "ethers";
 
+// Test coverage areas:
+// - DataQuery subquery builders
+// - DataQuery subquery types
+
 describe("Data Subquery Builders", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase();
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392".toLowerCase();

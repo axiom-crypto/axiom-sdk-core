@@ -13,23 +13,29 @@ describe("Payment Calculator", () => {
   };
   const axiom = new Axiom(config);
 
-  test("Payment calculation based on options", () => {
+  test("Payment calculation default based on options", () => {
     const query = (axiom.query as QueryV2).new();
-    let fee = query.calculateFee();
+    const fee = query.calculateFee();
     expect(fee).toEqual("18000000000000000");
+  });
 
-    const options: AxiomV2QueryOptions = {
-      maxFeePerGas: "10000000000",
-    };
-    query.setOptions(options);
-    fee = query.calculateFee();
-    expect(fee).toEqual("9000000000000000");
-
+  test("Payment calculation high based on options", () => {
+    const query = (axiom.query as QueryV2).new();
     query.setOptions({
       maxFeePerGas: "500000000000",
       callbackGasLimit: 1000000000,
     });
-    fee = query.calculateFee();
+    const fee = query.calculateFee();
+    expect(fee).toEqual("500203000000000000000");
+  });
+
+  test("Payment calculation low based on options", () => {
+    const query = (axiom.query as QueryV2).new();
+    query.setOptions({
+      maxFeePerGas: "500000000000",
+      callbackGasLimit: 1000000000,
+    });
+    const fee = query.calculateFee();
     expect(fee).toEqual("500203000000000000000");
   });
 });

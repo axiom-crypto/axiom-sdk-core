@@ -13,6 +13,8 @@ import {
   getCallbackHash,
   AxiomV2DataQuery,
   encodeDataQuery,
+  encodeComputeQuery,
+  encodeCallback,
 } from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -186,7 +188,8 @@ export class QueryBuilderV2 {
     this.options = {
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
-      dataQueryCalldataGasLimit: options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit,
+      dataQueryCalldataGasWarningThreshold:
+        options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
     };
     return this.options;
@@ -325,6 +328,17 @@ export class QueryBuilderV2 {
       refundee,
     };
 
+    // Calculate calldata gas cost
+    const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
+    const calldataGas = calculateCalldataGas(sendQueryInputs);
+    const calldataGasThrshold =
+      this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
+    if (calldataGas > calldataGasThrshold) {
+      console.warn(
+        `Data query calldata gas cost ${calldataGas} exceeds warning thrshold ${calldataGasThrshold}. Consider sending the Query via IPFS.`,
+      );
+    }
+
     return this.builtQuery;
   }
 
@@ -343,7 +357,8 @@ export class QueryBuilderV2 {
 
     // Check dataQuery gas cost
     const dataQueryGasCost = calculateCalldataGas(this.builtQuery.dataQuery);
-    const dataQueryGasLimit = this?.options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit;
+    const dataQueryGasLimit =
+      this?.options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
     if (dataQueryGasCost > dataQueryGasLimit) {
       throw new Error(
         `Data query calldata gas cost ${dataQueryGasCost} exceeds limit ${dataQueryGasLimit}. Either increase this limit in options or use 'sendQueryWithIpfs()' instead.`,
@@ -702,5 +717,25 @@ export class QueryBuilderV2 {
       default:
         throw new Error(`Unknown subquery type: ${type}`);
     }
+  }
+
+  private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
+    return ethers.concat([
+      "0xba1d7f19",
+      ethers.toBeHex(builtQuery.sourceChainId, 8),
+      builtQuery.queryHash,
+      encodeComputeQuery(
+        builtQuery.computeQuery.k,
+        builtQuery.computeQuery.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs,
+        builtQuery.computeQuery.vkey,
+        builtQuery.computeQuery.computeProof,
+      ),
+      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
+      builtQuery.userSalt,
+      ethers.toBeHex(builtQuery.maxFeePerGas, 8),
+      ethers.toBeHex(builtQuery.callbackGasLimit, 4),
+      builtQuery.refundee,
+      builtQuery.dataQuery,
+    ]);
   }
 }

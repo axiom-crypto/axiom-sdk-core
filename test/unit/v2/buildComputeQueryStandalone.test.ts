@@ -60,7 +60,7 @@ describe("Build ComputeQuery Standalone", () => {
     query.setComputeQuery(computeQuery);
     query.setCallback(callback);
     const builtQuery = await query.build();
-    console.log(builtQuery);
+
     expect(builtQuery.computeQuery).toEqual(computeQuery);
     expect(builtQuery.dataQueryStruct.subqueries).toEqual([]);
   });
@@ -159,7 +159,7 @@ describe("Build ComputeQuery Standalone", () => {
     query.setComputeQuery(computeQuery);
     query.setCallback(callback);
     const builtQuery = await query.build();
-    console.log(builtQuery);
+
     expect(builtQuery.computeQuery).toEqual(computeQuery);
     expect(builtQuery.dataQueryStruct.subqueries).toEqual([]);
   });
