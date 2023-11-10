@@ -20,7 +20,7 @@ describe("On-chain compute query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
-    // mock: true
+    mock: true,
   };
   const overrides = {
     // Addresses: {
@@ -29,8 +29,9 @@ describe("On-chain compute query scenarios", () => {
   };
   const axiom = new Axiom(config, overrides);
 
-  const exampleClientAddr = "0x41a7a901ef58d383801272d2408276d96973550d";
-  const exampleClientAddrMock = "0x8fb73ce80fdb8f15877b161e4fe08b2a0a9979a9";
+  const _exampleClientAddr = "0x41a7a901ef58d383801272d2408276d96973550d";
+  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
+  const exampleClientAddr = config.mock ? exampleClientAddrMock : _exampleClientAddr;
   const vk = [
     2, 13, 0, 0, 0, 0, 6, 0, 0, 0, 22, 53, 175, 191, 189, 44, 47, 125, 102, 223, 68, 183, 53, 24, 221, 245, 11, 40, 210,
     84, 147, 34, 241, 111, 251, 44, 176, 97, 40, 23, 111, 5, 236, 172, 54, 30, 205, 68, 139, 37, 34, 255, 110, 222, 63,

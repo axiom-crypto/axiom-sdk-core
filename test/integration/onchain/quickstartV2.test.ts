@@ -44,7 +44,9 @@ describe("Quickstart V2", () => {
     const txSubquery = buildTxSubquery(txHash).functionSelector();
     query.appendDataSubquery(txSubquery);
 
-    const exampleClientAddr = "0xbc114c1edf6c018d25d10aa2974ba7c37532841f";
+    const _exampleClientAddr = "0x41a7a901ef58d383801272d2408276d96973550d";
+    const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
+    const exampleClientAddr = config.mock ? exampleClientAddrMock : _exampleClientAddr;
     const callback: AxiomV2Callback = {
       target: exampleClientAddr,
       extraData: bytes32(0),
