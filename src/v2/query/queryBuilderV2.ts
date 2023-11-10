@@ -723,8 +723,7 @@ export class QueryBuilderV2 {
   }
 
   private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
-    const refundee = builtQuery.refundee === "" ? bytes32(0) : builtQuery.refundee;
-    console.log("builtQuery", builtQuery);
+    const refundee = builtQuery.refundee === "" ? ConstantsV2.Bytes32Max : builtQuery.refundee;
     return ethers.concat([
       "0xba1d7f19",
       ethers.toBeHex(builtQuery.sourceChainId, 8),

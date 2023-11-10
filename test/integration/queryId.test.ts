@@ -19,7 +19,7 @@ describe("QueryID Test", () => {
   };
   const axiom = new Axiom(config);
 
-  test("Send a small DataQuery", async () => {
+  test("check queryId matches emitted event", async () => {
     const query = (axiom.query as QueryV2).new();
     const options: AxiomV2QueryOptions = {
       callbackGasLimit: 1000000,
