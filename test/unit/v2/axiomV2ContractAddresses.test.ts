@@ -38,7 +38,7 @@ describe("AxiomV2 Contract Addresses", () => {
     const ax = new Axiom(config);
     const axiomV2Query = ax.getAxiomQueryAddress();
 
-    expect(axiomV2Query).toEqual("0x507c2Bf1C9549cC158FFF428dfc7367E6f33E8C8");
+    expect(axiomV2Query).toEqual("0xA147611e8458e6686D7229ea8159EA5fa7f9D6e6");
   });
 
   test("should get AxiomV2QueryMock Goerli contract addresses", () => {
@@ -51,6 +51,6 @@ describe("AxiomV2 Contract Addresses", () => {
     const ax = new Axiom(config);
     const axiomV2QueryMock = ax.getAxiomQueryAddress();
 
-    expect(axiomV2QueryMock).toEqual("0xbEb34aBec311213bAAAFeed834079437c2a57e40");
+    expect(axiomV2QueryMock).toEqual("0x5CfA676EB27C5c9D26d9742067Af3606BeDafe8d");
   });
 });
