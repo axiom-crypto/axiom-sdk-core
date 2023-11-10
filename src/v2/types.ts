@@ -22,6 +22,7 @@ export {
 } from "@axiom-crypto/tools";
 
 export interface AxiomV2QueryOptions {
+  targetChainId?: string;
   maxFeePerGas?: string;
   callbackGasLimit?: number;
   dataQueryCalldataGasWarningThreshold?: number;
@@ -30,6 +31,7 @@ export interface AxiomV2QueryOptions {
 
 export interface BuiltQueryV2 {
   sourceChainId: string;
+  targetChainId: string;
   queryHash: string;
   dataQuery: string;
   dataQueryHash: string;

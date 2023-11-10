@@ -34,4 +34,6 @@ export const ConstantsV2 = Object.freeze({
     receipt: 0,
     solidityNestedMapping: 0,
   } as DataSubqueryCount,
+
+  Bytes32Max: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 });

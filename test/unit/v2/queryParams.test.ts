@@ -169,7 +169,7 @@ describe("Query ID and Schema calculation", () => {
     expect(querySchema).toEqual("0x412efc8f4184ff6cb59c65113d3e64ddfdc521b3dd083bd076aecec735fb6e98");
 
     const queryId = await query.getQueryId();
-    expect(queryId).toEqual("96764877265975638221779218043880860363523577564069749166219875439166171372015");
+    expect(queryId).toEqual("42991597683306702406683461590280003082926600212098531382848919131238182068012");
   });
 
   test("queryId should change with different caller", async () => {
@@ -196,9 +196,9 @@ describe("Query ID and Schema calculation", () => {
     builtQuery.userSalt = bytes32(1); // lock the salt value for consistent results
 
     let queryId = await query.getQueryId();
-    expect(queryId).toEqual("63083644118962448366446217461767613187383910269466071020341962207608479130993");
+    expect(queryId).toEqual("62360139881490698915562649815118661359200996880493634851682314344275457541644");
 
     queryId = await query.getQueryId("0x41a7a901ef58d383801272d2408276d96973550d");
-    expect(queryId).toEqual("84772860421240071535361212085608061490750397362152172293071945478620236994014");
+    expect(queryId).toEqual("87186535928704244449011803879667732277047188224291592370462890585626375303159");
   });
 });

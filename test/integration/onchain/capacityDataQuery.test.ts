@@ -15,7 +15,6 @@ import {
   AxiomV2QueryOptions,
   buildSolidityNestedMappingSubquery,
 } from "../../../src";
-import { ConstantsV2 } from "../../../src/v2/constants";
 
 describe("On-chain Data Query scenarios", () => {
   const config: AxiomConfig = {
@@ -69,7 +68,7 @@ describe("On-chain Data Query scenarios", () => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);
     });
-    console.log("queryId", queryId);
+    console.log("queryId", queryId, bytes32(queryId));
   }, 60000);
 
   test("Send one of each DataQuery", async () => {

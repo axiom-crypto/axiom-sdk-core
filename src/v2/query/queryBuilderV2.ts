@@ -186,6 +186,7 @@ export class QueryBuilderV2 {
   setOptions(options: AxiomV2QueryOptions): AxiomV2QueryOptions {
     this.unsetBuiltQuery();
     this.options = {
+      targetChainId: BigInt(options?.targetChainId ?? this.config.chainId.toString()).toString(),
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
       dataQueryCalldataGasWarningThreshold:
@@ -315,6 +316,7 @@ export class QueryBuilderV2 {
 
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
+      targetChainId: this.options?.targetChainId ?? this.config.chainId.toString(),
       queryHash,
       dataQuery,
       dataQueryHash,
@@ -489,13 +491,14 @@ export class QueryBuilderV2 {
       }
       caller = callerAddr;
     }
+    const targetChainId = this.builtQuery.targetChainId;
     const refundee = this.options?.refundee ?? caller;
     const salt = this.builtQuery.userSalt;
     const queryHash = this.builtQuery.queryHash;
     const callbackHash = getCallbackHash(this.builtQuery.callback.target, this.builtQuery.callback.extraData);
 
     // Calculate the queryId
-    const queryId = getQueryId(caller, salt, queryHash, callbackHash, refundee);
+    const queryId = getQueryId(targetChainId, caller, salt, queryHash, callbackHash, refundee);
     return BigInt(queryId).toString();
   }
 
@@ -720,6 +723,7 @@ export class QueryBuilderV2 {
   }
 
   private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
+    const refundee = builtQuery.refundee === "" ? ConstantsV2.Bytes32Max : builtQuery.refundee;
     return ethers.concat([
       "0xba1d7f19",
       ethers.toBeHex(builtQuery.sourceChainId, 8),
@@ -734,7 +738,7 @@ export class QueryBuilderV2 {
       builtQuery.userSalt,
       ethers.toBeHex(builtQuery.maxFeePerGas, 8),
       ethers.toBeHex(builtQuery.callbackGasLimit, 4),
-      builtQuery.refundee,
+      refundee,
       builtQuery.dataQuery,
     ]);
   }

@@ -216,7 +216,7 @@ describe("QueryV2", () => {
     const query = (axiom.query as QueryV2).new(dataQuery, computeQueryReq, callbackQuery, options);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
-  });
+  }, 20000);
 
   test("Compute callback resultLen based on number of subqueries", async () => {
     const query = (axiom.query as QueryV2).new();
