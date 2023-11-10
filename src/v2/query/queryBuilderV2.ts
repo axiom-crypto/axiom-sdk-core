@@ -723,6 +723,7 @@ export class QueryBuilderV2 {
   }
 
   private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
+    console.log("builtQuery", builtQuery);
     return ethers.concat([
       "0xba1d7f19",
       ethers.toBeHex(builtQuery.sourceChainId, 8),
