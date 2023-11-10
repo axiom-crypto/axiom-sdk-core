@@ -162,5 +162,5 @@ describe("On-chain compute query scenarios", () => {
       console.log("receipt", receipt);
     });
     console.log("queryId", queryId);
-  }, 40000);
+  }, 100000);
 });
