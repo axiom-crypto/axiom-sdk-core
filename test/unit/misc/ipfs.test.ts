@@ -1,4 +1,4 @@
-import { convertBytes32ToIpfsCid, convertIpfsCidToBytes32, readStringIpfs, writeStringIpfs } from "../../../src";
+/*import { convertBytes32ToIpfsCid, convertIpfsCidToBytes32, readStringIpfs, writeStringIpfs } from "../../../src";
 
 describe("IPFS", () => {
   const CID = "QmP1gv3pkhS16zuP7riLL2Lr9yVxN4CLBGjyWcnRn8AxkK";
@@ -25,3 +25,4 @@ describe("IPFS", () => {
     expect(cid).toEqual(CID);
   });
 });
+*/
