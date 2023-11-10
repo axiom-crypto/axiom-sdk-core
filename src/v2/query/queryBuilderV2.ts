@@ -331,8 +331,7 @@ export class QueryBuilderV2 {
     };
 
     // Calculate calldata gas cost
-    const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
-    const calldataGas = calculateCalldataGas(sendQueryInputs);
+    const calldataGas = calculateCalldataGas(this.builtQuery.dataQuery);
     const calldataGasThrshold =
       this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
     if (calldataGas > calldataGasThrshold) {
@@ -723,6 +722,7 @@ export class QueryBuilderV2 {
   }
 
   private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
+    const refundee = builtQuery.refundee === "" ? bytes32(0) : builtQuery.refundee;
     console.log("builtQuery", builtQuery);
     return ethers.concat([
       "0xba1d7f19",
@@ -738,7 +738,7 @@ export class QueryBuilderV2 {
       builtQuery.userSalt,
       ethers.toBeHex(builtQuery.maxFeePerGas, 8),
       ethers.toBeHex(builtQuery.callbackGasLimit, 4),
-      builtQuery.refundee,
+      refundee,
       builtQuery.dataQuery,
     ]);
   }
