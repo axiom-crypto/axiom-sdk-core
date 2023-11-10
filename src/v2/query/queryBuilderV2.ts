@@ -331,7 +331,8 @@ export class QueryBuilderV2 {
     };
 
     // Calculate calldata gas cost
-    const calldataGas = calculateCalldataGas(this.builtQuery.dataQuery);
+    const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
+    const calldataGas = calculateCalldataGas(sendQueryInputs);
     const calldataGasThrshold =
       this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
     if (calldataGas > calldataGasThrshold) {
