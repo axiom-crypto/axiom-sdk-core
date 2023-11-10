@@ -51,6 +51,6 @@ describe("AxiomV2 Contract Addresses", () => {
     const ax = new Axiom(config);
     const axiomV2QueryMock = ax.getAxiomQueryAddress();
 
-    expect(axiomV2QueryMock).toEqual("0x5CfA676EB27C5c9D26d9742067Af3606BeDafe8d");
+    expect(axiomV2QueryMock).toEqual("0xf15cc7B983749686Cd1eCca656C3D3E46407DC1f");
   });
 });
