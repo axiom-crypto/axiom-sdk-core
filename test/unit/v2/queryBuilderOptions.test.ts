@@ -22,6 +22,20 @@ describe("QueryBuilderV2 Options", () => {
   );
   const blockNumber = 18300000;
 
+  test("set targetChainId", async () => {
+    const query = (axiom.query as QueryV2).new();
+    const headerSubquery = buildHeaderSubquery(blockNumber).field(HeaderField.Timestamp);
+    query.appendDataSubquery(headerSubquery);
+    query.setOptions({
+      targetChainId: "31337",
+    });
+    const builtQuery = await query.build();
+    expect(builtQuery.targetChainId).toEqual("31337");
+    expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGas);
+    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.refundee).toEqual(await wallet.getAddress());
+  });
+
   test("set maxFeePerGas", async () => {
     const query = (axiom.query as QueryV2).new();
     const headerSubquery = buildHeaderSubquery(blockNumber).field(HeaderField.Timestamp);
@@ -30,6 +44,7 @@ describe("QueryBuilderV2 Options", () => {
       maxFeePerGas: "1000000000000",
     });
     const builtQuery = await query.build();
+    expect(builtQuery.targetChainId).toEqual("1");
     expect(builtQuery.maxFeePerGas).toEqual("1000000000000");
     expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
@@ -43,6 +58,7 @@ describe("QueryBuilderV2 Options", () => {
       callbackGasLimit: 10000,
     });
     const builtQuery = await query.build();
+    expect(builtQuery.targetChainId).toEqual("1");
     expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGas);
     expect(builtQuery.callbackGasLimit).toEqual(10000);
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
@@ -56,6 +72,7 @@ describe("QueryBuilderV2 Options", () => {
       refundee: "0xe76a90E3069c9d86e666DcC687e76fcecf4429cF",
     });
     const builtQuery = await query.build();
+    expect(builtQuery.targetChainId).toEqual("1");
     expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGas);
     expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
     expect(builtQuery.refundee).toEqual("0xe76a90E3069c9d86e666DcC687e76fcecf4429cF");

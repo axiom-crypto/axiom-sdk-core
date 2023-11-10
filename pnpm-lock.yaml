@@ -12,8 +12,8 @@ dependencies:
     specifier: 0.2.7
     version: 0.2.7
   '@axiom-crypto/tools':
-    specifier: ^0.3.30
-    version: 0.3.30
+    specifier: ^0.3.31
+    version: 0.3.31
   axios:
     specifier: ^1.4.0
     version: 1.5.1
@@ -94,8 +94,8 @@ packages:
     resolution: {integrity: sha512-pmgFCkCJUlFgh5NCLR59WpWIiBegNxBRAAlA2UxPMga1Pba02ynZgf6SW0tbQaezMiWUdTA9SfpeosovcNI6Yg==}
     dev: false
 
-  /@axiom-crypto/tools@0.3.30:
-    resolution: {integrity: sha512-UaS091cx7e2j3Wu6bBEZc4pmK3cLRQzAHfvezYTVuo7tEQFOn5i/22PFfZPqLo8lenLf3U9rr79ph3oCgcwVrQ==}
+  /@axiom-crypto/tools@0.3.31:
+    resolution: {integrity: sha512-Ph/3aNtwkjUr9gOhQKDmGkQIG+t0QZ2wcpx+mx4WGRYKxUPhZ+Yf4gM5KVfKu+2wfmlMI+/IGQnOv7Efd/7W5w==}
     dependencies:
       ethers: 6.8.0
     transitivePeerDependencies:
