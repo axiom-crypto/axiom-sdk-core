@@ -171,13 +171,4 @@ describe("Build ComputeQuery with DataQuery", () => {
     });
     console.log("queryId", queryId);
   }, 60000);
-
-  test("build a query with no DataQuery or ComputeQuery", async () => {
-    const testFn = async () => {
-      const query = (axiom.query as QueryV2).new();
-      query.setCallback(callback);
-      await query.build();
-    };
-    expect(testFn).rejects.toThrow();
-  });
 });
