@@ -17,7 +17,6 @@ describe("Quickstart V2", () => {
       providerUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
       chainId: 5,
-      mock: true,
     };
     const axiom = new Axiom(config);
     const query = (axiom.query as QueryV2).new();

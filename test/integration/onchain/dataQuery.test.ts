@@ -22,7 +22,6 @@ describe("On-chain Data Query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
-    mock: true,
   };
   const axiom = new Axiom(config);
 

@@ -18,7 +18,6 @@ describe("Quickstart V2", () => {
       providerUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
       chainId: 5,
-      mock: true,
     };
     const axiom = new Axiom(config);
     const query = (axiom.query as QueryV2).new();
@@ -141,5 +140,5 @@ describe("Quickstart V2", () => {
     const queryIdRaw = queryInitiated?.topics[3];
     const queryIdAfter = BigInt(queryIdRaw ?? "").toString();
     expect(queryId).toEqual(queryIdAfter);
-  }, 40000);
+  }, 100000);
 });
