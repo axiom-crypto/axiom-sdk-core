@@ -187,8 +187,8 @@ export class QueryBuilderV2 {
     this.unsetBuiltQuery();
     this.options = {
       targetChainId: BigInt(options?.targetChainId ?? this.config.chainId.toString()).toString(),
-      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
-      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
+      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
+      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimitGwei,
       dataQueryCalldataGasWarningThreshold:
         options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
@@ -507,8 +507,13 @@ export class QueryBuilderV2 {
    * Calculates the fee (in wei) required to send the Query
    * @returns The amount of wei required to send this query
    */
-  calculateFee(): string {
-    return PaymentCalc.calculatePayment(this);
+  async calculateFee(): Promise<string> {
+    const axiomV2Query = new ethers.Contract(
+      this.config.getConstants().Addresses.AxiomQuery,
+      getAxiomQueryAbiForVersion(this.config.version),
+      this.config.provider,
+    );
+    return PaymentCalc.calculatePayment(axiomV2Query, this.options);
   }
 
   async calculateRequiredPayment(): Promise<string> {
@@ -523,7 +528,7 @@ export class QueryBuilderV2 {
     const currentBalance = BigInt(
       await PaymentCalc.getBalance(this.config.providerUri, userAddress, axiomQueryAddr, axiomQueryAbi),
     );
-    const totalFee = BigInt(this.calculateFee());
+    const totalFee = BigInt(await this.calculateFee());
     const requiredPayment = totalFee - currentBalance;
     return requiredPayment.toString();
   }

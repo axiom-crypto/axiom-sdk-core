@@ -156,7 +156,7 @@ describe("On-chain compute query scenarios", () => {
 
     const builtQuery = await query.build();
     console.log(builtQuery);
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       console.log("receipt", receipt);
     });
