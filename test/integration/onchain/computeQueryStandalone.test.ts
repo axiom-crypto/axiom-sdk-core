@@ -1,9 +1,12 @@
 import { ethers } from "ethers";
-import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../../src";
+import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, bytes32 } from "../../../src";
 
 // Test coverage areas:
 // - ComputeQuery
 // - Callback
+
+const mock = (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false;
+const target = mock ? "0xefb3aca4eedbe546749e17d2c564f884603cedc7" : "0x888d44c887dfcfaebbf41c53ed87c0c9ed994165";
 
 describe("Build ComputeQuery Standalone", () => {
   const config: AxiomConfig = {
@@ -11,14 +14,14 @@ describe("Build ComputeQuery Standalone", () => {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     chainId: 5,
     version: "v2",
-    mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
+    mock,
   };
   const axiom = new Axiom(config);
 
   console.log((process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false);
 
   const callback: AxiomV2Callback = {
-    target: "0xefb3aca4eedbe546749e17d2c564f884603cedc7",
+    target,
     extraData: bytes32("0xbbd0d3671093a36d6e3b608a7e3b1fdc96da1116"),
   };
 

@@ -29,7 +29,7 @@ describe("On-chain compute query scenarios", () => {
   };
   const axiom = new Axiom(config, overrides);
 
-  const exampleClientAddr = "0x41a7a901ef58d383801272d2408276d96973550d";
+  const exampleClientAddr = "0x888d44c887dfcfaebbf41c53ed87c0c9ed994165";
   const exampleClientAddrMock = "0x8fb73ce80fdb8f15877b161e4fe08b2a0a9979a9";
   const vk = [
     2, 13, 0, 0, 0, 0, 6, 0, 0, 0, 22, 53, 175, 191, 189, 44, 47, 125, 102, 223, 68, 183, 53, 24, 221, 245, 11, 40, 210,

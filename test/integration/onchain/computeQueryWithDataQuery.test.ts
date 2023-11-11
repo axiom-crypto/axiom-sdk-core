@@ -15,18 +15,21 @@ import {
 // - ComputeQuery
 // - Callback
 
+const mock = (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false;
+const target = mock ? "0xefb3aca4eedbe546749e17d2c564f884603cedc7" : "0x888d44c887dfcfaebbf41c53ed87c0c9ed994165";
+
 describe("Build ComputeQuery with DataQuery", () => {
   const config: AxiomConfig = {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     chainId: 5,
     version: "v2",
-    mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
+    mock,
   };
   const axiom = new Axiom(config);
 
   const callback: AxiomV2Callback = {
-    target: "0xefb3aca4eedbe546749e17d2c564f884603cedc7",
+    target,
     extraData: bytes32("0xbbd0d3671093a36d6e3b608a7e3b1fdc96da1116"),
   };
 
