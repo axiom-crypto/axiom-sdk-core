@@ -330,16 +330,17 @@ export class QueryBuilderV2 {
       refundee,
     };
 
+    // NOTE: Disabled for testnet launch; will re-enable after IPFS added
     // Calculate calldata gas cost
-    const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
-    const calldataGas = calculateCalldataGas(sendQueryInputs);
-    const calldataGasThrshold =
-      this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
-    if (calldataGas > calldataGasThrshold) {
-      console.warn(
-        `Data query calldata gas cost ${calldataGas} exceeds warning thrshold ${calldataGasThrshold}. Consider sending the Query via IPFS.`,
-      );
-    }
+    // const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
+    // const calldataGas = calculateCalldataGas(sendQueryInputs);
+    // const calldataGasThrshold =
+    //   this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
+    // if (calldataGas > calldataGasThrshold) {
+    //   console.warn(
+    //     `Data query calldata gas cost ${calldataGas} exceeds warning thrshold ${calldataGasThrshold}. Consider sending the Query via IPFS.`,
+    //   );
+    // }
 
     return this.builtQuery;
   }
