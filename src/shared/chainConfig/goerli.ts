@@ -67,7 +67,7 @@ export let versionDataGoerli: any = {
   v2: {
     Addresses: {
       Axiom: "0x071b7aA74f060B40cB7EEE577c30E634276e7C9f",
-      AxiomQuery: "0xA147611e8458e6686D7229ea8159EA5fa7f9D6e6",
+      AxiomQuery: "0xBd5307B0Bf573E3F2864Af960167b24Aa346952b",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v2",
