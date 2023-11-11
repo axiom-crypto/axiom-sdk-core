@@ -25,6 +25,8 @@ describe("On-chain Data Query scenarios", () => {
   };
   const axiom = new Axiom(config);
 
+  const exampleClientAddrReal = "0x45EeB927b9287F03F105c1619cdf45Dbe0276f41";
+  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
   const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
 
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";

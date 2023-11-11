@@ -23,6 +23,8 @@ describe("Quickstart V2", () => {
     const axiom = new Axiom(config);
     const query = (axiom.query as QueryV2).new();
 
+    const exampleClientAddrReal = "0x45EeB927b9287F03F105c1619cdf45Dbe0276f41";
+    const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
     const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
     const swapEventSchema = getEventSchema("Swap(address,uint256,uint256,uint256,uint256,address)");

@@ -29,6 +29,8 @@ describe("On-chain compute query scenarios", () => {
   };
   const axiom = new Axiom(config, overrides);
 
+  const exampleClientAddrReal = "0x45EeB927b9287F03F105c1619cdf45Dbe0276f41";
+  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
   const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
   const vk = [
     2, 13, 0, 0, 0, 0, 6, 0, 0, 0, 22, 53, 175, 191, 189, 44, 47, 125, 102, 223, 68, 183, 53, 24, 221, 245, 11, 40, 210,
