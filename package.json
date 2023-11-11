@@ -12,6 +12,7 @@
     "build:prod": "ts-node scripts/preTsc.js && rm -rf ./dist/* && ENV=prod tsc && ts-node scripts/postTsc.js",
     "test": "jest",
     "test:unit": "jest test/unit",
+    "test:integration": "jest --runInBand test/integration",
     "dev": "ts-node src/index.ts"
   },
   "publishConfig": {
