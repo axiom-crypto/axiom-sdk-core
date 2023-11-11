@@ -8,7 +8,7 @@ import {
   getEventSchema,
   bytes32,
   buildReceiptSubquery,
-} from "../../../src";
+} from "../../../../src";
 
 describe("Quickstart V2", () => {
   test("Send a simple on-chain Query", async () => {

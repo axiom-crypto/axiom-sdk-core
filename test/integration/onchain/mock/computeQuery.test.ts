@@ -10,8 +10,8 @@ import {
   getTxHash,
   buildTxSubquery,
   TxField,
-} from "../../../src";
-import { convertToBytes32 } from "../../../dist/halo2-js";
+} from "../../../../src";
+import { convertToBytes32 } from "../../../../dist/halo2-js";
 
 describe("On-chain compute query scenarios", () => {
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI_GOERLI as string);
@@ -20,6 +20,7 @@ describe("On-chain compute query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
+    mock: true,
   };
   const overrides = {
     // Addresses: {

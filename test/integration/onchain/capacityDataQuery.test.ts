@@ -22,13 +22,10 @@ describe("On-chain Data Query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
-    mock: true,
   };
   const axiom = new Axiom(config);
 
-  const _exampleClientAddr = "0x41a7a901ef58d383801272d2408276d96973550d";
-  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
-  const exampleClientAddr = config.mock ? exampleClientAddrMock : _exampleClientAddr;
+  const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
 
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";

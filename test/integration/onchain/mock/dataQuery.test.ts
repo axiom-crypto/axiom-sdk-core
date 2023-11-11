@@ -14,8 +14,8 @@ import {
   AccountField,
   AxiomV2QueryOptions,
   buildSolidityNestedMappingSubquery,
-} from "../../../src";
-import { ConstantsV2 } from "../../../src/v2/constants";
+} from "../../../../src";
+import { ConstantsV2 } from "../../../../src/v2/constants";
 
 describe("On-chain Data Query scenarios", () => {
   const config: AxiomConfig = {
