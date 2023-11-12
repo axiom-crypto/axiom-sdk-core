@@ -2,12 +2,12 @@ import { ethers } from "ethers";
 import { AxiomV2Callback, AxiomV2ComputeQuery, DataSubqueryCount } from "./types";
 
 export const ConstantsV2 = Object.freeze({
-  DefaultMaxFeePerGas: "0x05d21dba00",
+  DefaultMaxFeePerGasWei: "25000000000",
   DefaultCallbackGasLimit: 200000,
   DefaultDataQueryCalldataGasWarningThreshold: 100000,
 
-  ProofGas: 400000,
-  AxiomQueryBaseFeeGwei: 3000000,
+  FallbackProofVerificationGas: 550000n,
+  FallbackAxiomQueryFeeWei: 3000000000000000n,
 
   QueryInitiatedOnchainSchema: "0xb72b05c090ac4ae9ec18b7e708d597093716f98567026726f6f5d9f172316178",
   QueryInitiatedWithIpfsDataSchema: "0xf3a2958f23705cbc6bbc0922c0af3c82b76d93e8acc5c17ef86736cf4563fb85",
