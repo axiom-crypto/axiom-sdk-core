@@ -188,7 +188,7 @@ export class QueryBuilderV2 {
     this.options = {
       targetChainId: BigInt(options?.targetChainId ?? this.config.chainId.toString()).toString(),
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
-      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimitGwei,
+      callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
       dataQueryCalldataGasWarningThreshold:
         options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,

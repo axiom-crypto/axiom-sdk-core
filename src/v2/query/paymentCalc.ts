@@ -5,11 +5,11 @@ import { ethers } from "ethers";
 export class PaymentCalc {
   static async calculatePayment(axiomV2Query: ethers.Contract, options: AxiomV2QueryOptions): Promise<string> {
     // Get proofVerificationGas from contract
-    let proofVerificationGas = await axiomV2Query.proofVerificationGas(); // in gwei
+    let proofVerificationGas = await axiomV2Query.proofVerificationGas(); // in gas units
     if (proofVerificationGas === 0n) {
-      proofVerificationGas = ConstantsV2.FallbackProofVerificationGasGwei;
+      proofVerificationGas = ConstantsV2.FallbackProofVerificationGas;
     }
-    const proofVerificationGasGwei = proofVerificationGas.toString();
+    proofVerificationGas = proofVerificationGas.toString();
 
     // Get axiomQueryFee from contract
     let axiomQueryFee = await axiomV2Query.axiomQueryFee(); // in wei
@@ -19,12 +19,12 @@ export class PaymentCalc {
     const axiomQueryFeeWei = ethers.parseUnits(axiomQueryFee.toString(), "wei");
 
     // Convert callback gas limit to wei
-    const callbackGasLimitGWei = (options.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimitGwei).toString();
+    const callbackGasLimit = (options.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit).toString();
 
     // payment = maxFeePerGas * (proofVerificationGas + callbackGasLimit) + axiomQueryFee
     const payment =
       BigInt(options.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei) *
-        (BigInt(proofVerificationGasGwei) + BigInt(callbackGasLimitGWei)) +
+        (BigInt(proofVerificationGas) + BigInt(callbackGasLimit)) +
       BigInt(axiomQueryFeeWei);
     return payment.toString();
   }

@@ -3,10 +3,10 @@ import { AxiomV2Callback, AxiomV2ComputeQuery, DataSubqueryCount } from "./types
 
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGasWei: "25000000000",
-  DefaultCallbackGasLimitGwei: 200000,
+  DefaultCallbackGasLimit: 200000,
   DefaultDataQueryCalldataGasWarningThreshold: 100000,
 
-  FallbackProofVerificationGasGwei: 550000n,
+  FallbackProofVerificationGas: 550000n,
   FallbackAxiomQueryFeeWei: 3000000000000000n,
 
   QueryInitiatedOnchainSchema: "0xb72b05c090ac4ae9ec18b7e708d597093716f98567026726f6f5d9f172316178",

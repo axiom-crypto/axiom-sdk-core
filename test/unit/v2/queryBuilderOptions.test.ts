@@ -32,7 +32,7 @@ describe("QueryBuilderV2 Options", () => {
     const builtQuery = await query.build();
     expect(builtQuery.targetChainId).toEqual("31337");
     expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimitGwei);
+    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
   });
 
@@ -46,7 +46,7 @@ describe("QueryBuilderV2 Options", () => {
     const builtQuery = await query.build();
     expect(builtQuery.targetChainId).toEqual("1");
     expect(builtQuery.maxFeePerGas).toEqual("1000000000000");
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimitGwei);
+    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
   });
 
@@ -74,7 +74,7 @@ describe("QueryBuilderV2 Options", () => {
     const builtQuery = await query.build();
     expect(builtQuery.targetChainId).toEqual("1");
     expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimitGwei);
+    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
     expect(builtQuery.refundee).toEqual("0xe76a90E3069c9d86e666DcC687e76fcecf4429cF");
   });
 });
