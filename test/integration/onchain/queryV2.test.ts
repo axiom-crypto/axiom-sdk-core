@@ -54,7 +54,7 @@ describe("Quickstart V2", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
 
     const queryId0 = await query.getQueryId();
 
@@ -117,7 +117,7 @@ describe("Quickstart V2", () => {
       throw new Error("Query validation failed");
     }
     const builtQuery = await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
 
     const queryId = await query.getQueryId(await wallet.getAddress());
 
