@@ -65,7 +65,7 @@ describe("On-chain Data Query scenarios", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);
@@ -127,7 +127,7 @@ describe("On-chain Data Query scenarios", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);
@@ -154,7 +154,7 @@ describe("On-chain Data Query scenarios", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);
@@ -183,7 +183,7 @@ describe("On-chain Data Query scenarios", () => {
   //     throw new Error("Query validation failed");
   //   }
   //   await query.build();
-  //   const paymentAmt = query.calculateFee();
+  //   const paymentAmt = await query.calculateFee();
   //   const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
   //     // You can do something here once you've received the receipt
   //     console.log("receipt", receipt);
