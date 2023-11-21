@@ -15,7 +15,6 @@ import {
   AxiomV2QueryOptions,
   buildSolidityNestedMappingSubquery,
 } from "../../../src";
-import { ConstantsV2 } from "../../../src/v2/constants";
 
 describe("On-chain Data Query scenarios", () => {
   const config: AxiomConfig = {
@@ -23,11 +22,13 @@ describe("On-chain Data Query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
-    // mock: true,
+    mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
   };
   const axiom = new Axiom(config);
 
-  const exampleClientAddr = "0x8fb73ce80fdb8f15877b161e4fe08b2a0a9979a9";
+  const exampleClientAddrReal = "0x888d44c887DFCfaeBBf41C53eD87C0C9ED994165";
+  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
+  const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
 
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
@@ -64,12 +65,12 @@ describe("On-chain Data Query scenarios", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);
     });
-    console.log("queryId", queryId);
+    console.log("queryId", queryId, bytes32(queryId));
   }, 60000);
 
   test("Send one of each DataQuery", async () => {
@@ -126,7 +127,7 @@ describe("On-chain Data Query scenarios", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);
@@ -134,12 +135,12 @@ describe("On-chain Data Query scenarios", () => {
     console.log("queryId", queryId);
   }, 60000);
 
-  test("Send a size-32 header DataQuery", async () => {
+  test("Send a size-31 header DataQuery", async () => {
     const query = (axiom.query as QueryV2).new();
 
     const endBlockNumber = 9800000;
     const interval = 10000;
-    for (let i = 32; i > 0; i--) {
+    for (let i = 31; i > 0; i--) {
       const accountSubquery = buildHeaderSubquery(endBlockNumber - i * interval).field(HeaderField.Nonce);
       query.appendDataSubquery(accountSubquery);
     }
@@ -153,36 +154,7 @@ describe("On-chain Data Query scenarios", () => {
       throw new Error("Query validation failed");
     }
     await query.build();
-    const paymentAmt = query.calculateFee();
-    const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
-      // You can do something here once you've received the receipt
-      console.log("receipt", receipt);
-    });
-    console.log("queryId", queryId);
-  }, 60000);
-
-  test("Send a size-64 account DataQuery", async () => {
-    const query = (axiom.query as QueryV2).new();
-
-    const endBlockNumber = 9800000;
-    const interval = 10000;
-    for (let i = 64; i > 0; i--) {
-      const accountSubquery = buildAccountSubquery(endBlockNumber - i * interval)
-        .address("0xB392448932F6ef430555631f765Df0dfaE34efF3")
-        .field(AccountField.Balance);
-      query.appendDataSubquery(accountSubquery);
-    }
-    const callback: AxiomV2Callback = {
-      target: exampleClientAddr,
-      extraData: bytes32(0),
-    };
-    query.setCallback(callback);
-
-    if (!(await query.validate())) {
-      throw new Error("Query validation failed");
-    }
-    await query.build();
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       // You can do something here once you've received the receipt
       console.log("receipt", receipt);

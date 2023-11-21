@@ -24,10 +24,14 @@ import {
   UnbuiltReceiptSubquery,
   UnbuiltSolidityNestedMappingSubquery,
   UnbuiltStorageSubquery,
-} from '../../../src';
+} from "../../../src";
 import { ethers } from "ethers";
 
-describe("Build data subquery", () => {
+// Test coverage areas:
+// - DataQuery subquery builders
+// - DataQuery subquery types
+
+describe("Data Subquery Builders", () => {
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase();
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392".toLowerCase();
 
@@ -38,57 +42,55 @@ describe("Build data subquery", () => {
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
-  }
+  };
   const axiom = new Axiom(config);
+
+  const blockNumber = 18000000;
 
   test("Build and append a header subquery", () => {
     const query = (axiom.query as QueryV2).new();
-    const headerSubquery: UnbuiltHeaderSubquery = buildHeaderSubquery(18000000)
-      .field(HeaderField.GasUsed);
+    const headerSubquery: UnbuiltHeaderSubquery = buildHeaderSubquery(blockNumber).field(HeaderField.GasUsed);
     query.appendDataSubquery(headerSubquery);
     const dataQuery = query.getDataQuery();
 
     const subquery = dataQuery?.[0] as UnbuiltHeaderSubquery;
-    expect(subquery?.blockNumber).toEqual(18000000);
+    expect(subquery?.blockNumber).toEqual(blockNumber);
     expect(subquery?.fieldIdx).toEqual(HeaderField.GasUsed);
   });
 
   test("Build and append a header logsBloom subquery", () => {
     const query = (axiom.query as QueryV2).new();
-    const headerSubquery: UnbuiltHeaderSubquery = buildHeaderSubquery(18000000)
-      .logsBloom(2);
+    const headerSubquery: UnbuiltHeaderSubquery = buildHeaderSubquery(blockNumber).logsBloom(2);
     query.appendDataSubquery(headerSubquery);
     const dataQuery = query.getDataQuery();
 
     const subquery = dataQuery?.[0] as UnbuiltHeaderSubquery;
-    expect(subquery?.blockNumber).toEqual(18000000);
+    expect(subquery?.blockNumber).toEqual(blockNumber);
     expect(subquery?.fieldIdx).toEqual(AxiomV2FieldConstant.Header.LogsBloomFieldIdxOffset + 2);
   });
 
   test("Build and append an account subquery", () => {
     const query = (axiom.query as QueryV2).new();
-    const accountSubquery: UnbuiltAccountSubquery = buildAccountSubquery(18000000)
+    const accountSubquery: UnbuiltAccountSubquery = buildAccountSubquery(blockNumber)
       .address(WETH_WHALE)
       .field(AccountField.Balance);
     query.appendDataSubquery(accountSubquery);
     const dataQuery = query.getDataQuery();
 
     const subquery = dataQuery?.[0] as UnbuiltAccountSubquery;
-    expect(subquery?.blockNumber).toEqual(18000000);
+    expect(subquery?.blockNumber).toEqual(blockNumber);
     expect(subquery?.addr).toEqual(WETH_WHALE);
     expect(subquery?.fieldIdx).toEqual(AccountField.Balance);
   });
 
   test("Build and append a storage subquery", () => {
     const query = (axiom.query as QueryV2).new();
-    const storageSubquery: UnbuiltStorageSubquery = buildStorageSubquery(18000000)
-      .address(WETH_ADDR)
-      .slot(1);
+    const storageSubquery: UnbuiltStorageSubquery = buildStorageSubquery(blockNumber).address(WETH_ADDR).slot(1);
     query.appendDataSubquery(storageSubquery);
     const dataQuery = query.getDataQuery();
 
     const subquery = dataQuery?.[0] as UnbuiltStorageSubquery;
-    expect(subquery?.blockNumber).toEqual(18000000);
+    expect(subquery?.blockNumber).toEqual(blockNumber);
     expect(subquery?.addr).toEqual(WETH_ADDR);
     expect(subquery?.slot).toEqual(bytes32(1));
   });
@@ -102,8 +104,7 @@ describe("Build data subquery", () => {
       throw new Error("Failed to get block number and tx idx");
     }
 
-    const txSubquery: UnbuiltTxSubquery = buildTxSubquery(txHash)
-      .field(TxField.MaxPriorityFeePerGas);
+    const txSubquery: UnbuiltTxSubquery = buildTxSubquery(txHash).field(TxField.MaxPriorityFeePerGas);
     query.appendDataSubquery(txSubquery);
     const dataQuery = query.getDataQuery();
 
@@ -162,9 +163,7 @@ describe("Build data subquery", () => {
       throw new Error("Failed to get block number and tx idx");
     }
 
-    const receiptSubquery: UnbuiltReceiptSubquery = buildReceiptSubquery(txHash)
-      .log(0)
-      .address();
+    const receiptSubquery: UnbuiltReceiptSubquery = buildReceiptSubquery(txHash).log(0).address();
     query.appendDataSubquery(receiptSubquery);
     const dataQuery = query.getDataQuery();
 
@@ -191,8 +190,7 @@ describe("Build data subquery", () => {
     const txHash = "0x8d2e6cbd7cf1f88ee174600f31b79382e0028e239bb1af8301ba6fc782758bc6";
     const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, txHash);
 
-    const receiptSubquery: UnbuiltReceiptSubquery = buildReceiptSubquery(txHash)
-      .logsBloom(2);
+    const receiptSubquery: UnbuiltReceiptSubquery = buildReceiptSubquery(txHash).logsBloom(2);
     query.appendDataSubquery(receiptSubquery);
     const dataQuery = query.getDataQuery();
 
@@ -213,26 +211,18 @@ describe("Build data subquery", () => {
 
   test("Build and append a nested mapping subquery", () => {
     const query = (axiom.query as QueryV2).new();
-    const nestedMappingSubquery: UnbuiltSolidityNestedMappingSubquery = buildSolidityNestedMappingSubquery(18000000)
+    const nestedMappingSubquery: UnbuiltSolidityNestedMappingSubquery = buildSolidityNestedMappingSubquery(blockNumber)
       .address(WETH_ADDR)
       .mappingSlot(0)
-      .keys([
-        WETH_ADDR,
-        WETH_WHALE,
-        100000
-      ]);
+      .keys([WETH_ADDR, WETH_WHALE, 100000]);
     query.appendDataSubquery(nestedMappingSubquery);
     const dataQuery = query.getDataQuery();
 
     const subquery = dataQuery?.[0] as UnbuiltSolidityNestedMappingSubquery;
-    expect(subquery?.blockNumber).toEqual(18000000);
+    expect(subquery?.blockNumber).toEqual(blockNumber);
     expect(subquery?.addr).toEqual(WETH_ADDR);
     expect(subquery?.mappingSlot).toEqual(bytes32(0));
     expect(subquery?.mappingDepth).toEqual(3);
-    expect(subquery?.keys).toEqual([
-      bytes32(WETH_ADDR),
-      bytes32(WETH_WHALE),
-      bytes32(100000)
-    ]);
+    expect(subquery?.keys).toEqual([bytes32(WETH_ADDR), bytes32(WETH_WHALE), bytes32(100000)]);
   });
 });

@@ -11,7 +11,6 @@ import {
   buildTxSubquery,
   TxField,
 } from "../../../src";
-import { convertToBytes32 } from "../../../dist/halo2-js";
 
 describe("On-chain compute query scenarios", () => {
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI_GOERLI as string);
@@ -20,7 +19,7 @@ describe("On-chain compute query scenarios", () => {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
-    // mock: true
+    mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
   };
   const overrides = {
     // Addresses: {
@@ -29,8 +28,9 @@ describe("On-chain compute query scenarios", () => {
   };
   const axiom = new Axiom(config, overrides);
 
-  const exampleClientAddr = "0x41a7a901ef58d383801272d2408276d96973550d";
-  const exampleClientAddrMock = "0x8fb73ce80fdb8f15877b161e4fe08b2a0a9979a9";
+  const exampleClientAddrReal = "0x888d44c887DFCfaeBBf41C53eD87C0C9ED994165";
+  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
+  const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
   const vk = [
     2, 13, 0, 0, 0, 0, 6, 0, 0, 0, 22, 53, 175, 191, 189, 44, 47, 125, 102, 223, 68, 183, 53, 24, 221, 245, 11, 40, 210,
     84, 147, 34, 241, 111, 251, 44, 176, 97, 40, 23, 111, 5, 236, 172, 54, 30, 205, 68, 139, 37, 34, 255, 110, 222, 63,
@@ -156,10 +156,10 @@ describe("On-chain compute query scenarios", () => {
 
     const builtQuery = await query.build();
     console.log(builtQuery);
-    const paymentAmt = query.calculateFee();
+    const paymentAmt = await query.calculateFee();
     const queryId = await query.sendOnchainQuery(paymentAmt, (receipt: ethers.ContractTransactionReceipt) => {
       console.log("receipt", receipt);
     });
     console.log("queryId", queryId);
-  }, 40000);
+  }, 100000);
 });

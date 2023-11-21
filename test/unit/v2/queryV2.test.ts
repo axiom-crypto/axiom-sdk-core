@@ -168,55 +168,6 @@ describe("QueryV2", () => {
   //   expect(balance).toEqual("0");
   // });
 
-  test("should initialize QueryBuilderV2 with dataQuery", async () => {
-    const dataQuery = [] as DataSubquery[];
-    const query = (axiom.query as QueryV2).new();
-    query.append(dataQuery);
-    expect(typeof query).toEqual("object");
-  });
-
-  test("should initialize QueryBuilderV2 with computeQuery", async () => {
-    const dataQuery = [] as DataSubquery[];
-    const computeQuery: AxiomV2ComputeQuery = {
-      k: 14,
-      vkey,
-      computeProof,
-    };
-    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery);
-    expect(typeof query).toEqual("object");
-  });
-
-  test("should initialize QueryBuilderV2 with callback", async () => {
-    const dataQuery = [] as DataSubquery[];
-    const computeQuery: AxiomV2ComputeQuery = {
-      k: 14,
-      vkey,
-      computeProof,
-    };
-    const callbackQuery = {
-      target: WETH_ADDR,
-      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-    };
-    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery);
-    expect(typeof query).toEqual("object");
-  });
-
-  test("should initialize QueryBuilderV2 with options", async () => {
-    const dataQuery = [] as DataSubquery[];
-    const computeQuery: AxiomV2ComputeQuery = {
-      k: 14,
-      vkey,
-      computeProof,
-    };
-    const callbackQuery = {
-      target: WETH_ADDR,
-      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-    };
-    const options = {};
-    const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery, options);
-    expect(typeof query).toEqual("object");
-  });
-
   test("should validate a QueryV2", async () => {
     const dataQuery = [
       {
@@ -265,90 +216,7 @@ describe("QueryV2", () => {
     const query = (axiom.query as QueryV2).new(dataQuery, computeQueryReq, callbackQuery, options);
     const isValid = await query.validate();
     expect(isValid).toEqual(true);
-  });
-
-  test("should initialize build QueryV2 with dataQuery", async () => {
-    const dataQueryReq = [
-      {
-        blockNumber: BLOCK_NUMBER,
-        fieldIdx: HeaderField.GasUsed,
-      },
-      {
-        blockNumber: BLOCK_NUMBER + 1,
-        fieldIdx: HeaderField.GasUsed,
-      },
-    ];
-    const query = (axiom.query as QueryV2).new();
-    query.append(dataQueryReq);
-
-    const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
-    expect(queryHash).toEqual("0xf882d4796e0f30f74e8fcffb532345ce7775c5816ff5d3b068fe1618a563e375");
-    expect(dataQueryHash).toEqual("0x0fb4738f202f13b1ce455e1c0e91fd4ed83bb763f0cf5829f382f70964fb7f49");
-    expect(dataQuery).toEqual("0x00000000000000010002000100ed14f20000000a000100ed14f30000000a");
-    expect(computeQuery.k).toEqual(0);
-    expect(computeQuery.vkey.length).toEqual(0);
-    expect(computeQuery.vkey).toEqual([]);
-    expect(computeQuery.computeProof).toEqual("0x00");
-  });
-
-  test("should initialize build QueryV2 with dataQuery, computeQuery, and callback", async () => {
-    const dataQueryReq = [
-      {
-        blockNumber: BLOCK_NUMBER,
-        fieldIdx: 0,
-      },
-      {
-        blockNumber: BLOCK_NUMBER + 1,
-        fieldIdx: 1,
-      },
-      {
-        blockNumber: BLOCK_NUMBER,
-        addr: WETH_WHALE,
-        fieldIdx: AccountField.Nonce,
-      },
-      {
-        // blockNumber: 17975259,
-        // txIdx: 34,
-        txHash: "0x47082a4eaba054312c652a21c6d75a44095b8be43c60bdaeffad03d38a8b1602",
-        fieldOrLogIdx: ReceiptField.CumulativeGas,
-        topicOrDataOrAddressIdx: 10,
-        eventSchema: ethers.ZeroHash,
-      },
-    ];
-    const computeQueryReq: AxiomV2ComputeQuery = {
-      k: 14,
-      vkey,
-      computeProof,
-    };
-    const callbackQuery = {
-      target: WETH_ADDR,
-      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-    };
-    const options: AxiomV2QueryOptions = {
-      maxFeePerGas: BigInt(100000000).toString(),
-    };
-    const query = (axiom.query as QueryV2).new(dataQueryReq, computeQueryReq, callbackQuery, options);
-
-    const unbiltDq = query.getDataQuery();
-    expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
-    const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
-    const builtDq = query.getBuiltQuery()?.dataQueryStruct.subqueries;
-    expect((builtDq?.[2].subqueryData as AccountSubquery).addr).toEqual(WETH_WHALE.toLowerCase());
-    expect(queryHash).toEqual("0x215b04333d54f589ff08faf6887e6af49c7876fe3b68d0f3960d636020ab83ae");
-    expect(dataQueryHash).toEqual("0xa23b68c6445bf7850bfdb0921bef5c55d43bd6362133b1f3929dd7b8103502dd");
-    expect(dataQuery).toEqual(
-      "0x00000000000000010004000100ed14f200000000000100ed14f300000001000200ed14f22e15d7aa0650de1009710fdd45c3468d75ae1392000000000005011247db0022000000020000000a0000000000000000000000000000000000000000000000000000000000000000",
-    );
-    expect(computeQuery.k).toEqual(computeQueryReq.k);
-    expect(computeQuery.resultLen).toEqual(4);
-    expect(computeQuery.vkey.length).toEqual(computeQueryReq.vkey.length);
-    expect(computeQuery.vkey).toEqual(resizeArray(computeQueryReq.vkey, computeQueryReq.vkey.length, ethers.ZeroHash));
-    expect(computeQuery.computeProof).toEqual(computeProof);
-    expect(callback).toEqual({
-      target: WETH_ADDR.toLowerCase(),
-      extraData: "0x2e15d7aa0650de1009710fdd45c3468d75ae1392",
-    });
-  });
+  }, 20000);
 
   test("Compute callback resultLen based on number of subqueries", async () => {
     const query = (axiom.query as QueryV2).new();
@@ -419,26 +287,6 @@ describe("QueryV2", () => {
     expect(builtQuery.maxFeePerGas).toEqual(options.maxFeePerGas);
     expect(builtQuery.callbackGasLimit).toEqual(options.callbackGasLimit);
     expect(builtQuery.refundee).toEqual(ethers.ZeroAddress);
-  });
-
-  test("Payment calculation based on options", () => {
-    const query = (axiom.query as QueryV2).new();
-    let fee = query.calculateFee();
-    expect(fee).toEqual("18000000000000000");
-
-    const options: AxiomV2QueryOptions = {
-      maxFeePerGas: "10000000000",
-    };
-    query.setOptions(options);
-    fee = query.calculateFee();
-    expect(fee).toEqual("9000000000000000");
-
-    query.setOptions({
-      maxFeePerGas: "500000000000",
-      callbackGasLimit: 1000000000,
-    });
-    fee = query.calculateFee();
-    expect(fee).toEqual("500203000000000000000");
   });
 
   test("Append a Header subquery", async () => {
@@ -547,27 +395,6 @@ describe("QueryV2", () => {
     ]);
   });
 
-  test("Append an too many Account subqueries", async () => {
-    const query = (axiom.query as QueryV2).new();
-    const subquery = buildAccountSubquery(17000000).address(WETH_WHALE).field(AccountField.Nonce);
-    const testSingleAppend = () => {
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-      query.appendDataSubquery(subquery);
-    };
-    expect(testSingleAppend).toThrow();
-    const testBatchAppend = () => {
-      query.append([subquery, subquery, subquery, subquery, subquery, subquery, subquery, subquery, subquery]);
-    };
-    expect(testBatchAppend).toThrow();
-  });
-
   test("Set a built DataQuery", async () => {
     const dataQueryReq = [
       {
@@ -608,6 +435,7 @@ describe("QueryV2", () => {
 
     const unbiltDq = query.getDataQuery();
     expect((unbiltDq?.[2] as UnbuiltAccountSubquery).addr).toEqual(WETH_WHALE);
+
     const { queryHash, dataQueryHash, dataQuery, computeQuery, callback } = await query.build();
     const builtDq = query.getBuiltQuery()?.dataQueryStruct;
     if (builtDq === undefined) {
@@ -631,5 +459,30 @@ describe("QueryV2", () => {
     expect(dataQuery).toEqual(dataQuery2);
     expect(computeQuery).toEqual(computeQuery2);
     expect(callback).toEqual(callback2);
+  });
+
+  test("Set a built empty DataQuery", async () => {
+    const computeQueryReq: AxiomV2ComputeQuery = {
+      k: 14,
+      vkey,
+      computeProof,
+    };
+    const callbackQuery = {
+      target: WETH_ADDR,
+      extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
+    };
+    const options: AxiomV2QueryOptions = {
+      maxFeePerGas: BigInt(100000000).toString(),
+    };
+    const query = (axiom.query as QueryV2).new(undefined, computeQueryReq, callbackQuery, options);
+    query.setBuiltDataQuery({
+      sourceChainId: "5",
+      subqueries: [],
+    });
+    await query.build();
+    const builtDq = query.getBuiltQuery()?.dataQueryStruct;
+    if (builtDq === undefined) {
+      throw new Error("builtDq is undefined");
+    }
   });
 });

@@ -13,6 +13,8 @@ import {
   getCallbackHash,
   AxiomV2DataQuery,
   encodeDataQuery,
+  encodeComputeQuery,
+  encodeCallback,
 } from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -167,7 +169,7 @@ export class QueryBuilderV2 {
   setDataQuery(dataQuery: UnbuiltSubquery[]) {
     this.unsetBuiltQuery();
     this.dataQuery = undefined;
-    this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
+    this.resetSubqueryCount();
     this.append(dataQuery);
   }
 
@@ -184,9 +186,11 @@ export class QueryBuilderV2 {
   setOptions(options: AxiomV2QueryOptions): AxiomV2QueryOptions {
     this.unsetBuiltQuery();
     this.options = {
-      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGas,
+      targetChainId: BigInt(options?.targetChainId ?? this.config.chainId.toString()).toString(),
+      maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
-      dataQueryCalldataGasLimit: options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit,
+      dataQueryCalldataGasWarningThreshold:
+        options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
     };
     return this.options;
@@ -209,43 +213,7 @@ export class QueryBuilderV2 {
 
     for (const subquery of dataSubqueries) {
       const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
-      switch (type) {
-        case DataSubqueryType.Header:
-          this.dataSubqueryCount.header++;
-          break;
-        case DataSubqueryType.Account:
-          this.dataSubqueryCount.account++;
-          if (this.dataSubqueryCount.account > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account subqueries`);
-          }
-          break;
-        case DataSubqueryType.Storage:
-          this.dataSubqueryCount.storage++;
-          if (this.dataSubqueryCount.storage > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Storage subqueries`);
-          }
-          break;
-        case DataSubqueryType.Transaction:
-          this.dataSubqueryCount.transaction++;
-          if (this.dataSubqueryCount.transaction > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Transaction subqueries`);
-          }
-          break;
-        case DataSubqueryType.Receipt:
-          this.dataSubqueryCount.receipt++;
-          if (this.dataSubqueryCount.receipt > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Receipt subqueries`);
-          }
-          break;
-        case DataSubqueryType.SolidityNestedMapping:
-          this.dataSubqueryCount.solidityNestedMapping++;
-          if (this.dataSubqueryCount.solidityNestedMapping > ConstantsV2.MaxSameSubqueryType) {
-            throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Nested Mapping subqueries`);
-          }
-          break;
-        default:
-          throw new Error(`Unknown subquery type: ${type}`);
-      }
+      this.updateSubqueryCount(type);
     }
 
     // Append new dataSubqueries to existing dataQuery
@@ -267,6 +235,10 @@ export class QueryBuilderV2 {
    * Setting this will take precedence over setting any UnbuiltSubqueries via `append()`.
    */
   setBuiltDataQuery(dataQuery: AxiomV2DataQuery): void {
+    this.resetSubqueryCount();
+    for (const subquery of dataQuery.subqueries) {
+      this.updateSubqueryCount(subquery.type);
+    }
     this.builtDataQuery = dataQuery;
   }
 
@@ -344,6 +316,7 @@ export class QueryBuilderV2 {
 
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
+      targetChainId: this.options?.targetChainId ?? this.config.chainId.toString(),
       queryHash,
       dataQuery,
       dataQueryHash,
@@ -356,6 +329,18 @@ export class QueryBuilderV2 {
       callbackGasLimit: this.options.callbackGasLimit!,
       refundee,
     };
+
+    // NOTE: Disabled for testnet launch; will re-enable after IPFS added
+    // Calculate calldata gas cost
+    // const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
+    // const calldataGas = calculateCalldataGas(sendQueryInputs);
+    // const calldataGasThrshold =
+    //   this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
+    // if (calldataGas > calldataGasThrshold) {
+    //   console.warn(
+    //     `Data query calldata gas cost ${calldataGas} exceeds warning thrshold ${calldataGasThrshold}. Consider sending the Query via IPFS.`,
+    //   );
+    // }
 
     return this.builtQuery;
   }
@@ -375,7 +360,8 @@ export class QueryBuilderV2 {
 
     // Check dataQuery gas cost
     const dataQueryGasCost = calculateCalldataGas(this.builtQuery.dataQuery);
-    const dataQueryGasLimit = this?.options?.dataQueryCalldataGasLimit ?? ConstantsV2.DefaultDataQueryCalldataGasLimit;
+    const dataQueryGasLimit =
+      this?.options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
     if (dataQueryGasCost > dataQueryGasLimit) {
       throw new Error(
         `Data query calldata gas cost ${dataQueryGasCost} exceeds limit ${dataQueryGasLimit}. Either increase this limit in options or use 'sendQueryWithIpfs()' instead.`,
@@ -506,13 +492,14 @@ export class QueryBuilderV2 {
       }
       caller = callerAddr;
     }
+    const targetChainId = this.builtQuery.targetChainId;
     const refundee = this.options?.refundee ?? caller;
     const salt = this.builtQuery.userSalt;
     const queryHash = this.builtQuery.queryHash;
     const callbackHash = getCallbackHash(this.builtQuery.callback.target, this.builtQuery.callback.extraData);
 
     // Calculate the queryId
-    const queryId = getQueryId(caller, salt, queryHash, callbackHash, refundee);
+    const queryId = getQueryId(targetChainId, caller, salt, queryHash, callbackHash, refundee);
     return BigInt(queryId).toString();
   }
 
@@ -520,8 +507,13 @@ export class QueryBuilderV2 {
    * Calculates the fee (in wei) required to send the Query
    * @returns The amount of wei required to send this query
    */
-  calculateFee(): string {
-    return PaymentCalc.calculatePayment(this);
+  async calculateFee(): Promise<string> {
+    const axiomV2Query = new ethers.Contract(
+      this.config.getConstants().Addresses.AxiomQuery,
+      getAxiomQueryAbiForVersion(this.config.version),
+      this.config.provider,
+    );
+    return PaymentCalc.calculatePayment(axiomV2Query, this.options);
   }
 
   async calculateRequiredPayment(): Promise<string> {
@@ -536,7 +528,7 @@ export class QueryBuilderV2 {
     const currentBalance = BigInt(
       await PaymentCalc.getBalance(this.config.providerUri, userAddress, axiomQueryAddr, axiomQueryAbi),
     );
-    const totalFee = BigInt(this.calculateFee());
+    const totalFee = BigInt(await this.calculateFee());
     const requiredPayment = totalFee - currentBalance;
     return requiredPayment.toString();
   }
@@ -662,5 +654,98 @@ export class QueryBuilderV2 {
     }
 
     return valid;
+  }
+
+  private resetSubqueryCount() {
+    this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
+  }
+
+  private updateSubqueryCount(type: DataSubqueryType) {
+    this.dataSubqueryCount.total++;
+    if (this.dataSubqueryCount.total > ConstantsV2.MaxDataQuerySize) {
+      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
+    }
+    switch (type) {
+      case DataSubqueryType.Header:
+        this.dataSubqueryCount.header++;
+        if (this.dataSubqueryCount.header > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Header subqueries`);
+        }
+        break;
+      case DataSubqueryType.Account:
+        this.dataSubqueryCount.account++;
+        if (
+          this.dataSubqueryCount.account +
+            this.dataSubqueryCount.storage +
+            this.dataSubqueryCount.solidityNestedMapping >
+          ConstantsV2.MaxSameSubqueryType
+        ) {
+          throw new Error(
+            `Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account + Storage + Nested Mapping subqueries`,
+          );
+        }
+        break;
+      case DataSubqueryType.Storage:
+        this.dataSubqueryCount.storage++;
+        if (
+          this.dataSubqueryCount.account +
+            this.dataSubqueryCount.storage +
+            this.dataSubqueryCount.solidityNestedMapping >
+          ConstantsV2.MaxSameSubqueryType
+        ) {
+          throw new Error(
+            `Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account + Storage + Nested Mapping subqueries`,
+          );
+        }
+        break;
+      case DataSubqueryType.Transaction:
+        this.dataSubqueryCount.transaction++;
+        if (this.dataSubqueryCount.transaction > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Transaction subqueries`);
+        }
+        break;
+      case DataSubqueryType.Receipt:
+        this.dataSubqueryCount.receipt++;
+        if (this.dataSubqueryCount.receipt > ConstantsV2.MaxSameSubqueryType) {
+          throw new Error(`Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Receipt subqueries`);
+        }
+        break;
+      case DataSubqueryType.SolidityNestedMapping:
+        this.dataSubqueryCount.solidityNestedMapping++;
+        if (
+          this.dataSubqueryCount.account +
+            this.dataSubqueryCount.storage +
+            this.dataSubqueryCount.solidityNestedMapping >
+          ConstantsV2.MaxSameSubqueryType
+        ) {
+          throw new Error(
+            `Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account + Storage + Nested Mapping subqueries`,
+          );
+        }
+        break;
+      default:
+        throw new Error(`Unknown subquery type: ${type}`);
+    }
+  }
+
+  private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
+    const refundee = builtQuery.refundee === "" ? ConstantsV2.Bytes32Max : builtQuery.refundee;
+    return ethers.concat([
+      "0xba1d7f19",
+      ethers.toBeHex(builtQuery.sourceChainId, 8),
+      builtQuery.queryHash,
+      encodeComputeQuery(
+        builtQuery.computeQuery.k,
+        builtQuery.computeQuery.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs,
+        builtQuery.computeQuery.vkey,
+        builtQuery.computeQuery.computeProof,
+      ),
+      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
+      builtQuery.userSalt,
+      ethers.toBeHex(builtQuery.maxFeePerGas, 8),
+      ethers.toBeHex(builtQuery.callbackGasLimit, 4),
+      refundee,
+      builtQuery.dataQuery,
+    ]);
   }
 }

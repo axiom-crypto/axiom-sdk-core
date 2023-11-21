@@ -22,12 +22,12 @@
     },
     {
       "inputs": [],
-      "name": "AxiomResultStoreAddressIsZero",
+      "name": "AxiomQueryFeeIsTooLarge",
       "type": "error"
     },
     {
       "inputs": [],
-      "name": "CallbackExtraDataHashDoesNotMatch",
+      "name": "AxiomResultStoreAddressIsZero",
       "type": "error"
     },
     {
@@ -77,6 +77,11 @@
     },
     {
       "inputs": [],
+      "name": "DepositAmountIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "DepositTooLarge",
       "type": "error"
     },
@@ -87,17 +92,27 @@
     },
     {
       "inputs": [],
-      "name": "EscrowIsNotActive",
-      "type": "error"
-    },
-    {
-      "inputs": [],
       "name": "GuardianAddressIsZero",
       "type": "error"
     },
     {
       "inputs": [],
       "name": "InsufficientFunds",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientGasForCallback",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MaxFeePerGasIsTooLow",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "MinMaxFeePerGasIsZero",
       "type": "error"
     },
     {
@@ -117,7 +132,12 @@
     },
     {
       "inputs": [],
-      "name": "OnlyCallerCanIncreaseGas",
+      "name": "OnlyAxiomV2ProverCanFulfillQuery",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "OnlyPayeeCanFulfillOffchainQuery",
       "type": "error"
     },
     {
@@ -127,17 +147,32 @@
     },
     {
       "inputs": [],
+      "name": "PayeeAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "PayorAddressIsZero",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "ProofVerificationFailed",
       "type": "error"
     },
     {
       "inputs": [],
-      "name": "QueryHashDoesNotMatchProof",
+      "name": "ProofVerificationGasIsTooLarge",
       "type": "error"
     },
     {
       "inputs": [],
-      "name": "QueryIsNotActive",
+      "name": "QueryDeadlineIntervalIsTooLarge",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "QueryHashDoesNotMatchProof",
       "type": "error"
     },
     {
@@ -181,10 +216,15 @@
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "WithdrawalAmountIsZero",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "bytes32",
           "name": "aggregateVkeyHash",
           "type": "bytes32"
@@ -246,31 +286,6 @@
     },
     {
       "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "payor",
-          "type": "address"
-        },
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "queryId",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "Escrow",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
       "inputs": [],
       "name": "FreezeAll",
       "type": "event"
@@ -296,6 +311,12 @@
           "internalType": "uint256",
           "name": "queryId",
           "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "callbackSucceeded",
+          "type": "bool"
         }
       ],
       "name": "OffchainQueryFulfilled",
@@ -309,6 +330,12 @@
           "internalType": "uint256",
           "name": "queryId",
           "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "payor",
+          "type": "address"
         },
         {
           "indexed": false,
@@ -327,6 +354,12 @@
           "internalType": "uint32",
           "name": "callbackGasLimit",
           "type": "uint32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
         }
       ],
       "name": "QueryFeeInfoRecorded",
@@ -346,6 +379,12 @@
           "internalType": "address",
           "name": "payee",
           "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "callbackSucceeded",
+          "type": "bool"
         }
       ],
       "name": "QueryFulfilled",
@@ -503,7 +542,7 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
+          "indexed": true,
           "internalType": "bytes32",
           "name": "aggregateVkeyHash",
           "type": "bytes32"
@@ -674,12 +713,12 @@
       "inputs": [
         {
           "indexed": false,
-          "internalType": "address",
-          "name": "newAddress",
-          "type": "address"
+          "internalType": "uint64",
+          "name": "newMinMaxFeePerGas",
+          "type": "uint64"
         }
       ],
-      "name": "UpdateAxiomResultStoreAddress",
+      "name": "UpdateMinMaxFeePerGas",
       "type": "event"
     },
     {
@@ -1239,6 +1278,16 @@
               "type": "uint256"
             },
             {
+              "internalType": "uint64",
+              "name": "minMaxFeePerGas",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint32",
+              "name": "maxQueryDeadlineInterval",
+              "type": "uint32"
+            },
+            {
               "internalType": "address",
               "name": "timelock",
               "type": "address"
@@ -1262,6 +1311,32 @@
       "name": "initialize",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "maxQueryDeadlineInterval",
+      "outputs": [
+        {
+          "internalType": "uint32",
+          "name": "",
+          "type": "uint32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "minMaxFeePerGas",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -1308,6 +1383,11 @@
         {
           "internalType": "uint32",
           "name": "deadlineBlockNumber",
+          "type": "uint32"
+        },
+        {
+          "internalType": "uint32",
+          "name": "callbackGasLimit",
           "type": "uint32"
         },
         {
@@ -1686,6 +1766,19 @@
         }
       ],
       "name": "updateAxiomQueryFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "_minMaxFeePerGas",
+          "type": "uint64"
+        }
+      ],
+      "name": "updateMinMaxFeePerGas",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
