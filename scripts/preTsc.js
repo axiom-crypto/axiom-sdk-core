@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const packageJson = require('../package.json');
-const convertDocs = require('./convertDTs');
 
 // Copies the version number from package.json to src/version.ts
 function copyVersion() {
@@ -15,4 +14,3 @@ export const SDK_VERSION = "${version}";`
 }
 
 copyVersion();
-convertDocs();
