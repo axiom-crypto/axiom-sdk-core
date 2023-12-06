@@ -8,8 +8,8 @@ import {
   getEventSchema,
   bytes32,
   buildReceiptSubquery,
-} from "../../../src";
-import { ConstantsV2 } from "../../../src/v2/constants";
+} from "../../src";
+import { ConstantsV2 } from "../../src/v2/constants";
 
 describe("Quickstart V2", () => {
   test("Check calculated queryId matches on-chain value (pass in privateKey)", async () => {

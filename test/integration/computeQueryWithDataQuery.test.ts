@@ -7,7 +7,7 @@ import {
   AxiomV2DataQuery,
   QueryV2,
   bytes32,
-} from "../../../src";
+} from "../../src";
 
 // Test coverage areas:
 // - DataQuery

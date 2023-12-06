@@ -10,7 +10,7 @@ import {
   getTxHash,
   buildTxSubquery,
   TxField,
-} from "../../../src";
+} from "../../src";
 
 describe("On-chain compute query scenarios", () => {
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI_GOERLI as string);

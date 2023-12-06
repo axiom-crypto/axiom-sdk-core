@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../../src";
+import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../src";
 
 // Test coverage areas:
 // - ComputeQuery
