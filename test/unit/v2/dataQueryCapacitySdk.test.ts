@@ -1,4 +1,3 @@
-import { buildStorageSubquery } from "../../../dist";
 import {
   AccountField,
   Axiom,
@@ -11,6 +10,7 @@ import {
   buildHeaderSubquery,
   buildReceiptSubquery,
   buildSolidityNestedMappingSubquery,
+  buildStorageSubquery,
   buildTxSubquery,
 } from "../../../src";
 import { ConstantsV2 } from "../../../src/v2/constants";
