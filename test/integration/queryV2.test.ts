@@ -10,6 +10,7 @@ import {
   buildReceiptSubquery,
 } from "../../src";
 import { ConstantsV2 } from "../../src/v2/constants";
+import { exampleClientMock, exampleClientReal } from "./constants";
 
 describe("Quickstart V2", () => {
   test("Check calculated queryId matches on-chain value (pass in privateKey)", async () => {
@@ -23,9 +24,7 @@ describe("Quickstart V2", () => {
     const axiom = new Axiom(config);
     const query = (axiom.query as QueryV2).new();
 
-    const exampleClientAddrReal = "0x888d44c887DFCfaeBBf41C53eD87C0C9ED994165";
-    const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
-    const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
+    const exampleClientAddr = config.mock ? exampleClientMock : exampleClientReal;
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
     const swapEventSchema = getEventSchema("Swap(address,uint256,uint256,uint256,uint256,address)");
 

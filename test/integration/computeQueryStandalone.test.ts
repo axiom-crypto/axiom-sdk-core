@@ -1,12 +1,13 @@
 import { ethers } from "ethers";
 import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../src";
+import { exampleClientMock, exampleClientReal } from "./constants";
 
 // Test coverage areas:
 // - ComputeQuery
 // - Callback
 
 const mock = (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false;
-const target = mock ? "0xefb3aca4eedbe546749e17d2c564f884603cedc7" : "0x888d44c887dfcfaebbf41c53ed87c0c9ed994165";
+const target = mock ? exampleClientMock : exampleClientReal;
 
 describe("Build ComputeQuery Standalone", () => {
   const config: AxiomConfig = {
