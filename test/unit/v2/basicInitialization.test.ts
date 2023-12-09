@@ -53,62 +53,53 @@ describe("Basic Initialization", () => {
     expect(abi[0].type).toEqual("constructor");
   });
 
-  // test("should initialize QueryBuilderV2 with dataQuery", async () => {
-  //   const config: AxiomConfig = {
-  //     providerUri: process.env.PROVIDER_URI as string,
-  //     version: "v2",
-  //   };
-  //   const axiom = new Axiom(config);
-  //   const query = (axiom.query as QueryV2).new();
-  //   const dataQuery = [] as DataSubquery[];
-  //   query.append(dataQuery);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should set targetChainId to the same as (source) chainId", () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+    };
+    const ax = new Axiom(config);
+    expect(ax.config.chainId).toEqual(ax.config.targetChainId);
+  });
 
-  // test("should initialize QueryBuilderV2 with computeQuery", async () => {
-  //   const dataQuery = [] as DataSubquery[];
-  //   const computeQuery: AxiomV2ComputeQuery = {
-  //     k: 14,
-  //     vkey,
-  //     computeProof,
-  //   };
-  //   const config: AxiomConfig = {
-  //     providerUri: process.env.PROVIDER_URI as string,
-  //     version: "v2",
-  //   };
-  //   const axiom = new Axiom(config);
-  //   const query = (axiom.query as QueryV2).new(dataQuery, computeQuery);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should set targetProviderUri to the same as (source) providerUri", () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+    };
+    const ax = new Axiom(config);
+    expect(ax.config.providerUri).toEqual(ax.config.targetProviderUri);
+  });
 
-  // test("should initialize QueryBuilderV2 with callback", async () => {
-  //   const dataQuery = [] as DataSubquery[];
-  //   const computeQuery: AxiomV2ComputeQuery = {
-  //     k: 14,
-  //     vkey,
-  //     computeProof,
-  //   };
-  //   const callbackQuery = {
-  //     target: WETH_ADDR,
-  //     extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-  //   };
-  //   const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should fail if targetChainId is set while targetProviderUri is not set", () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      targetChainId: 5,
+      version: "v2",
+    };
+    expect(() => new Axiom(config)).toThrow();
+  });
 
-  // test("should initialize QueryBuilderV2 with options", async () => {
-  //   const dataQuery = [] as DataSubquery[];
-  //   const computeQuery: AxiomV2ComputeQuery = {
-  //     k: 14,
-  //     vkey,
-  //     computeProof,
-  //   };
-  //   const callbackQuery = {
-  //     target: WETH_ADDR,
-  //     extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-  //   };
-  //   const options = {};
-  //   const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery, options);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should fail if targetProviderUri is set while targetChainId is not set", () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      targetProviderUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+    };
+    expect(() => new Axiom(config)).toThrow();
+  });
+
+  test("should set targetChainId and targetProviderUri", () => {
+    const config: AxiomConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      targetChainId: 5,
+      targetProviderUri: process.env.PROVIDER_URI_GOERLI as string,
+      version: "v2",
+    };
+    const ax = new Axiom(config);
+    expect(ax.config.chainId).toEqual(1n);
+    expect(ax.config.targetChainId).toEqual(5n);
+    expect(ax.config.providerUri).toEqual(process.env.PROVIDER_URI as string);
+    expect(ax.config.targetProviderUri).toEqual(process.env.PROVIDER_URI_GOERLI as string);
+  });
 });

@@ -11,10 +11,22 @@ export interface AxiomConfig {
   providerUri: string;
 
   /**
+   * Provider URI for the target chain
+   */
+  targetProviderUri?: string;
+  
+  /**
+   * Backup provider URIs
+   */
+  backupProviderUri?: string;
+  backupTargetProviderUri?: string;
+
+  /**
    * The chain ID to use
    * (default: 1 (mainnet)))
    */
   chainId?: number | string | BigInt;
+  targetChainId?: number | string | BigInt;
 
   /**
    * Axiom contract version number that we're targeting
