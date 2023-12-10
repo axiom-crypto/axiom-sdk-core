@@ -186,7 +186,6 @@ export class QueryBuilderV2 {
   setOptions(options: AxiomV2QueryOptions): AxiomV2QueryOptions {
     this.unsetBuiltQuery();
     this.options = {
-      targetChainId: BigInt(options?.targetChainId ?? this.config.chainId.toString()).toString(),
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
       dataQueryCalldataGasWarningThreshold:
@@ -316,7 +315,7 @@ export class QueryBuilderV2 {
 
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
-      targetChainId: this.options?.targetChainId ?? this.config.chainId.toString(),
+      targetChainId: this.config.targetChainId.toString(),
       queryHash,
       dataQuery,
       dataQueryHash,

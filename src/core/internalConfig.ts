@@ -12,11 +12,13 @@ export class InternalConfig {
    * https URL for provider
    */
   readonly providerUri: string;
+  readonly targetProviderUri: string;
 
   /**
    * The Chain ID to use for the Axiom SDK
    */
   readonly chainId: BigInt;
+  readonly targetChainId: BigInt;
 
   /**
    * Axiom contract version number to use
@@ -55,8 +57,17 @@ export class InternalConfig {
 
   constructor(config: AxiomConfig, overrides?: any) {
     this.apiKey = config.apiKey ?? "no-api-key";
+
+    this.validateTargetChainIdAndProviderUri(config);
+
+    config = this.handleProviderUri(config);
     this.providerUri = this.parseProviderUri(config.providerUri);
+    this.targetProviderUri = this.parseProviderUri(config.targetProviderUri ?? "");
+
+    config = this.handleChainId(config);
     this.chainId = this.parseChainId(config.chainId);
+    this.targetChainId = this.parseChainId(config.targetChainId);
+
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs ?? 10000;
     this.mock = this.parseMock(config.mock, this.chainId);
@@ -78,11 +89,37 @@ export class InternalConfig {
     return this.versionData[this.version];
   }
 
-  private parseProviderUri(providerUri: string): string {
-    if (providerUri === undefined || providerUri === "") {
+  private validateTargetChainIdAndProviderUri(config: AxiomConfig): void {
+    // If targetChainId is set, targetProviderUri must also be set, and vice versa
+    if (config.targetChainId !== undefined && config.targetProviderUri === undefined) {
+      throw new Error("`targetProviderUri` is required when `targetChainId` is set");
+    }
+    if (config.targetChainId === undefined && config.targetProviderUri !== undefined) {
+      throw new Error("`targetChainId` is required when `targetProviderUri` is set");
+    }
+  }
+
+  private handleProviderUri(config: AxiomConfig): AxiomConfig {
+    if (config.providerUri === undefined || config.providerUri === "") {
       throw new Error("providerUri is required in AxiomConfig");
     }
+    if (config.targetProviderUri === undefined || config.targetProviderUri === "") {
+      config.targetProviderUri = config.providerUri;
+    }
+    return config;
+  }
 
+  private handleChainId(config: AxiomConfig): AxiomConfig {
+    if (config.chainId === undefined) {
+      config.chainId = 1;
+    }
+    if (config.targetChainId === undefined) {
+      config.targetChainId = config.chainId;
+    }
+    return config;
+  }
+
+  private parseProviderUri(providerUri: string): string {
     if (
       providerUri.startsWith("http://") ||
       providerUri.startsWith("https://")

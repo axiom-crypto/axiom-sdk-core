@@ -35,7 +35,6 @@ import {
 } from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
-import { resizeArray } from "../../../src/shared/utils";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537394;
