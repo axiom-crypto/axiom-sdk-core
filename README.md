@@ -1,8 +1,18 @@
-# Axiom SDK
+# Axiom SDK Core
 
-Axiom is a ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowledge proofs, Axiom allows anyone to prove historical data on-chain and trustlessly use that data in a smart contract.
+Axiom is the ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowledge proofs, Axiom allows anyone to prove historical data on-chain and trustlessly use that data in a smart contract.
 
-# Getting started with v2
+# Getting started with AxiomV2
+
+Please see the [Quickstart](https://docs.axiom.xyz/introduction/quickstart) for the fastest way to get started with Axiom. For more info, see the [Docs](https://docs.axiom.xyz).
+
+# Examples
+
+See various end-to-end examples in the [Examples V2 repo](https://github.com/axiom-crypto/examples-v2).
+
+# Manually using Axiom SDK Core
+
+> ⚠️ **WARNING**: It is not recommended that you use Axiom SDK Core manually unless you know what you're doing!
 
 Create an `Axiom` instance and a `QueryV2` instance from it (we will use Goerli testnet in this example):
 
@@ -156,7 +166,3 @@ const queryId = await query.sendQueryWithIpfs(
 );
 console.log("queryId", queryId);
 ```
-
-# Additional examples
-
-There are also numerous up-to-date examples in the `test/unit/v2/` folder. Some slightly older examples exist in the [Examples V2 repo](https://github.com/axiom-crypto/examples-v2).
