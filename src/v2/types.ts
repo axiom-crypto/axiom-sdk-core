@@ -1,4 +1,4 @@
-import { AxiomV2Callback, AxiomV2ComputeQuery, AxiomV2DataQuery } from "@axiom-crypto/tools";
+import { AxiomV2Callback, AxiomV2ComputeQuery, AxiomV2DataQuery, AxiomV2FeeData } from "@axiom-crypto/tools";
 
 export {
   AxiomV2Callback,
@@ -24,6 +24,7 @@ export {
 export interface AxiomV2QueryOptions {
   maxFeePerGas?: string;
   callbackGasLimit?: number;
+  overrideAxiomQueryFee?: string;
   dataQueryCalldataGasWarningThreshold?: number;
   refundee?: string;
 }
@@ -39,8 +40,7 @@ export interface BuiltQueryV2 {
   querySchema: string;
   callback: AxiomV2Callback;
   userSalt: string;
-  maxFeePerGas: string;
-  callbackGasLimit: number;
+  feeData: AxiomV2FeeData;
   refundee: string;
 }
 

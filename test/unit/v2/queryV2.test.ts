@@ -283,8 +283,9 @@ describe("QueryV2", () => {
     query.appendDataSubquery(buildHeaderSubquery(17000001).field(HeaderField.GasLimit));
 
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual(options.maxFeePerGas);
-    expect(builtQuery.callbackGasLimit).toEqual(options.callbackGasLimit);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual(options.maxFeePerGas);
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(options.callbackGasLimit);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual(ethers.ZeroAddress);
   });
 

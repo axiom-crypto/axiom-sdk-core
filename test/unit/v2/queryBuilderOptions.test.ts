@@ -30,8 +30,9 @@ describe("QueryBuilderV2 Options", () => {
       maxFeePerGas: "1000000000000",
     });
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual("1000000000000");
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual("1000000000000");
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
   });
 
@@ -43,8 +44,9 @@ describe("QueryBuilderV2 Options", () => {
       callbackGasLimit: 10000,
     });
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
-    expect(builtQuery.callbackGasLimit).toEqual(10000);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(10000);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
   });
 
@@ -56,8 +58,9 @@ describe("QueryBuilderV2 Options", () => {
       refundee: "0xe76a90E3069c9d86e666DcC687e76fcecf4429cF",
     });
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual("0xe76a90E3069c9d86e666DcC687e76fcecf4429cF");
   });
 });
