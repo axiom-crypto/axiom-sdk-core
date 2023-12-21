@@ -12,7 +12,7 @@ See various end-to-end examples in the [Examples V2 repo](https://github.com/axi
 
 # Manually using Axiom SDK Core
 
-> ⚠️ **WARNING**: It is not recommended that you use Axiom SDK Core manually unless you know what you're doing!
+> ⚠️ **WARNING**: It is not recommended that you use Axiom SDK Core manually unless you know what you're doing! Check out the [SDK Client](https://github.com/axiom-crypto/axiom-sdk-client) for the repo to use on the Client side!
 
 Create an `Axiom` instance and a `QueryV2` instance from it (we will use Goerli testnet in this example):
 
