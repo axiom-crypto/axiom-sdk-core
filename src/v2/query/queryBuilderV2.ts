@@ -333,8 +333,8 @@ export class QueryBuilderV2 {
       computeQuery,
       querySchema,
       callback,
-      userSalt,
       feeData,
+      userSalt,
       refundee,
     };
 
@@ -426,8 +426,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
-      this.builtQuery.userSalt,
       this.builtQuery.feeData,
+      this.builtQuery.userSalt,
       this.builtQuery.refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
