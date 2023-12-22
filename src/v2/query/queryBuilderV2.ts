@@ -15,6 +15,8 @@ import {
   encodeDataQuery,
   encodeComputeQuery,
   encodeCallback,
+  AxiomV2FeeData,
+  encodeFeeData,
 } from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -188,6 +190,7 @@ export class QueryBuilderV2 {
     this.options = {
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
+      overrideAxiomQueryFee: options?.overrideAxiomQueryFee ?? ConstantsV2.DefaultOverrideAxiomQueryFee,
       dataQueryCalldataGasWarningThreshold:
         options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
@@ -306,6 +309,13 @@ export class QueryBuilderV2 {
       extraData: this.callback?.extraData ?? ethers.ZeroHash,
     };
 
+    // FeeData
+    const feeData: AxiomV2FeeData = {
+      maxFeePerGas: this.options.maxFeePerGas!,
+      callbackGasLimit: this.options.callbackGasLimit!,
+      overrideAxiomQueryFee: this.options.overrideAxiomQueryFee!,
+    }
+
     // Get the refundee address
     const caller = await this.config.signer?.getAddress();
     const refundee = this.options?.refundee ?? caller ?? "";
@@ -323,9 +333,8 @@ export class QueryBuilderV2 {
       computeQuery,
       querySchema,
       callback,
+      feeData,
       userSalt,
-      maxFeePerGas: this.options.maxFeePerGas!,
-      callbackGasLimit: this.options.callbackGasLimit!,
       refundee,
     };
 
@@ -380,9 +389,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
       this.builtQuery.refundee,
       this.builtQuery.dataQuery,
       { value: paymentAmountWei },
@@ -418,9 +426,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
       this.builtQuery.refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
@@ -441,9 +448,9 @@ export class QueryBuilderV2 {
       this.builtQuery.queryHash,
       ipfsHashBytes32,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
+      this.builtQuery.refundee,
       { value: paymentAmountWei },
     );
     const receipt = await tx.wait();
@@ -739,10 +746,16 @@ export class QueryBuilderV2 {
         builtQuery.computeQuery.vkey,
         builtQuery.computeQuery.computeProof,
       ),
-      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
+      encodeCallback(
+        builtQuery.callback.target,
+        builtQuery.callback.extraData
+      ),
+      encodeFeeData(
+        builtQuery.feeData.maxFeePerGas,
+        builtQuery.feeData.callbackGasLimit,
+        builtQuery.feeData.overrideAxiomQueryFee,
+      ),
       builtQuery.userSalt,
-      ethers.toBeHex(builtQuery.maxFeePerGas, 8),
-      ethers.toBeHex(builtQuery.callbackGasLimit, 4),
       refundee,
       builtQuery.dataQuery,
     ]);
