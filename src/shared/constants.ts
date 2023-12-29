@@ -6,6 +6,10 @@ import {
   versionDataGoerli,
   versionOverrideGoerliMock,
 } from "./chainConfig/goerli";
+import {
+  versionDataSepolia,
+  versionOverrideSepoliaMock,
+} from "./chainConfig/sepolia";
 import { deepCopyObject } from "./utils";
 
 export const SharedConstants = Object.freeze({
@@ -43,6 +47,16 @@ export function setVersionData(
           versionData,
           version,
           versionOverrideGoerliMock[version]
+        );
+      }
+      break;
+    case 11155111n:
+      versionData = deepCopyObject(versionDataSepolia);
+      if (mock) {
+        updateConstants(
+          versionData,
+          version,
+          versionOverrideSepoliaMock[version]
         );
       }
       break;
