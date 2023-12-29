@@ -35,7 +35,7 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 3});
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
+    }, 10000);
 
     test('should successfully build a Query with 0x0-valued slots', async () => {
       const qb = ax.newQueryBuilder();
@@ -44,7 +44,7 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 5});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 6});
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
+    }, 10000);
 
     test('should successfully build a Query with blockNumbers that contain a leading zero', async () => {
       // NOTE: Alchemy automatically formats the hex blockNumber to remove the leading zero, 
@@ -54,7 +54,7 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 4095});   // 0x0fff
       await qb.append({blockNumber: 100000}); // 0x0186a0
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
+    }, 10000);
 
     test('should throw when appending invalid QueryRow data', async () => {
       const failTest = async () => {
