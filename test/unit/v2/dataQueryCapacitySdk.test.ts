@@ -59,7 +59,7 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
     "0x161944cb3d51e7d531ff0f45bcba612dd04a0973cd38e219fc85bbc061e0ab4f",
     "0x16b844a564c78386f62ad934474243a9ec97c171cb3bd3080757f677fadea788",
     "0xd85e411ae03daa7cf11352795b05a2b1c6bba1cb4144284f510ea379481994a1",
-    "0x079fe983f70c4c176e2b15d0fa4392c5a30fc535055d10fca31003cb48037ba0",
+    // "0x079fe983f70c4c176e2b15d0fa4392c5a30fc535055d10fca31003cb48037ba0", // 33
   ];
   console.log(validMainnetTxHashes.length);
 
@@ -168,10 +168,10 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
     expect(testFn).toThrow();
   });
 
-  test(`Append 11 Account + 11 Storage + 10 Nested Mapping subqueries`, () => {
+  test(`Append 43 Account + 43 Storage + 42 Nested Mapping subqueries`, () => {
     const blockNumber = 18000000;
     const query = (axiom.query as QueryV2).new();
-    for (let i = 0; i < 11; i++) {
+    for (let i = 0; i < 43; i++) {
       const accountSubquery = buildAccountSubquery(blockNumber + i)
         .address(WETH_WHALE)
         .field(AccountField.Balance);
@@ -180,7 +180,7 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
         .address(WETH_ADDR)
         .slot(0);
       query.appendDataSubquery(account);
-      if (i === 10) {
+      if (i === 42) {
         continue;
       }
       const mapping = buildSolidityNestedMappingSubquery(blockNumber + i)
@@ -191,11 +191,11 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
     }
   });
 
-  test(`Append 11 Account + 11 Storage + 11 Nested Mapping subqueries fail`, () => {
+  test(`Append 43 Account + 43 Storage + 43 Nested Mapping subqueries fail`, () => {
     const testFn = () => {
       const blockNumber = 18000000;
       const query = (axiom.query as QueryV2).new();
-      for (let i = 0; i < 11; i++) {
+      for (let i = 0; i < 43; i++) {
         const accountSubquery = buildAccountSubquery(blockNumber + i)
           .address(WETH_WHALE)
           .field(AccountField.Balance);
@@ -216,31 +216,38 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
 
   test(`Append ${ConstantsV2.MaxSameSubqueryType} Tx subqueries`, () => {
     const query = (axiom.query as QueryV2).new();
-    const txHashes = validMainnetTxHashes.slice(0, ConstantsV2.MaxSameSubqueryType);
-    for (let i = 0; i < ConstantsV2.MaxSameSubqueryType; i++) {
-      const subquery = buildTxSubquery(txHashes[i]).field(TxField.To);
-      query.appendDataSubquery(subquery);
+    const txHashes = validMainnetTxHashes;
+    for (let i = 0; i < validMainnetTxHashes.length; i++) {
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.To));
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.ChainId));
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.GasPrice));
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.Nonce));
     }
   });
 
   test(`Append ${ConstantsV2.MaxSameSubqueryType + 1} Tx subqueries fail`, () => {
-    const testFn = () => {
-      const query = (axiom.query as QueryV2).new();
-      const txHashes = validMainnetTxHashes.slice(0, ConstantsV2.MaxSameSubqueryType + 1);
-      for (let i = 0; i < ConstantsV2.MaxSameSubqueryType + 1; i++) {
-        const subquery = buildTxSubquery(txHashes[i]).field(TxField.To);
-        query.appendDataSubquery(subquery);
-      }
+    const query = (axiom.query as QueryV2).new();
+    const txHashes = validMainnetTxHashes;
+    for (let i = 0; i < validMainnetTxHashes.length; i++) {
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.To));
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.ChainId));
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.GasPrice));
+      query.appendDataSubquery(buildTxSubquery(txHashes[i]).field(TxField.Nonce));
+    }
+    const oneMore = () => {
+      query.appendDataSubquery(buildTxSubquery(txHashes[0]).field(TxField.To));
     };
-    expect(testFn).toThrow();
+    expect(oneMore).toThrow();
   });
 
   test(`Append ${ConstantsV2.MaxSameSubqueryType} Receipt subqueries`, () => {
     const query = (axiom.query as QueryV2).new();
-    const txHashes = validMainnetTxHashes.slice(0, ConstantsV2.MaxSameSubqueryType);
-    for (let i = 0; i < ConstantsV2.MaxSameSubqueryType; i++) {
-      const subquery = buildReceiptSubquery(txHashes[i]).field(ReceiptField.Status);
-      query.appendDataSubquery(subquery);
+    const txHashes = validMainnetTxHashes
+    for (let i = 0; i < validMainnetTxHashes.length; i++) {
+      query.appendDataSubquery(buildReceiptSubquery(txHashes[i]).field(ReceiptField.Status));
+      query.appendDataSubquery(buildReceiptSubquery(txHashes[i]).field(ReceiptField.LogsBloom));
+      query.appendDataSubquery(buildReceiptSubquery(txHashes[i]).field(ReceiptField.Logs));
+      query.appendDataSubquery(buildReceiptSubquery(txHashes[i]).field(ReceiptField.CumulativeGas));
     }
   });
 
@@ -258,10 +265,10 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
 
   test(`Append ${ConstantsV2.MaxDataQuerySize} subqueries`, () => {
     const blockNumber = 18000000;
-    const txHashes = validMainnetTxHashes.slice(0, ConstantsV2.MaxSameSubqueryType);
+    const txHashes = validMainnetTxHashes;
 
     const query = (axiom.query as QueryV2).new();
-    for (let i = 0; i < ConstantsV2.MaxSameSubqueryType; i++) {
+    for (let i = 0; i < ConstantsV2.MaxSameSubqueryType / 4; i++) {
       const headerSubquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.Nonce);
       query.appendDataSubquery(headerSubquery);
 
