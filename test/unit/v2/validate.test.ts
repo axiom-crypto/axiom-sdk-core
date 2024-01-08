@@ -1,7 +1,7 @@
 import { getSlotForMapping, HeaderField, AccountField, TxField } from "@axiom-crypto/tools";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomCore,
+  AxiomCoreConfig,
   QueryV2,
   buildAccountSubquery,
   buildHeaderSubquery,
@@ -20,12 +20,12 @@ describe("Query Validation Tests", () => {
 
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI as string);
 
-  const config: AxiomConfig = {
+  const config: AxiomCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
     chainId: 1,
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomCore(config);
   const aq = axiom.query as QueryV2;
 
   test("Validate pass: Header subquery", async () => {

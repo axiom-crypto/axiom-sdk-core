@@ -9,8 +9,8 @@ import {
   ReceiptSubquery,
 } from "@axiom-crypto/tools";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomCore,
+  AxiomCoreConfig,
   QueryV2,
   buildAccountSubquery,
   buildHeaderSubquery,
@@ -37,13 +37,13 @@ describe("Data Subquery Builders", () => {
 
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI as string);
 
-  const config: AxiomConfig = {
+  const config: AxiomCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomCore(config);
 
   const blockNumber = 18000000;
 

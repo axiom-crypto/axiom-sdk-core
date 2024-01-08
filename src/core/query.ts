@@ -10,7 +10,7 @@ export abstract class Query {
   new(...a: any): any {
     throw new Error(
       "Typecast Query object to the appropriate version to use this method. Example:\n\n" +
-      "const axiom = new Axiom(config)\n" +
+      "const axiom = new AxiomCore(config)\n" +
       "const aq = axiom.query as QueryV2;\n" +
       "const query = aq.new();"
     );

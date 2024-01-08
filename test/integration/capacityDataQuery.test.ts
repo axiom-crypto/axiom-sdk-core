@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomCore,
+  AxiomCoreConfig,
   AxiomV2Callback,
   QueryV2,
   buildTxSubquery,
@@ -18,14 +18,14 @@ import {
 import { exampleClientMock, exampleClientReal } from "./constants";
 
 describe("On-chain Data Query scenarios", () => {
-  const config: AxiomConfig = {
+  const config: AxiomCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
     mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomCore(config);
 
   const exampleClientAddr = config.mock ? exampleClientMock : exampleClientReal;
 

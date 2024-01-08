@@ -1,11 +1,11 @@
 import { ethers, keccak256 } from "ethers";
-import { Axiom, AxiomConfig } from "../../../src";
+import { AxiomCore, AxiomCoreConfig } from "../../../src";
 
 describe('QueryBuilder', () => {
   if (process.env.PROVIDER_URI === undefined) {
     throw new Error("PROVIDER_URI environment variable is not set");
   }
-  const config: AxiomConfig = {
+  const config: AxiomCoreConfig = {
     apiKey: "demo",
     providerUri: process.env.PROVIDER_URI as string,
     version: "v1",
@@ -21,7 +21,7 @@ describe('QueryBuilder', () => {
       ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
     },
   }
-  const ax = new Axiom(config, overrides);
+  const ax = new AxiomCore(config, overrides);
 
   const abiCoder = new ethers.AbiCoder();
   const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";

@@ -1,6 +1,6 @@
 import { 
-  Axiom,
-  AxiomConfig,
+  AxiomCore,
+  AxiomCoreConfig,
   AxiomV2Callback,
   HeaderField,
   QueryV2,
@@ -17,13 +17,13 @@ describe("Crosschain", () => {
   };
 
   test("Build a query with a different target chain", async () => {
-    const config: AxiomConfig = {
+    const config: AxiomCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       targetChainId: 5,
       targetProviderUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
     };
-    const axiom = new Axiom(config);
+    const axiom = new AxiomCore(config);
     const blockNumber = 18200000;
     const dataQueryReq = [
       {

@@ -1,6 +1,6 @@
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomCore,
+  AxiomCoreConfig,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   AxiomV2DataQuery,
@@ -14,13 +14,13 @@ import {
 // - QuerySchema
 
 describe("Query ID and Schema calculation", () => {
-  const config: AxiomConfig = {
+  const config: AxiomCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomCore(config);
 
   const callback: AxiomV2Callback = {
     target: "0x41a7a901ef58d383801272d2408276d96973550d",

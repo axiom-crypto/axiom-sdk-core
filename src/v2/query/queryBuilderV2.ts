@@ -358,7 +358,7 @@ export class QueryBuilderV2 {
     cb?: (receipt: ethers.ContractTransactionReceipt) => void,
   ): Promise<string> {
     if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
+      throw new Error("`privateKey` in AxiomCoreConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error(
@@ -409,7 +409,7 @@ export class QueryBuilderV2 {
     cb?: (receipt: ethers.ContractTransactionReceipt) => void,
   ): Promise<string> {
     if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
+      throw new Error("`privateKey` in AxiomCoreConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error(
@@ -479,7 +479,7 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomConfig)
+   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomCoreConfig)
    * @returns uint256 queryId
    */
   async getQueryId(caller?: string): Promise<string> {
@@ -490,11 +490,11 @@ export class QueryBuilderV2 {
     // Get required queryId params
     if (caller === undefined) {
       if (this.config.signer === undefined) {
-        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomConfig");
+        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomCoreConfig");
       }
       const callerAddr = await this.config.signer?.getAddress();
       if (callerAddr === "") {
-        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomConfig");
+        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomCoreConfig");
       }
       caller = callerAddr;
     }
@@ -528,7 +528,7 @@ export class QueryBuilderV2 {
     const userAddress = this.config.signer?.address;
     if (userAddress === undefined) {
       throw new Error(
-        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)",
+        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomCoreConfig)",
       );
     }
     const currentBalance = BigInt(

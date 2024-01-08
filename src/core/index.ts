@@ -1,3 +1,3 @@
 export {
-  Axiom
+  AxiomCore
 } from './axiom';
