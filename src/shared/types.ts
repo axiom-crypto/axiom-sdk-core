@@ -1,4 +1,4 @@
-export interface AxiomCoreConfig {
+export interface AxiomSdkCoreConfig {
   /**
    * Axiom API key (required)
    */

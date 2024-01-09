@@ -1,3 +1,3 @@
 export {
-  AxiomCore
+  AxiomSdkCore
 } from './axiom';

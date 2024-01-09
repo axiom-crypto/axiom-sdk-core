@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  AxiomCore,
-  AxiomCoreConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   AxiomV2DataQuery,
@@ -20,14 +20,14 @@ const mock = (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : fal
 const target = mock ? exampleClientMock : exampleClientReal;
 
 describe("Build ComputeQuery with DataQuery", () => {
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI_SEPOLIA as string,
     privateKey: process.env.PRIVATE_KEY_SEPOLIA as string,
     chainId: "11155111",
     version: "v2",
     mock,
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   const callback: AxiomV2Callback = {
     target,

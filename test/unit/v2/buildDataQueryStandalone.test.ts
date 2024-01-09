@@ -1,7 +1,7 @@
 import {
   AccountField,
-  AxiomCore,
-  AxiomCoreConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   HeaderField,
@@ -27,13 +27,13 @@ describe("Build DataQuery Standalone", () => {
   const WSOL_ADDR = "0xd31a59c85ae9d8edefec411d448f90841571b89c";
   const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   const callback: AxiomV2Callback = {
     target: "0x41a7a901ef58d383801272d2408276d96973550d",

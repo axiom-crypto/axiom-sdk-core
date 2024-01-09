@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { AxiomCore, AxiomCoreConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../src";
 import { exampleClientMock, exampleClientReal } from "./constants";
 
 // Test coverage areas:
@@ -10,14 +10,14 @@ const mock = (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : fal
 const target = mock ? exampleClientMock : exampleClientReal;
 
 describe("Build ComputeQuery Standalone", () => {
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     chainId: 5,
     version: "v2",
     mock,
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   console.log((process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false);
 

@@ -12,8 +12,8 @@ dependencies:
     specifier: 0.2.7
     version: 0.2.7
   '@axiom-crypto/tools':
-    specifier: 0.3.36-rc2.0
-    version: 0.3.36-rc2.0
+    specifier: link:../axiom-tools/dist
+    version: link:../axiom-tools/dist
   axios:
     specifier: ^1.6.1
     version: 1.6.1
@@ -92,15 +92,6 @@ packages:
 
   /@axiom-crypto/halo2-wasm@0.2.7:
     resolution: {integrity: sha512-pmgFCkCJUlFgh5NCLR59WpWIiBegNxBRAAlA2UxPMga1Pba02ynZgf6SW0tbQaezMiWUdTA9SfpeosovcNI6Yg==}
-    dev: false
-
-  /@axiom-crypto/tools@0.3.36-rc2.0:
-    resolution: {integrity: sha512-3uKlDqMEsPXqt+33Cwb6/L9IHOvR4FTakISpXJApKUCHB3jQ8a/6o06MkUD1lgPKzboO7RfAffde6rxak/8ZEg==}
-    dependencies:
-      ethers: 6.8.1
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
     dev: false
 
   /@babel/code-frame@7.22.13:

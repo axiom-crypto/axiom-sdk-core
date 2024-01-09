@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  AxiomCore,
-  AxiomCoreConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   QueryV2,
   buildAccountSubquery,
   AccountField,
@@ -12,14 +12,14 @@ import {
 // - No callback
 
 describe("Send Query no Callback", () => {
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
     mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   test("Send a size-31 account DataQuery", async () => {
     const query = (axiom.query as QueryV2).new();

@@ -1,8 +1,8 @@
 import { AxiomV2CircuitConstant } from "@axiom-crypto/tools";
 import {
   AccountField,
-  AxiomCore,
-  AxiomCoreConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   HeaderField,
@@ -22,12 +22,12 @@ import {
 // - Circuit Tx Subquery limits
 
 describe("Circuit Tx Subquery Limits", () => {
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   // Modify console.error to throw so it can be caught by Jest
   console.error = () => {

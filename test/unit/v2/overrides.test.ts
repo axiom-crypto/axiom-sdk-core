@@ -1,4 +1,4 @@
-import { AxiomCore, AxiomCoreConfig } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig } from "../../../src";
 import { Versions } from "../../../src/shared/constants";
 
 describe("Overrides", () => {
@@ -6,7 +6,7 @@ describe("Overrides", () => {
   const AX_QUERY_ADDR_OVERRIDE = "0x82842F7a41f695320CC255B34F18769D68dD8aDF";
 
   test("should initialize v2 Axiom with overrides", () => {
-    const config: AxiomCoreConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
     };
@@ -18,8 +18,8 @@ describe("Overrides", () => {
         ApiBaseUrl: "https://axiom-api-staging.vercel.app/v2",
       },
     };
-    const ax0 = new AxiomCore(config);
-    const ax1 = new AxiomCore(config, overrides);
+    const ax0 = new AxiomSdkCore(config);
+    const ax1 = new AxiomSdkCore(config, overrides);
     expect(ax0.getAxiomQueryAddress()).not.toEqual(AX_QUERY_ADDR_OVERRIDE);
     expect(ax1.getAxiomQueryAddress()).toEqual(AX_QUERY_ADDR_OVERRIDE);
   });

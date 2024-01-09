@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { Versions, setVersionData, updateConstants } from "../shared/constants";
-import { AxiomCoreConfig } from "../shared/types";
+import { AxiomSdkCoreConfig } from "../shared/types";
 
 export class InternalConfig {
   /**
@@ -55,7 +55,7 @@ export class InternalConfig {
    */
   readonly signer?: ethers.Wallet;
 
-  constructor(config: AxiomCoreConfig, overrides?: any) {
+  constructor(config: AxiomSdkCoreConfig, overrides?: any) {
     this.apiKey = config.apiKey ?? "no-api-key";
 
     this.validateTargetChainIdAndProviderUri(config);
@@ -89,7 +89,7 @@ export class InternalConfig {
     return this.versionData[this.version];
   }
 
-  private validateTargetChainIdAndProviderUri(config: AxiomCoreConfig): void {
+  private validateTargetChainIdAndProviderUri(config: AxiomSdkCoreConfig): void {
     // If targetChainId is set, targetProviderUri must also be set, and vice versa
     if (config.targetChainId !== undefined && config.targetProviderUri === undefined) {
       throw new Error("`targetProviderUri` is required when `targetChainId` is set");
@@ -99,9 +99,9 @@ export class InternalConfig {
     }
   }
 
-  private handleProviderUri(config: AxiomCoreConfig): AxiomCoreConfig {
+  private handleProviderUri(config: AxiomSdkCoreConfig): AxiomSdkCoreConfig {
     if (config.providerUri === undefined || config.providerUri === "") {
-      throw new Error("`providerUri` is required in AxiomCoreConfig");
+      throw new Error("`providerUri` is required in AxiomSdkCoreConfig");
     }
     if (config.targetProviderUri === undefined || config.targetProviderUri === "") {
       config.targetProviderUri = config.providerUri;
@@ -109,7 +109,7 @@ export class InternalConfig {
     return config;
   }
 
-  private handleChainId(config: AxiomCoreConfig): AxiomCoreConfig {
+  private handleChainId(config: AxiomSdkCoreConfig): AxiomSdkCoreConfig {
     if (config.chainId === undefined) {
       config.chainId = 1;
     }

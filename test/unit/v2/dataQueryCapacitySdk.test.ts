@@ -1,7 +1,7 @@
 import {
   AccountField,
-  AxiomCore,
-  AxiomCoreConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   HeaderField,
   QueryV2,
   ReceiptField,
@@ -63,12 +63,12 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
   ];
   console.log(validMainnetTxHashes.length);
 
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   test(`Append ${ConstantsV2.MaxSameSubqueryType} Header subqueries`, () => {
     const blockNumber = 18000000;

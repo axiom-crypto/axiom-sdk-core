@@ -1,6 +1,6 @@
 import {
-  AxiomCore,
-  AxiomCoreConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   HeaderField,
   QueryV2,
   buildHeaderSubquery,
@@ -12,13 +12,13 @@ import { calculateCalldataGas } from "../../../src/v2/query/gasCalc";
 // - Calldata gas calculator
 
 describe("Calldata Gas Calculator", () => {
-  const config: AxiomCoreConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
   };
-  const axiom = new AxiomCore(config);
+  const axiom = new AxiomSdkCore(config);
 
   test("basic calculator test", () => {
     const gas = calculateCalldataGas("0x123456789000");
