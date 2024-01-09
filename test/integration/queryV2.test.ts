@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   QueryV2,
   buildTxSubquery,
@@ -14,14 +14,14 @@ import { exampleClientMock, exampleClientReal } from "./constants";
 
 describe("Quickstart V2", () => {
   test("Check calculated queryId matches on-chain value (pass in privateKey)", async () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       privateKey: process.env.PRIVATE_KEY_GOERLI as string,
       providerUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
       chainId: 5,
       mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
     };
-    const axiom = new Axiom(config);
+    const axiom = new AxiomSdkCore(config);
     const query = (axiom.query as QueryV2).new();
 
     const exampleClientAddr = config.mock ? exampleClientMock : exampleClientReal;
@@ -71,13 +71,13 @@ describe("Quickstart V2", () => {
   }, 40000);
 
   test("Check calculated queryId matches on-chain value (external wallet)", async () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
       chainId: 5,
       mock: true,
     };
-    const axiom = new Axiom(config);
+    const axiom = new AxiomSdkCore(config);
     const query = (axiom.query as QueryV2).new();
 
     const abi = axiom.getAxiomQueryAbi();

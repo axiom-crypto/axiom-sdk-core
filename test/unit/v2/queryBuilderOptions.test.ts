@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Axiom, AxiomConfig, HeaderField, QueryV2, buildHeaderSubquery } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig, HeaderField, QueryV2, buildHeaderSubquery } from "../../../src";
 import { ConstantsV2 } from "../../../src/v2/constants";
 
 // Test coverage areas:
@@ -8,13 +8,13 @@ import { ConstantsV2 } from "../../../src/v2/constants";
 // NOTE: dataQueryCalldataGasWarningThreshold is tested in `calculatorCalldataGas.test.ts`
 
 describe("QueryBuilderV2 Options", () => {
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
   const wallet = new ethers.Wallet(
     process.env.PRIVATE_KEY as string,

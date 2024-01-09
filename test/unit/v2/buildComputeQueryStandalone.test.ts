@@ -1,17 +1,17 @@
-import { Axiom, AxiomConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig, AxiomV2Callback, AxiomV2ComputeQuery, QueryV2, bytes32 } from "../../../src";
 
 // Test coverage areas:
 // - ComputeQuery
 // - Callback
 
 describe("Build ComputeQuery Standalone", () => {
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
   const callback: AxiomV2Callback = {
     target: "0x41a7a901ef58d383801272d2408276d96973550d",

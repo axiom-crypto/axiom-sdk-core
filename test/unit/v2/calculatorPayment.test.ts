@@ -1,17 +1,17 @@
-import { Axiom, AxiomConfig, AxiomV2QueryOptions, QueryV2, buildSolidityNestedMappingSubquery } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig, AxiomV2QueryOptions, QueryV2, buildSolidityNestedMappingSubquery } from "../../../src";
 import { calculateCalldataGas } from "../../../src/v2/query/gasCalc";
 
 // Test coverage areas:
 // - Payment calculator
 
 describe("Payment Calculator", () => {
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
   test("Payment calculation default based on options", async () => {
     const query = (axiom.query as QueryV2).new();

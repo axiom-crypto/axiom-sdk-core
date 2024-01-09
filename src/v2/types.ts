@@ -1,9 +1,15 @@
-import { AxiomV2Callback, AxiomV2ComputeQuery, AxiomV2DataQuery, AxiomV2FeeData } from "@axiom-crypto/tools";
+import {
+  AxiomV2Callback,
+  AxiomV2ComputeQuery,
+  AxiomV2DataQuery,
+  AxiomV2FeeData,
+} from "@axiom-crypto/tools";
 
 export {
   AxiomV2Callback,
   AxiomV2ComputeQuery,
   AxiomV2DataQuery,
+  AxiomV2FeeData,
   DataSubquery,
   HeaderSubquery,
   AccountSubquery,
@@ -18,6 +24,7 @@ export {
   AccountField,
   TxField,
   ReceiptField,
+  AxiomV2CircuitConstant,
   AxiomV2FieldConstant,
 } from "@axiom-crypto/tools";
 
