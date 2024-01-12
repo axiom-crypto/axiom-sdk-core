@@ -28,9 +28,9 @@ describe("Build DataQuery Standalone", () => {
   const UNI_V3_FACTORY_ADDR = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
 
   const config: AxiomSdkCoreConfig = {
-    providerUri: process.env.PROVIDER_URI as string,
-    privateKey: process.env.PRIVATE_KEY as string,
-    chainId: 1,
+    providerUri: process.env.PROVIDER_URI_SEPOLIA as string,
+    privateKey: process.env.PRIVATE_KEY_SEPOLIA as string,
+    chainId: "11155111",
     version: "v2",
   };
   const axiom = new AxiomSdkCore(config);
