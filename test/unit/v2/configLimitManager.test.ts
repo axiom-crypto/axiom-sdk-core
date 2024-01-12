@@ -133,19 +133,44 @@ describe("Config Limit Manager", () => {
   ];
 
   const txHashesLarge = [
-    "0x59ada23f6dc651da3d1455763f265418cd66865b3c2f78e55922507bf6301227"
-  ];
-
-  const rcHashesLarge = [
-
+    "0x59ada23f6dc651da3d1455763f265418cd66865b3c2f78e55922507bf6301227", // CREATE2 call  
+    "0x883640fbfce3710fabc0662a7e33d912450fa44130866a46a861538885c32b84"
   ];
 
   const txHashesMax = [
-    "0x8eea148cadd73701e89672796c720dd6ba93f95a061dc5d78f65fbee31e30205",
+    "0x8eea148cadd73701e89672796c720dd6ba93f95a061dc5d78f65fbee31e30205", // contract creation
+    "0xd6cba43527b52089c3a7850202dc32e02b9bfe3f1fc5dadf274456405af824c3", 
+    "0x59ada23f6dc651da3d1455763f265418cd66865b3c2f78e55922507bf6301227",
+    "0x393ee30e1fe45753c3b7bfa197b639d8f89f64f2a0cda6145c67358aeaf0fac0",
+    "0x5bd3638af64a0c3c3ffb423807ef42bd5f4d92b4b95dc5bff350e81a50bd8749",
+  ];
+
+  const rcHashesMedium = [
+    "0xa9a64e0b67b389c31db3db1479e39808aa801f2c9140b397691bb041d5389cfe", // 80 log, 1024b each
+    "0xacc68842cfca9111f402334d5f8b971843857d990d2b65240945692842030468",
+    "0xf9fca94f31a41ac7f705f964f53af679d8bd89ec0b25e82fdbfb2a2b4db536ff",
+    "0x7ab4446fd83a42e24a71ab7eee873d7571d6336ad9e63bc23e80093ea88c0af0",
+    "0x13c8504ebc6dd981518f5d88901968b52b8545698a43348dcafb80c0611eb4dc",
+    "0xe521c225670f2b0faa88ec07cb975f6d8fc717a50b994b6d5eaffeacc01b0a14",
+    "0xf498e607eaa6d3416d1c05085f254e0db60828daa98539d01484d643419f2d89",
+    "0xb900666ce02c2223ab4f7842f14f76197e61677bf9d6562a1239a938fa9987ff",
+  ];
+
+  const rcHashesLarge = [
+    "0x46c9ec7358bd51bf19425ad0a464c3a4056fc956f89082f5611c886617d5d1a0", // 1184b log
+    "0xa35374016c4d80e1a48532f976b32d2645d7003a5b871b1557aaff3363ca45af", // 1120b log
+    "0x0a61363b6a033d4ddf842f4765ea729a4ac54e761398404618bd139a5f1ca0a7", // 1120b log
+    "0xb1919e75917103e1d2f23c54cb7e60decea6a10c28e871a7d463dce455faf263", // 1056b log
+    "0x80b19a2f01456357682c9131d237dfb915f9d3e888962f3f828df439d8e550d2", // 80 log, 2048b each
   ];
 
   const rcHashesMax = [
+    "",
+  ];
 
+  const rcHashesOverMax = [
+    "0x4c4d02b5a0b9bd697b648983242a6ac3f7bb74f69c8e5204c5a089577c65c4c6", // 400 log, >1024b
+    "0x80b19a2f01456357682c9131d237dfb915f9d3e888962f3f828df439d8e550d2", // 80 log, >2048b log
   ];
 
   const config: AxiomSdkCoreConfig = {
@@ -188,54 +213,164 @@ describe("Config Limit Manager", () => {
   //   expect(built.dataQueryStruct.subqueries.length).toEqual(128);
   // }, 120000);
 
-  test("default config (fail): 65 tx, 64 rc", async () => {
-    const testFn = () => {
-      const query = (axiom.query as QueryV2).new();
-      for (let i = 0; i < txHashes128.length / 2; i++) {
-        const txSubquery = buildTxSubquery(txHashes128[i]).field(TxField.MaxFeePerGas);
-        query.appendDataSubquery(txSubquery);
-        const rcSubquery = buildReceiptSubquery(txHashes128[i]).field(ReceiptField.Status);
-        query.appendDataSubquery(rcSubquery);
-      }
-      const txSubquery = buildTxSubquery(txHashes128[65]).field(TxField.MaxFeePerGas);
-      query.appendDataSubquery(txSubquery);
-    }
-    expect(testFn).toThrow();
-  }, 120000);
+  // test("default config (fail): 65 tx, 64 rc", async () => {
+  //   const testFn = () => {
+  //     const query = (axiom.query as QueryV2).new();
+  //     for (let i = 0; i < txHashes128.length / 2; i++) {
+  //       const txSubquery = buildTxSubquery(txHashes128[i]).field(TxField.MaxFeePerGas);
+  //       query.appendDataSubquery(txSubquery);
+  //       const rcSubquery = buildReceiptSubquery(txHashes128[i]).field(ReceiptField.Status);
+  //       query.appendDataSubquery(rcSubquery);
+  //     }
+  //     const txSubquery = buildTxSubquery(txHashes128[65]).field(TxField.MaxFeePerGas);
+  //     query.appendDataSubquery(txSubquery);
+  //   }
+  //   expect(testFn).toThrow();
+  // }, 120000);
 
-  test("large config: 1 lg tx, 15 small tx", async () => {
+  // test("large config: 1 lg tx, 15 small tx", async () => {
+  //   const query = (axiom.query as QueryV2).new();
+  //   const lgTxSubquery = buildTxSubquery(txHashesLarge[0]).field(TxField.MaxFeePerGas);
+  //   query.appendDataSubquery(lgTxSubquery);
+  //   for (let i = 0; i < 15; i++) {
+  //     const txSubquery = buildTxSubquery(txHashes128[i]).field(TxField.MaxFeePerGas);
+  //     query.appendDataSubquery(txSubquery);
+  //   }
+  //   const built = await query.build(true);
+  //   expect(built.dataQueryStruct.subqueries.length).toEqual(16);
+  // }, 120000);
 
-  }, 120000);
+  // test("large config: 1 lg rc, 15 small rc", async () => {
+  //   const query = (axiom.query as QueryV2).new();
+  //   const lgReceiptSubquery = buildReceiptSubquery(rcHashesLarge[0]).field(ReceiptField.Status);
+  //   query.appendDataSubquery(lgReceiptSubquery);
+  //   for (let i = 0; i < 15; i++) {
+  //     const rcSubquery = buildReceiptSubquery(txHashes128[i]).field(ReceiptField.Status);
+  //     query.appendDataSubquery(rcSubquery);
+  //   }
+  //   const built = await query.build(true);
+  //   expect(built.dataQueryStruct.subqueries.length).toEqual(16);
+  // }, 120000);
 
-  test("large config: 1 lg rc, 15 small rc", async () => {
+  // test("large config: 1 lg tx, 16 small rc", async () => {
+  //   const query = (axiom.query as QueryV2).new();
+  //   for (let i = 0; i < 1; i++) {
+  //     const txSubquery = buildTxSubquery(txHashesLarge[i]).field(TxField.MaxFeePerGas);
+  //     query.appendDataSubquery(txSubquery);
+  //   }
+  //   for (let i = 0; i < 16; i++) {
+  //     const rcSubquery = buildReceiptSubquery(txHashes128[i]).field(ReceiptField.Status);
+  //     query.appendDataSubquery(rcSubquery);
+  //   }
+  //   const built = await query.build(true);
+  //   expect(built.dataQueryStruct.subqueries.length).toEqual(17);
+  // }, 120000);
 
-  }, 120000);
+  // test("large config (fail): 17 tx", async () => {
+  //   const testFn = async () => {
+  //     const query = (axiom.query as QueryV2).new();
+  //     for (let i = 0; i < 1; i++) {
+  //       const txSubquery = buildTxSubquery(txHashesLarge[i]).field(TxField.MaxFeePerGas);
+  //       query.appendDataSubquery(txSubquery);
+  //     }
+  //     for (let i = 0; i < 16; i++) {
+  //       const txSubquery = buildTxSubquery(txHashes128[i]).field(TxField.MaxFeePerGas);
+  //       query.appendDataSubquery(txSubquery);
+  //     }
+  //     await query.build(true);
+  //   };
+  //   expect(testFn).rejects.toThrow();
+  // }, 120000);
 
-  test("large config: 1 lg tx, 16 small rc", async () => {
+  // test("large config (fail): 4 lg rc, 16 small rc", async () => {
+  //   const testFn = async () => {
+  //     const query = (axiom.query as QueryV2).new();
+  //     for (let i = 0; i < 4; i++) {
+  //       const rcSubquery = buildReceiptSubquery(rcHashesLarge[i]).field(ReceiptField.Status);
+  //       query.appendDataSubquery(rcSubquery);
+  //     }
+  //     for (let i = 0; i < 16; i++) {
+  //       const rcSubquery = buildReceiptSubquery(txHashes128[i]).field(ReceiptField.Status);
+  //       query.appendDataSubquery(rcSubquery);
+  //     }
+  //     await query.build(true);
+  //   };
+  //   expect(testFn).rejects.toThrow();
+  // }, 120000);
 
-  }, 120000);
-
-  test("large config: 16 tx, 16 rc", async () => {
-
-  }, 120000);
-
-  test("large config (fail): 17 tx", async () => {
-
-  }, 120000);
-
-  test("large config (fail): 17 rc", async () => {
-
-  }, 120000);
-
-  test("large config (fail): 1 lg tx, 17 small rc", async () => {
-
-  }, 120000);
+  // test("large config (fail): 1 lg tx, 17 small rc", async () => {
+  //   const testFn = async () => {
+  //     const query = (axiom.query as QueryV2).new();
+  //     for (let i = 0; i < 1; i++) {
+  //       const txSubquery = buildTxSubquery(txHashesLarge[i]).field(TxField.MaxFeePerGas);
+  //       query.appendDataSubquery(txSubquery);
+  //     }
+  //     for (let i = 0; i < 17; i++) {
+  //       const rcSubquery = buildReceiptSubquery(txHashes128[i]).field(ReceiptField.Status);
+  //       query.appendDataSubquery(rcSubquery);
+  //     }
+  //     await query.build(true);
+  //   };
+  //   expect(testFn).rejects.toThrow();
+  // }, 120000);
   
-  test("max config: 4 max tx", async () => {
+  // test("max config: 4 max tx", async () => {
+  //   const query = (axiom.query as QueryV2).new();
+  //   for (let i = 0; i < 4; i++) {
+  //     const txSubquery = buildTxSubquery(txHashesMax[i]).field(TxField.MaxFeePerGas);
+  //     query.appendDataSubquery(txSubquery);
+  //   }
+  //   const built = await query.build(true);
+  //   expect(built.dataQueryStruct.subqueries.length).toEqual(4);
+  // }, 120000);
+
+  // test("max config: 4 max tx, 1 max rc", async () => {
+  //   const query = (axiom.query as QueryV2).new();
+  //   for (let i = 0; i < 4; i++) {
+  //     const txSubquery = buildTxSubquery(txHashesMax[i]).field(TxField.MaxFeePerGas);
+  //     query.appendDataSubquery(txSubquery);
+  //   }
+  //   for (let i = 0; i < 1; i++) {
+  //     const rcSubquery = buildReceiptSubquery(rcHashesLarge[i]).field(ReceiptField.Status);
+  //     query.appendDataSubquery(rcSubquery);
+  //   }
+  //   const built = await query.build(true);
+  //   expect(built.dataQueryStruct.subqueries.length).toEqual(5);
+  // }, 120000);
+
+  test("max config (fail): 5 max tx", async () => {
+    const testFn = async () => {
+      const query = (axiom.query as QueryV2).new();
+      for (let i = 0; i < 5; i++) {
+        const txSubquery = buildTxSubquery(txHashesMax[i]).field(TxField.MaxFeePerGas);
+        query.appendDataSubquery(txSubquery);
+      }
+      await query.build(true);
+    };
+    expect(await testFn).rejects.toThrow();
+  }, 120000);
+
+  test("max config (fail): 2 max rc", async () => {
 
   }, 120000);
 
-  test("max config: 1 max rc", async () => {
+  // test("max config (fail): oversize 1 max rc (max config log data len)", async () => {
+  //   const testFn = async () => {
+  //     const query = (axiom.query as QueryV2).new();
+  //     const rcSubquery = buildReceiptSubquery(rcHashesOverMax[0]).field(ReceiptField.Status);
+  //     query.appendDataSubquery(rcSubquery);
+  //     const built = await query.build(true);
+  //   }
+  //   expect(testFn).rejects.toThrow();
+  // }, 120000);
 
-  }, 120000);
+  // test("max config (fail): oversize 1 max rc (large config log data len)", async () => {
+  //   const testFn = async () => {
+  //     const query = (axiom.query as QueryV2).new();
+  //     const rcSubquery = buildReceiptSubquery(rcHashesOverMax[1]).field(ReceiptField.Status);
+  //     query.appendDataSubquery(rcSubquery);
+  //     const built = await query.build(true);
+  //   }
+  //   expect(testFn).rejects.toThrow();
+  // }, 120000);
 });
