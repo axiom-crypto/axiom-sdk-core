@@ -1,4 +1,12 @@
-import { AxiomSdkCore, AxiomSdkCoreConfig, QueryV2, ReceiptField, TxField, buildReceiptSubquery, buildTxSubquery } from "../../../src";
+import {
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
+  QueryV2,
+  ReceiptField,
+  TxField,
+  buildReceiptSubquery,
+  buildTxSubquery
+} from "../../../src";
 
 describe("Config Limit Manager", () => {
   const txHashesSmall = [
@@ -210,7 +218,7 @@ describe("Config Limit Manager", () => {
   const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI_SEPOLIA as string,
     privateKey: process.env.PRIVATE_KEY_SEPOLIA as string,
-    chainId: 1,
+    chainId: "11155111",
     version: "v2",
   };
   const axiom = new AxiomSdkCore(config);
