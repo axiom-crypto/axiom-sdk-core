@@ -25,15 +25,11 @@ export class ConfigLimitManager {
 
   processTx(tx: any) {
     // Check total data length
-    const rlpTx = rlpEncodeTransaction(tx);
-    if (rlpTx === null) {
-      throw new Error("Failed to RLP-encode transaction");
-    }
-    const txDataLen = getNumBytes(rlpTx);
-
+    const txDataLen = getNumBytes(tx.data);
+    
     // Check access list length
     let aclNumBytesRlp = 0;
-    if (tx.type === "0x2") {
+    if (tx.type === "0x1" || tx.type === "0x2") {
       const accessListRlp = objectToRlp(tx.accessList ?? {});
       aclNumBytesRlp = getNumBytes(accessListRlp);
     }
