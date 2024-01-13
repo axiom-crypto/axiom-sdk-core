@@ -67,7 +67,7 @@ export let versionDataSepolia: any = {
   v2: {
     Addresses: {
       Axiom: "",
-      AxiomQuery: "0xD4E7469fdB3cAe2C85db4dacD44cb974757CbeD9",
+      AxiomQuery: "0xb3034090C3A2BE1194e271C7850E1137D1Ad007f",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v2",
