@@ -14,8 +14,6 @@ import {
   getSolidityNestedMappingValue,
   getStorageFieldValue,
   getTxFieldValue,
-  getRawTransaction,
-  getRawReceipt,
 } from "@axiom-crypto/tools";
 import {
   UnbuiltAccountSubquery,
@@ -25,7 +23,6 @@ import {
   UnbuiltStorageSubquery,
   UnbuiltTxSubquery,
 } from "../../types";
-import { ConfigLimitManager } from "./configLimitManager";
 
 export async function validateHeaderSubquery(
   provider: ethers.JsonRpcProvider,
@@ -103,7 +100,6 @@ export async function validateStorageSubquery(
 export async function validateTxSubquery(
   provider: ethers.JsonRpcProvider,
   subquery: UnbuiltTxSubquery,
-  configLimitManager: ConfigLimitManager,
 ): Promise<boolean> {
   if (
     (subquery.fieldOrCalldataIdx > TxField.s && subquery.fieldOrCalldataIdx < AxiomV2FieldConstant.Tx.TxTypeFieldIdx) ||
@@ -114,21 +110,12 @@ export async function validateTxSubquery(
     return false;
   }
 
-  const tx = await getRawTransaction(provider, subquery.txHash);
-  if (!tx) {
-    console.error(`Unable to get transaction from txHash: ${subquery.txHash}`);
-    return false;
-  }
-  if (tx.blockNumber === undefined || tx.transactionIndex === undefined) {
+  const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
+  if (blockNumber === null || txIdx === null) {
     console.error("Unable to get blockNumber or txIdx from supplied txHash");
     return false;
   }
-  const blockNumber = Number(tx.blockNumber);
-  const txIdx = Number(tx.transactionIndex);
-
-  configLimitManager.processTx(tx);
-
-  const value = await getTxFieldValue( 
+  const value = await getTxFieldValue(
     provider,
     {
       blockNumber,
@@ -136,7 +123,6 @@ export async function validateTxSubquery(
       fieldOrCalldataIdx: subquery.fieldOrCalldataIdx,
     },
     console,
-    tx,
   );
   if (value === null) {
     console.error(`Tx subquery ${JSON.stringify(subquery)} returned null`);
@@ -148,7 +134,6 @@ export async function validateTxSubquery(
 export async function validateReceiptSubquery(
   provider: ethers.JsonRpcProvider,
   subquery: UnbuiltReceiptSubquery,
-  configLimitManager: ConfigLimitManager,
 ): Promise<boolean> {
   if (
     (subquery.fieldOrLogIdx > ReceiptField.CumulativeGas &&
@@ -174,21 +159,11 @@ export async function validateReceiptSubquery(
     return false;
   }
 
-  const rc = await getRawReceipt(provider, subquery.txHash);
-  if (!rc) {
-    console.error(`Unable to get receipt from txHash: ${subquery.txHash}`);
-    return false;
-  }
-
-  if (rc.blockNumber === undefined || rc.transactionIndex === undefined) {
+  const { blockNumber, txIdx } = await getBlockNumberAndTxIdx(provider, subquery.txHash);
+  if (blockNumber === null || txIdx === null) {
     console.error("Unable to get blockNumber or txIdx from supplied txHash");
     return false;
   }
-  const blockNumber = Number(rc.blockNumber);
-  const txIdx = Number(rc.transactionIndex);
-
-  configLimitManager.processReceipt(rc);
-
   const value = await getReceiptFieldValue(
     provider,
     {
@@ -198,7 +173,7 @@ export async function validateReceiptSubquery(
       topicOrDataOrAddressIdx: subquery.topicOrDataOrAddressIdx,
       eventSchema: subquery.eventSchema,
     },
-    console,
+    console.warn,
   );
   if (value === null) {
     console.error(`Receipt subquery ${JSON.stringify(subquery)} returned null`);

@@ -263,7 +263,7 @@ describe("DataQuery Capacity (SDK-enforced)", () => {
     expect(testFn).toThrow();
   });
 
-  test(`Append ${ConstantsV2.UserMaxTotalSubqueries} subqueries`, () => {
+  test(`Append ${ConstantsV2.MaxDataQuerySize} subqueries`, () => {
     const blockNumber = 18000000;
     const txHashes = validMainnetTxHashes;
 

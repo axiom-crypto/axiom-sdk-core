@@ -49,7 +49,6 @@ import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
 import { buildDataQuery, buildDataSubqueries, encodeBuilderDataQuery } from "./dataSubquery/build";
 import { calculateCalldataGas } from "./gasCalc";
 import { deepCopyObject } from "../../shared/utils";
-import { ConfigLimitManager } from "./dataSubquery/configLimitManager";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -210,8 +209,8 @@ export class QueryBuilderV2 {
       this.dataQuery = [] as UnbuiltSubquery[];
     }
 
-    if (this.dataQuery?.length + dataSubqueries.length > ConstantsV2.UserMaxTotalSubqueries) {
-      throw new Error(`Cannot add more than ${ConstantsV2.UserMaxTotalSubqueries} subqueries`);
+    if (this.dataQuery?.length + dataSubqueries.length > ConstantsV2.MaxDataQuerySize) {
+      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
     }
 
     for (const subquery of dataSubqueries) {
@@ -248,17 +247,9 @@ export class QueryBuilderV2 {
   /**
    * Queries the required subquery data and builds the entire Query object into the format
    * that is required by the backend/ZK circuit
-   * @param validate (optional) Runs validation on the Query before attempting to build it
    * @returns A built Query object
    */
-  async build(validate?: boolean): Promise<BuiltQueryV2> {
-    if (validate === true) {
-      const valid = await this.validate();
-      if (!valid) {
-        throw new Error("Query validation failed");
-      }
-    }
-
+  async build(): Promise<BuiltQueryV2> {
     // Check if Query can be built: needs at least a dataQuery or computeQuery
     let validDataQuery = true;
     if (this.builtDataQuery === undefined && (this.dataQuery === undefined || this.dataQuery.length === 0)) {
@@ -269,7 +260,7 @@ export class QueryBuilderV2 {
       validComputeQuery = false;
     }
     if (!validDataQuery && !validComputeQuery) {
-      throw new Error("Cannot build Query without either a data query or a compute query");
+      throw new Error("Cannot build Query without data or compute query");
     }
 
     // Handle Data Query
@@ -579,8 +570,6 @@ export class QueryBuilderV2 {
     }
     const provider = this.config.provider;
     let validQuery = true;
-    const configLimitManager = new ConfigLimitManager();
-    
     for (const subquery of this.dataQuery) {
       const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
       switch (type) {
@@ -594,10 +583,10 @@ export class QueryBuilderV2 {
           validQuery = validQuery && (await validateStorageSubquery(provider, subquery as UnbuiltStorageSubquery));
           break;
         case DataSubqueryType.Transaction:
-          validQuery = validQuery && (await validateTxSubquery(provider, subquery as UnbuiltTxSubquery, configLimitManager));
+          validQuery = validQuery && (await validateTxSubquery(provider, subquery as UnbuiltTxSubquery));
           break;
         case DataSubqueryType.Receipt:
-          validQuery = validQuery && (await validateReceiptSubquery(provider, subquery as UnbuiltReceiptSubquery, configLimitManager));
+          validQuery = validQuery && (await validateReceiptSubquery(provider, subquery as UnbuiltReceiptSubquery));
           break;
         case DataSubqueryType.SolidityNestedMapping:
           validQuery =
@@ -679,8 +668,8 @@ export class QueryBuilderV2 {
 
   private updateSubqueryCount(type: DataSubqueryType) {
     this.dataSubqueryCount.total++;
-    if (this.dataSubqueryCount.total > ConstantsV2.UserMaxTotalSubqueries) {
-      throw new Error(`Cannot add more than ${ConstantsV2.UserMaxTotalSubqueries} subqueries`);
+    if (this.dataSubqueryCount.total > ConstantsV2.MaxDataQuerySize) {
+      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
     }
     switch (type) {
       case DataSubqueryType.Header:
