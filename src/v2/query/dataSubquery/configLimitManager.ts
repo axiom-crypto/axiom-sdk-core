@@ -25,8 +25,8 @@ export class ConfigLimitManager {
 
   processTx(tx: any) {
     // Check total data length
-    const txDataLen = getNumBytes(tx.data);
-    
+    const txDataLen = getNumBytes(tx.input);
+
     // Check access list length
     let aclNumBytesRlp = 0;
     if (tx.type === "0x1" || tx.type === "0x2") {
