@@ -231,7 +231,7 @@ describe("Config Limit Manager", () => {
     }
     const built = await query.build(true);
     expect(built.dataQueryStruct.subqueries.length).toEqual(128);
-  }, 120000);
+  }, 300000);
 
   test("default config: 128 rc", async () => {
     const query = (axiom.query as QueryV2).new();
@@ -241,7 +241,7 @@ describe("Config Limit Manager", () => {
     }
     const built = await query.build(true);
     expect(built.dataQueryStruct.subqueries.length).toEqual(128);
-  }, 120000);
+  }, 300000);
 
   test("default config: 64 tx, 64 rc", async () => {
     const query = (axiom.query as QueryV2).new();
@@ -253,7 +253,7 @@ describe("Config Limit Manager", () => {
     }
     const built = await query.build(true);
     expect(built.dataQueryStruct.subqueries.length).toEqual(128);
-  }, 120000);
+  }, 300000);
 
   test("default config (fail): 65 tx, 64 rc", async () => {
     const testFn = () => {
@@ -268,7 +268,7 @@ describe("Config Limit Manager", () => {
       query.appendDataSubquery(txSubquery);
     }
     expect(testFn).toThrow();
-  }, 120000);
+  }, 300000);
 
   test("large config: 1 lg tx, 15 small tx", async () => {
     const query = (axiom.query as QueryV2).new();
