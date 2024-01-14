@@ -15,6 +15,8 @@ import {
   encodeDataQuery,
   encodeComputeQuery,
   encodeCallback,
+  AxiomV2FeeData,
+  encodeFeeData,
 } from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -186,9 +188,9 @@ export class QueryBuilderV2 {
   setOptions(options: AxiomV2QueryOptions): AxiomV2QueryOptions {
     this.unsetBuiltQuery();
     this.options = {
-      targetChainId: BigInt(options?.targetChainId ?? this.config.chainId.toString()).toString(),
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
+      overrideAxiomQueryFee: options?.overrideAxiomQueryFee ?? ConstantsV2.DefaultOverrideAxiomQueryFee,
       dataQueryCalldataGasWarningThreshold:
         options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
@@ -307,6 +309,13 @@ export class QueryBuilderV2 {
       extraData: this.callback?.extraData ?? ethers.ZeroHash,
     };
 
+    // FeeData
+    const feeData: AxiomV2FeeData = {
+      maxFeePerGas: this.options.maxFeePerGas!,
+      callbackGasLimit: this.options.callbackGasLimit!,
+      overrideAxiomQueryFee: this.options.overrideAxiomQueryFee!,
+    }
+
     // Get the refundee address
     const caller = await this.config.signer?.getAddress();
     const refundee = this.options?.refundee ?? caller ?? "";
@@ -316,7 +325,7 @@ export class QueryBuilderV2 {
 
     this.builtQuery = {
       sourceChainId: this.config.chainId.toString(),
-      targetChainId: this.options?.targetChainId ?? this.config.chainId.toString(),
+      targetChainId: this.config.targetChainId.toString(),
       queryHash,
       dataQuery,
       dataQueryHash,
@@ -324,9 +333,8 @@ export class QueryBuilderV2 {
       computeQuery,
       querySchema,
       callback,
+      feeData,
       userSalt,
-      maxFeePerGas: this.options.maxFeePerGas!,
-      callbackGasLimit: this.options.callbackGasLimit!,
       refundee,
     };
 
@@ -350,7 +358,7 @@ export class QueryBuilderV2 {
     cb?: (receipt: ethers.ContractTransactionReceipt) => void,
   ): Promise<string> {
     if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
+      throw new Error("`privateKey` in AxiomSdkCoreConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error(
@@ -381,9 +389,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
       this.builtQuery.refundee,
       this.builtQuery.dataQuery,
       { value: paymentAmountWei },
@@ -402,7 +409,7 @@ export class QueryBuilderV2 {
     cb?: (receipt: ethers.ContractTransactionReceipt) => void,
   ): Promise<string> {
     if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
+      throw new Error("`privateKey` in AxiomSdkCoreConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error(
@@ -419,9 +426,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
       this.builtQuery.refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
@@ -442,9 +448,9 @@ export class QueryBuilderV2 {
       this.builtQuery.queryHash,
       ipfsHashBytes32,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
+      this.builtQuery.refundee,
       { value: paymentAmountWei },
     );
     const receipt = await tx.wait();
@@ -473,7 +479,7 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomConfig)
+   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomSdkCoreConfig)
    * @returns uint256 queryId
    */
   async getQueryId(caller?: string): Promise<string> {
@@ -484,11 +490,11 @@ export class QueryBuilderV2 {
     // Get required queryId params
     if (caller === undefined) {
       if (this.config.signer === undefined) {
-        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomConfig");
+        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomSdkCoreConfig");
       }
       const callerAddr = await this.config.signer?.getAddress();
       if (callerAddr === "") {
-        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomConfig");
+        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomSdkCoreConfig");
       }
       caller = callerAddr;
     }
@@ -522,7 +528,7 @@ export class QueryBuilderV2 {
     const userAddress = this.config.signer?.address;
     if (userAddress === undefined) {
       throw new Error(
-        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)",
+        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomSdkCoreConfig)",
       );
     }
     const currentBalance = BigInt(
@@ -740,10 +746,16 @@ export class QueryBuilderV2 {
         builtQuery.computeQuery.vkey,
         builtQuery.computeQuery.computeProof,
       ),
-      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
+      encodeCallback(
+        builtQuery.callback.target,
+        builtQuery.callback.extraData
+      ),
+      encodeFeeData(
+        builtQuery.feeData.maxFeePerGas,
+        builtQuery.feeData.callbackGasLimit,
+        builtQuery.feeData.overrideAxiomQueryFee,
+      ),
       builtQuery.userSalt,
-      ethers.toBeHex(builtQuery.maxFeePerGas, 8),
-      ethers.toBeHex(builtQuery.callbackGasLimit, 4),
       refundee,
       builtQuery.dataQuery,
     ]);

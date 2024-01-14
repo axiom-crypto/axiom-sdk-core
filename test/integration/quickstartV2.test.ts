@@ -1,30 +1,29 @@
 import { ethers } from "ethers";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   QueryV2,
   buildTxSubquery,
   getEventSchema,
   bytes32,
   buildReceiptSubquery,
-} from "../../../src";
+} from "../../src";
+import { exampleClientMock, exampleClientReal } from "./constants";
 
 describe("Quickstart V2", () => {
   test("Send a simple on-chain Query", async () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       privateKey: process.env.PRIVATE_KEY_GOERLI as string,
       providerUri: process.env.PROVIDER_URI_GOERLI as string,
       version: "v2",
       chainId: 5,
       mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
     };
-    const axiom = new Axiom(config);
+    const axiom = new AxiomSdkCore(config);
     const query = (axiom.query as QueryV2).new();
 
-    const exampleClientAddrReal = "0x888d44c887DFCfaeBBf41C53eD87C0C9ED994165";
-    const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
-    const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
+    const exampleClientAddr = config.mock ? exampleClientMock : exampleClientReal;
 
     const txHash = "0x0a126c0e009e19af335e964de0cea513098c9efe290c269dee77ca9f10838e7b";
     const swapEventSchema = getEventSchema("Swap(address,uint256,uint256,uint256,uint256,address)");

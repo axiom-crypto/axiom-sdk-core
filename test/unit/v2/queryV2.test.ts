@@ -21,8 +21,8 @@ import {
   getFunctionSelector,
 } from "@axiom-crypto/tools";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   AxiomV2QueryOptions,
   UnbuiltAccountSubquery,
@@ -35,7 +35,6 @@ import {
 } from "../../../src";
 import { QueryV2 } from "../../../src/v2/query/queryV2";
 import { ethers } from "ethers";
-import { resizeArray } from "../../../src/shared/utils";
 
 describe("QueryV2", () => {
   const BLOCK_NUMBER = 15537394;
@@ -143,12 +142,12 @@ describe("QueryV2", () => {
   ];
   const computeProof = ethers.concat(computeProofRaw);
 
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY as string,
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
   test("should initialize QueryV2", () => {
     expect(typeof axiom.query).toEqual("object");
@@ -156,13 +155,13 @@ describe("QueryV2", () => {
 
   // NOTE: disabled until new contract is deployed
   // test("should get balance", async () => {
-  //   const config: AxiomConfig = {
+  //   const config: AxiomSdkCoreConfig = {
   //     privateKey: process.env.PRIVATE_KEY as string,
   //     providerUri: process.env.PROVIDER_URI_GOERLI as string,
   //     version: "v2",
   //     chainId: 5,
   //   };
-  //   const axiomGoerli = new Axiom(config);
+  //   const axiomGoerli = new AxiomSdkCore(config);
   //   const aqg = axiomGoerli.query as QueryV2;
   //   const balance = await aqg.getBalance();
   //   expect(balance).toEqual("0");
@@ -284,8 +283,9 @@ describe("QueryV2", () => {
     query.appendDataSubquery(buildHeaderSubquery(17000001).field(HeaderField.GasLimit));
 
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual(options.maxFeePerGas);
-    expect(builtQuery.callbackGasLimit).toEqual(options.callbackGasLimit);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual(options.maxFeePerGas);
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(options.callbackGasLimit);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual(ethers.ZeroAddress);
   });
 

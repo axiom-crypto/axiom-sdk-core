@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   QueryV2,
   bytes32,
@@ -10,11 +10,12 @@ import {
   getTxHash,
   buildTxSubquery,
   TxField,
-} from "../../../src";
+} from "../../src";
+import { exampleClientMock, exampleClientReal } from "./constants";
 
 describe("On-chain compute query scenarios", () => {
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI_GOERLI as string);
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
@@ -26,11 +27,9 @@ describe("On-chain compute query scenarios", () => {
     //   AxiomQuery: "",
     // },
   };
-  const axiom = new Axiom(config, overrides);
+  const axiom = new AxiomSdkCore(config, overrides);
 
-  const exampleClientAddrReal = "0x888d44c887DFCfaeBBf41C53eD87C0C9ED994165";
-  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
-  const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
+  const exampleClientAddr = config.mock ? exampleClientMock : exampleClientReal;
   const vk = [
     2, 13, 0, 0, 0, 0, 6, 0, 0, 0, 22, 53, 175, 191, 189, 44, 47, 125, 102, 223, 68, 183, 53, 24, 221, 245, 11, 40, 210,
     84, 147, 34, 241, 111, 251, 44, 176, 97, 40, 23, 111, 5, 236, 172, 54, 30, 205, 68, 139, 37, 34, 255, 110, 222, 63,

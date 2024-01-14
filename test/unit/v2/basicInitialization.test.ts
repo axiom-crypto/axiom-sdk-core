@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Axiom, AxiomConfig, AxiomV2ComputeQuery, DataSubquery, QueryV2 } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig, AxiomV2ComputeQuery, DataSubquery, QueryV2 } from "../../../src";
 import { Versions } from "../../../src/shared/constants";
 
 // Test coverage areas:
@@ -14,20 +14,20 @@ describe("Basic Initialization", () => {
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
 
   test("should initialize without an API key", () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
     };
-    const ax = new Axiom(config);
+    const ax = new AxiomSdkCore(config);
     expect(typeof ax).toEqual("object");
   });
 
   test("should initialize AxiomV2", () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
     };
-    const ax = new Axiom(config);
+    const ax = new AxiomSdkCore(config);
 
     expect(typeof ax).toEqual("object");
     expect(typeof ax.block).toEqual("object");
@@ -35,80 +35,71 @@ describe("Basic Initialization", () => {
   });
 
   test("should fail on invalid version number", () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v0.3",
     };
-    expect(() => new Axiom(config)).toThrowError("Invalid version number. Valid versions are: " + Versions.join(", "));
+    expect(() => new AxiomSdkCore(config)).toThrowError("Invalid version number. Valid versions are: " + Versions.join(", "));
   });
 
   test("should get v2 abi", () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
     };
-    const ax = new Axiom(config);
+    const ax = new AxiomSdkCore(config);
     const abi = ax.getAxiomQueryAbi();
 
     expect(abi[0].type).toEqual("constructor");
   });
 
-  // test("should initialize QueryBuilderV2 with dataQuery", async () => {
-  //   const config: AxiomConfig = {
-  //     providerUri: process.env.PROVIDER_URI as string,
-  //     version: "v2",
-  //   };
-  //   const axiom = new Axiom(config);
-  //   const query = (axiom.query as QueryV2).new();
-  //   const dataQuery = [] as DataSubquery[];
-  //   query.append(dataQuery);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should set targetChainId to the same as (source) chainId", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+    };
+    const ax = new AxiomSdkCore(config);
+    expect(ax.config.chainId).toEqual(ax.config.targetChainId);
+  });
 
-  // test("should initialize QueryBuilderV2 with computeQuery", async () => {
-  //   const dataQuery = [] as DataSubquery[];
-  //   const computeQuery: AxiomV2ComputeQuery = {
-  //     k: 14,
-  //     vkey,
-  //     computeProof,
-  //   };
-  //   const config: AxiomConfig = {
-  //     providerUri: process.env.PROVIDER_URI as string,
-  //     version: "v2",
-  //   };
-  //   const axiom = new Axiom(config);
-  //   const query = (axiom.query as QueryV2).new(dataQuery, computeQuery);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should set targetProviderUri to the same as (source) providerUri", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+    };
+    const ax = new AxiomSdkCore(config);
+    expect(ax.config.providerUri).toEqual(ax.config.targetProviderUri);
+  });
 
-  // test("should initialize QueryBuilderV2 with callback", async () => {
-  //   const dataQuery = [] as DataSubquery[];
-  //   const computeQuery: AxiomV2ComputeQuery = {
-  //     k: 14,
-  //     vkey,
-  //     computeProof,
-  //   };
-  //   const callbackQuery = {
-  //     target: WETH_ADDR,
-  //     extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-  //   };
-  //   const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should fail if targetChainId is set while targetProviderUri is not set", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      targetChainId: 5,
+      version: "v2",
+    };
+    expect(() => new AxiomSdkCore(config)).toThrow();
+  });
 
-  // test("should initialize QueryBuilderV2 with options", async () => {
-  //   const dataQuery = [] as DataSubquery[];
-  //   const computeQuery: AxiomV2ComputeQuery = {
-  //     k: 14,
-  //     vkey,
-  //     computeProof,
-  //   };
-  //   const callbackQuery = {
-  //     target: WETH_ADDR,
-  //     extraData: ethers.solidityPacked(["address"], [WETH_WHALE]),
-  //   };
-  //   const options = {};
-  //   const query = (axiom.query as QueryV2).new(dataQuery, computeQuery, callbackQuery, options);
-  //   expect(typeof query).toEqual("object");
-  // });
+  test("should fail if targetProviderUri is set while targetChainId is not set", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      targetProviderUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+    };
+    expect(() => new AxiomSdkCore(config)).toThrow();
+  });
+
+  test("should set targetChainId and targetProviderUri", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      targetChainId: 5,
+      targetProviderUri: process.env.PROVIDER_URI_GOERLI as string,
+      version: "v2",
+    };
+    const ax = new AxiomSdkCore(config);
+    expect(ax.config.chainId).toEqual(1n);
+    expect(ax.config.targetChainId).toEqual(5n);
+    expect(ax.config.providerUri).toEqual(process.env.PROVIDER_URI as string);
+    expect(ax.config.targetProviderUri).toEqual(process.env.PROVIDER_URI_GOERLI as string);
+  });
 });

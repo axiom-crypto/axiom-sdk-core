@@ -4,6 +4,7 @@ import { AxiomV2Callback, AxiomV2ComputeQuery, DataSubqueryCount } from "./types
 export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGasWei: "25000000000",
   DefaultCallbackGasLimit: 200000,
+  DefaultOverrideAxiomQueryFee: "0",
   DefaultDataQueryCalldataGasWarningThreshold: 100000,
 
   FallbackProofVerificationGas: 550000n,
@@ -13,7 +14,7 @@ export const ConstantsV2 = Object.freeze({
   QueryInitiatedWithIpfsDataSchema: "0xf3a2958f23705cbc6bbc0922c0af3c82b76d93e8acc5c17ef86736cf4563fb85",
 
   MaxDataQuerySize: 128,
-  MaxSameSubqueryType: 32,
+  MaxSameSubqueryType: 128,
 
   EmptyComputeQueryObject: {
     k: 0,

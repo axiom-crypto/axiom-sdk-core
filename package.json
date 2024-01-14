@@ -1,6 +1,6 @@
 {
   "name": "@axiom-crypto/core",
-  "version": "2.2.50",
+  "version": "2.3.0-rc2.1",
   "description": "SDK to build on top of Axiom, the ZK Coprocessor for Ethereum.",
   "author": "Intrinsic Technologies",
   "license": "MIT",
@@ -13,6 +13,7 @@
     "test": "jest",
     "test:unit": "jest test/unit",
     "test:integration": "jest --runInBand test/integration",
+    "test:integration:mock": "MOCK=true jest --runInBand test/integration",
     "dev": "ts-node src/index.ts"
   },
   "publishConfig": {
@@ -34,7 +35,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@axiom-crypto/tools": "^0.3.33",
+    "@axiom-crypto/tools": "0.3.36-rc2.1",
     "axios": "^1.6.1",
     "bs58": "^5.0.0",
     "ethers": "^6.8.1",

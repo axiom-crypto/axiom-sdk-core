@@ -18,4 +18,6 @@ export {
   getAccountData,
   getTxHash,
   getBlockNumberAndTxIdx,
+  ByteLengths,
+  MaxSizes,
 } from "@axiom-crypto/tools";

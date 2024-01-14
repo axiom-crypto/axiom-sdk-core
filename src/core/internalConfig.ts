@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { Versions, setVersionData, updateConstants } from "../shared/constants";
-import { AxiomConfig } from "../shared/types";
+import { AxiomSdkCoreConfig } from "../shared/types";
 
 export class InternalConfig {
   /**
@@ -12,11 +12,13 @@ export class InternalConfig {
    * https URL for provider
    */
   readonly providerUri: string;
+  readonly targetProviderUri: string;
 
   /**
    * The Chain ID to use for the Axiom SDK
    */
   readonly chainId: BigInt;
+  readonly targetChainId: BigInt;
 
   /**
    * Axiom contract version number to use
@@ -53,10 +55,19 @@ export class InternalConfig {
    */
   readonly signer?: ethers.Wallet;
 
-  constructor(config: AxiomConfig, overrides?: any) {
+  constructor(config: AxiomSdkCoreConfig, overrides?: any) {
     this.apiKey = config.apiKey ?? "no-api-key";
+
+    this.validateTargetChainIdAndProviderUri(config);
+
+    config = this.handleProviderUri(config);
     this.providerUri = this.parseProviderUri(config.providerUri);
+    this.targetProviderUri = this.parseProviderUri(config.targetProviderUri ?? "");
+
+    config = this.handleChainId(config);
     this.chainId = this.parseChainId(config.chainId);
+    this.targetChainId = this.parseChainId(config.targetChainId);
+
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs ?? 10000;
     this.mock = this.parseMock(config.mock, this.chainId);
@@ -78,11 +89,37 @@ export class InternalConfig {
     return this.versionData[this.version];
   }
 
-  private parseProviderUri(providerUri: string): string {
-    if (providerUri === undefined || providerUri === "") {
-      throw new Error("providerUri is required in AxiomConfig");
+  private validateTargetChainIdAndProviderUri(config: AxiomSdkCoreConfig): void {
+    // If targetChainId is set, targetProviderUri must also be set, and vice versa
+    if (config.targetChainId !== undefined && config.targetProviderUri === undefined) {
+      throw new Error("`targetProviderUri` is required when `targetChainId` is set");
     }
+    if (config.targetChainId === undefined && config.targetProviderUri !== undefined) {
+      throw new Error("`targetChainId` is required when `targetProviderUri` is set");
+    }
+  }
 
+  private handleProviderUri(config: AxiomSdkCoreConfig): AxiomSdkCoreConfig {
+    if (config.providerUri === undefined || config.providerUri === "") {
+      throw new Error("`providerUri` is required in AxiomSdkCoreConfig");
+    }
+    if (config.targetProviderUri === undefined || config.targetProviderUri === "") {
+      config.targetProviderUri = config.providerUri;
+    }
+    return config;
+  }
+
+  private handleChainId(config: AxiomSdkCoreConfig): AxiomSdkCoreConfig {
+    if (config.chainId === undefined) {
+      config.chainId = 1;
+    }
+    if (config.targetChainId === undefined) {
+      config.targetChainId = config.chainId;
+    }
+    return config;
+  }
+
+  private parseProviderUri(providerUri: string): string {
     if (
       providerUri.startsWith("http://") ||
       providerUri.startsWith("https://")

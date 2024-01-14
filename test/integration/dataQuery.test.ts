@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2Callback,
   QueryV2,
   buildTxSubquery,
@@ -14,21 +14,20 @@ import {
   AccountField,
   AxiomV2QueryOptions,
   buildSolidityNestedMappingSubquery,
-} from "../../../src";
+} from "../../src";
+import { exampleClientMock, exampleClientReal } from "./constants";
 
 describe("On-chain Data Query scenarios", () => {
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
     mock: (process.env.MOCK ?? "false").toLowerCase() === "true" ? true : false,
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
-  const exampleClientAddrReal = "0x888d44c887DFCfaeBBf41C53eD87C0C9ED994165";
-  const exampleClientAddrMock = "0xeFb3aCa4eEdbE546749E17D2c564F884603cEdC7";
-  const exampleClientAddr = config.mock ? exampleClientAddrMock : exampleClientAddrReal;
+  const exampleClientAddr = config.mock ? exampleClientMock : exampleClientReal;
 
   const WETH_ADDR = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
   const WETH_WHALE = "0x2E15D7AA0650dE1009710FDd45C3468d75AE1392";
