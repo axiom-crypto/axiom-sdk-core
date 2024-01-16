@@ -200,14 +200,16 @@ describe("Config Limit Manager", () => {
   ];
 
   const rcHashesLarge = [
+    "0x0b78901654a6533defcf4883bdeeeaba6d316f50e8c42b84cfca828a24495a18", // 80 log, 2048b each
     "0x46c9ec7358bd51bf19425ad0a464c3a4056fc956f89082f5611c886617d5d1a0", // 1184b log
     "0xa35374016c4d80e1a48532f976b32d2645d7003a5b871b1557aaff3363ca45af", // 1120b log
     "0x0a61363b6a033d4ddf842f4765ea729a4ac54e761398404618bd139a5f1ca0a7", // 1120b log
     "0xb1919e75917103e1d2f23c54cb7e60decea6a10c28e871a7d463dce455faf263", // 1056b log
-    "0x80b19a2f01456357682c9131d237dfb915f9d3e888962f3f828df439d8e550d2", // 80 log, 2048b each
   ];
 
   const rcHashesMax = [
+    "0x30a95958a33f7800bf77d4d5e028747a241c0cc2ae44bbb27316c8bf9b4217d4", // 400 log, 1024b each
+    "0x8d7cae7bdc262082866295a2efbddbef9028e80b000e0b6c1dfa9b4f0e59aa4a", // 400 log, 1024b each
   ];
 
   const rcHashesOverMax = [
@@ -399,7 +401,29 @@ describe("Config Limit Manager", () => {
   }, 120000);
 
   test("max config (fail): 2 max rc", async () => {
-    // WIP
+    const testFn = async () => {
+      const query = (axiom.query as QueryV2).new();
+      for (let i = 0; i < 2; i++) {
+        const rcSubquery = buildReceiptSubquery(rcHashesMax[i]).field(ReceiptField.Status);
+        query.appendDataSubquery(rcSubquery);
+      }
+      await query.build(true);
+    }
+    await expect(testFn).rejects.toThrow();
+  }, 120000);
+
+  test("max config (fail): 4 large rc, 1 max tx", async () => {
+    const testFn = async () => {
+      const query = (axiom.query as QueryV2).new();
+      for (let i = 0; i < 4; i++) {
+        const rcSubquery = buildReceiptSubquery(txHashesLarge[i]).field(ReceiptField.Status);
+        query.appendDataSubquery(rcSubquery);
+      }
+      const maxSubquery = buildTxSubquery(txHashesMax[0]).field(TxField.MaxFeePerGas);
+      query.appendDataSubquery(maxSubquery);
+      await query.build(true);
+    }
+    await expect(testFn).rejects.toThrow();
   }, 120000);
 
   test("max config (fail): oversize 1 max rc (max config log data len)", async () => {

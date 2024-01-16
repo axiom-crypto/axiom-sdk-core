@@ -1,7 +1,6 @@
 import {
   getNumBytes,
   objectToRlp,
-  rlpEncodeTransaction
 } from "@axiom-crypto/tools";
 import { 
   ReceiptSizeCategory,
@@ -85,6 +84,9 @@ export class ConfigLimitManager {
     if (this.numTxSubqueries > config.MaxTxSubqueries) {
       throw new Error(`Exceeded maximum number of tx subqueries (${this.numTxSubqueries}) for config: ${this.globalConfig}`);
     }
+    if (this.numReceiptSubqueries > config.MaxReceiptSubqueries) {
+      throw new Error(`Exceeded maximum number of receipt subqueries (${this.numReceiptSubqueries}) for config: ${this.globalConfig}`);
+    }
   }
 
   processReceipt(rc: any) {
@@ -155,6 +157,9 @@ export class ConfigLimitManager {
     const config = ConstantsV2.SubqueryConfigs[this.globalConfig as keyof typeof ConstantsV2.SubqueryConfigs];
     if (this.numReceiptSubqueries > config.MaxReceiptSubqueries) {
       throw new Error(`Exceeded maximum number of receipt subqueries (${this.numReceiptSubqueries}) for config: ${this.globalConfig}`);
+    }
+    if (this.numTxSubqueries > config.MaxTxSubqueries) {
+      throw new Error(`Exceeded maximum number of tx subqueries (${this.numTxSubqueries}) for config: ${this.globalConfig}`);
     }
   }
 
