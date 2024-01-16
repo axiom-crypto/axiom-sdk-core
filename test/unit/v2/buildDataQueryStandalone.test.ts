@@ -30,7 +30,7 @@ describe("Build DataQuery Standalone", () => {
   const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
-    chainId: 1,
+    chainId: "1",
     version: "v2",
   };
   const axiom = new AxiomSdkCore(config);
@@ -56,8 +56,7 @@ describe("Build DataQuery Standalone", () => {
     query.append(dataQueryReq);
     query.setCallback(callback);
 
-    await query.build();
-    const builtQuery = query.getBuiltQuery();
+    const builtQuery = await query.build();
     if (builtQuery === undefined) {
       throw new Error("builtQuery is undefined");
     }
@@ -99,8 +98,7 @@ describe("Build DataQuery Standalone", () => {
     query.appendDataSubquery(mappingSubquery);
     query.setCallback(callback);
 
-    await query.build();
-    const builtQuery = query.getBuiltQuery();
+    const builtQuery = await query.build();
     if (builtQuery === undefined) {
       throw new Error("builtQuery is undefined");
     }
