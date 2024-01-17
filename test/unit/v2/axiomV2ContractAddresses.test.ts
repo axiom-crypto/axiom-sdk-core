@@ -53,4 +53,29 @@ describe("AxiomV2 Contract Addresses", () => {
 
     expect(axiomV2QueryMock).toEqual("0xf15cc7B983749686Cd1eCca656C3D3E46407DC1f");
   });
+
+  test("should get AxiomV2Query Sepolia contract addresses", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+      chainId: "11155111",
+    };
+    const ax = new AxiomSdkCore(config);
+    const axiomV2Query = ax.getAxiomQueryAddress();
+
+    expect(axiomV2Query).toEqual("0xb3034090C3A2BE1194e271C7850E1137D1Ad007f");
+  });
+
+  test("should get AxiomV2QueryMock Sepolia contract addresses", () => {
+    const config: AxiomSdkCoreConfig = {
+      providerUri: process.env.PROVIDER_URI as string,
+      version: "v2",
+      chainId: "11155111",
+      mock: true,
+    };
+    const ax = new AxiomSdkCore(config);
+    const axiomV2QueryMock = ax.getAxiomQueryAddress();
+
+    expect(axiomV2QueryMock).toEqual("0x10561E943a178af409FF840de9450E98916de93F");
+  });
 });

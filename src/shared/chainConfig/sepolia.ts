@@ -66,7 +66,7 @@ export let versionDataSepolia: any = {
   },
   v2: {
     Addresses: {
-      Axiom: "",
+      Axiom: "0xbCBa296B560FA58c15eC220df1353B8Ab8c7A419",
       AxiomQuery: "0xb3034090C3A2BE1194e271C7850E1137D1Ad007f",
     },
     Urls: {
