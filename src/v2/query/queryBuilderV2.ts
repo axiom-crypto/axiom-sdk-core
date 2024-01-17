@@ -15,6 +15,8 @@ import {
   encodeDataQuery,
   encodeComputeQuery,
   encodeCallback,
+  AxiomV2FeeData,
+  encodeFeeData,
 } from "@axiom-crypto/tools";
 import { InternalConfig } from "../../core/internalConfig";
 import {
@@ -47,6 +49,7 @@ import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
 import { buildDataQuery, buildDataSubqueries, encodeBuilderDataQuery } from "./dataSubquery/build";
 import { calculateCalldataGas } from "./gasCalc";
 import { deepCopyObject } from "../../shared/utils";
+import { ConfigLimitManager } from "./dataSubquery/configLimitManager";
 
 export class QueryBuilderV2 {
   protected readonly config: InternalConfig;
@@ -188,6 +191,7 @@ export class QueryBuilderV2 {
     this.options = {
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
+      overrideAxiomQueryFee: options?.overrideAxiomQueryFee ?? ConstantsV2.DefaultOverrideAxiomQueryFee,
       dataQueryCalldataGasWarningThreshold:
         options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
@@ -206,8 +210,8 @@ export class QueryBuilderV2 {
       this.dataQuery = [] as UnbuiltSubquery[];
     }
 
-    if (this.dataQuery?.length + dataSubqueries.length > ConstantsV2.MaxDataQuerySize) {
-      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
+    if (this.dataQuery?.length + dataSubqueries.length > ConstantsV2.UserMaxTotalSubqueries) {
+      throw new Error(`Cannot add more than ${ConstantsV2.UserMaxTotalSubqueries} subqueries`);
     }
 
     for (const subquery of dataSubqueries) {
@@ -244,9 +248,17 @@ export class QueryBuilderV2 {
   /**
    * Queries the required subquery data and builds the entire Query object into the format
    * that is required by the backend/ZK circuit
+   * @param validate (optional) Runs validation on the Query before attempting to build it
    * @returns A built Query object
    */
-  async build(): Promise<BuiltQueryV2> {
+  async build(validate?: boolean): Promise<BuiltQueryV2> {
+    if (validate === true) {
+      const valid = await this.validate();
+      if (!valid) {
+        throw new Error("Query validation failed");
+      }
+    }
+
     // Check if Query can be built: needs at least a dataQuery or computeQuery
     let validDataQuery = true;
     if (this.builtDataQuery === undefined && (this.dataQuery === undefined || this.dataQuery.length === 0)) {
@@ -257,7 +269,7 @@ export class QueryBuilderV2 {
       validComputeQuery = false;
     }
     if (!validDataQuery && !validComputeQuery) {
-      throw new Error("Cannot build Query without data or compute query");
+      throw new Error("Cannot build Query without either a data query or a compute query");
     }
 
     // Handle Data Query
@@ -306,6 +318,13 @@ export class QueryBuilderV2 {
       extraData: this.callback?.extraData ?? ethers.ZeroHash,
     };
 
+    // FeeData
+    const feeData: AxiomV2FeeData = {
+      maxFeePerGas: this.options.maxFeePerGas!,
+      callbackGasLimit: this.options.callbackGasLimit!,
+      overrideAxiomQueryFee: this.options.overrideAxiomQueryFee!,
+    }
+
     // Get the refundee address
     const caller = await this.config.signer?.getAddress();
     const refundee = this.options?.refundee ?? caller ?? "";
@@ -323,9 +342,8 @@ export class QueryBuilderV2 {
       computeQuery,
       querySchema,
       callback,
+      feeData,
       userSalt,
-      maxFeePerGas: this.options.maxFeePerGas!,
-      callbackGasLimit: this.options.callbackGasLimit!,
       refundee,
     };
 
@@ -349,7 +367,7 @@ export class QueryBuilderV2 {
     cb?: (receipt: ethers.ContractTransactionReceipt) => void,
   ): Promise<string> {
     if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
+      throw new Error("`privateKey` in AxiomSdkCoreConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error(
@@ -380,9 +398,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
       this.builtQuery.refundee,
       this.builtQuery.dataQuery,
       { value: paymentAmountWei },
@@ -401,7 +418,7 @@ export class QueryBuilderV2 {
     cb?: (receipt: ethers.ContractTransactionReceipt) => void,
   ): Promise<string> {
     if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomConfig required for sending transactions.");
+      throw new Error("`privateKey` in AxiomSdkCoreConfig required for sending transactions.");
     }
     if (this.builtQuery === undefined) {
       throw new Error(
@@ -418,9 +435,8 @@ export class QueryBuilderV2 {
       this.builtQuery.dataQueryHash,
       this.builtQuery.computeQuery,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
       this.builtQuery.refundee,
     );
     const ipfsHash = await writeStringIpfs(encodedQuery);
@@ -441,9 +457,9 @@ export class QueryBuilderV2 {
       this.builtQuery.queryHash,
       ipfsHashBytes32,
       this.builtQuery.callback,
+      this.builtQuery.feeData,
       this.builtQuery.userSalt,
-      this.builtQuery.maxFeePerGas,
-      this.builtQuery.callbackGasLimit,
+      this.builtQuery.refundee,
       { value: paymentAmountWei },
     );
     const receipt = await tx.wait();
@@ -472,7 +488,7 @@ export class QueryBuilderV2 {
   }
 
   /**
-   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomConfig)
+   * Gets a queryId for a built Query (requires `privateKey` to be set in AxiomSdkCoreConfig)
    * @returns uint256 queryId
    */
   async getQueryId(caller?: string): Promise<string> {
@@ -483,11 +499,11 @@ export class QueryBuilderV2 {
     // Get required queryId params
     if (caller === undefined) {
       if (this.config.signer === undefined) {
-        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomConfig");
+        throw new Error("Unable to get signer; ensure you have set `privateKey` in AxiomSdkCoreConfig");
       }
       const callerAddr = await this.config.signer?.getAddress();
       if (callerAddr === "") {
-        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomConfig");
+        throw new Error("Unable to get signer address; ensure you have set `privateKey` in AxiomSdkCoreConfig");
       }
       caller = callerAddr;
     }
@@ -521,7 +537,7 @@ export class QueryBuilderV2 {
     const userAddress = this.config.signer?.address;
     if (userAddress === undefined) {
       throw new Error(
-        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)",
+        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomSdkCoreConfig)",
       );
     }
     const currentBalance = BigInt(
@@ -563,6 +579,8 @@ export class QueryBuilderV2 {
     }
     const provider = this.config.provider;
     let validQuery = true;
+    const configLimitManager = new ConfigLimitManager();
+    
     for (const subquery of this.dataQuery) {
       const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
       switch (type) {
@@ -576,10 +594,10 @@ export class QueryBuilderV2 {
           validQuery = validQuery && (await validateStorageSubquery(provider, subquery as UnbuiltStorageSubquery));
           break;
         case DataSubqueryType.Transaction:
-          validQuery = validQuery && (await validateTxSubquery(provider, subquery as UnbuiltTxSubquery));
+          validQuery = validQuery && (await validateTxSubquery(provider, subquery as UnbuiltTxSubquery, configLimitManager));
           break;
         case DataSubqueryType.Receipt:
-          validQuery = validQuery && (await validateReceiptSubquery(provider, subquery as UnbuiltReceiptSubquery));
+          validQuery = validQuery && (await validateReceiptSubquery(provider, subquery as UnbuiltReceiptSubquery, configLimitManager));
           break;
         case DataSubqueryType.SolidityNestedMapping:
           validQuery =
@@ -661,8 +679,8 @@ export class QueryBuilderV2 {
 
   private updateSubqueryCount(type: DataSubqueryType) {
     this.dataSubqueryCount.total++;
-    if (this.dataSubqueryCount.total > ConstantsV2.MaxDataQuerySize) {
-      throw new Error(`Cannot add more than ${ConstantsV2.MaxDataQuerySize} subqueries`);
+    if (this.dataSubqueryCount.total > ConstantsV2.UserMaxTotalSubqueries) {
+      throw new Error(`Cannot add more than ${ConstantsV2.UserMaxTotalSubqueries} subqueries`);
     }
     switch (type) {
       case DataSubqueryType.Header:
@@ -739,10 +757,16 @@ export class QueryBuilderV2 {
         builtQuery.computeQuery.vkey,
         builtQuery.computeQuery.computeProof,
       ),
-      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
+      encodeCallback(
+        builtQuery.callback.target,
+        builtQuery.callback.extraData
+      ),
+      encodeFeeData(
+        builtQuery.feeData.maxFeePerGas,
+        builtQuery.feeData.callbackGasLimit,
+        builtQuery.feeData.overrideAxiomQueryFee,
+      ),
       builtQuery.userSalt,
-      ethers.toBeHex(builtQuery.maxFeePerGas, 8),
-      ethers.toBeHex(builtQuery.callbackGasLimit, 4),
       refundee,
       builtQuery.dataQuery,
     ]);

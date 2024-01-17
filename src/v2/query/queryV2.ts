@@ -45,7 +45,7 @@ export class QueryV2 extends Query {
     const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
     const userAddress = this.config.signer?.address;
     if (userAddress === undefined) {
-      throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into AxiomConfig)");
+      throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into `AxiomSdkCoreConfig`)");
     }
     return await PaymentCalc.getBalance(
       this.config.providerUri,

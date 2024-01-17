@@ -1,4 +1,4 @@
-import { Axiom, AxiomConfig } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig } from "../../../src";
 import { QueryV1 } from "../../../src/v1/query/queryV1";
 
 describe('Axiom Query', () => {
@@ -8,12 +8,12 @@ describe('Axiom Query', () => {
 
   const TX_HASH = "0xab4984087dbebba638c77707e69fa2ac1c262a72cc5e37728a925465049399c3";
 
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     version: "v1",
   };
 
-  const ax = new Axiom(config);
+  const ax = new AxiomSdkCore(config);
   
   test('should get a ResponseTree for a queryHash', async () => {
     const responseTree = await (ax.query as QueryV1).getResponseTreeForQueryHash("0x95c1227e53129b2689efdb5c090dce2f1dc59f0615b7955551a856a59c17e144");

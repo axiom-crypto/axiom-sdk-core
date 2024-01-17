@@ -1,7 +1,7 @@
 import { getSlotForMapping, HeaderField, AccountField, TxField } from "@axiom-crypto/tools";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   QueryV2,
   buildAccountSubquery,
   buildHeaderSubquery,
@@ -20,12 +20,12 @@ describe("Query Validation Tests", () => {
 
   const provider = new ethers.JsonRpcProvider(process.env.PROVIDER_URI as string);
 
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     version: "v2",
     chainId: 1,
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
   const aq = axiom.query as QueryV2;
 
   test("Validate pass: Header subquery", async () => {
@@ -77,14 +77,14 @@ describe("Query Validation Tests", () => {
     expect(isValid).toEqual(true);
   });
 
-  test("Validate pass: Tx subquery contractData (too large, returns null)", async () => {
+  test("Validate pass: Larger Tx subquery contractData", async () => {
     const query = aq.new();
 
     const txHash = "0xc9ef13429be1a3f44c75af95c4e2ac2083a3469e2751a42a04fcdace94ff98a5";
     const subquery = buildTxSubquery(txHash).contractData(0);
     query.appendDataSubquery(subquery);
     const isValid = await query.validate();
-    expect(isValid).toEqual(false);
+    expect(isValid).toEqual(true);
   });
 
   test("Validate pass: Receipt subquery", async () => {

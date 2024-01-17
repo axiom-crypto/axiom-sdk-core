@@ -2,8 +2,8 @@ import { ethers } from "ethers";
 import {
   AccountField,
   AccountSubquery,
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   AxiomV2ComputeQuery,
   AxiomV2QueryOptions,
   QueryV2,
@@ -51,12 +51,12 @@ describe("Build Query w/ ComputeQuery, DataQuery, Callback, and Options set (cor
   };
 
   test("should initialize with private key; build QueryV2 with dataQuery, computeQuery, and callback", async () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       privateKey: process.env.PRIVATE_KEY as string,
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
     };
-    const axiom = new Axiom(config);
+    const axiom = new AxiomSdkCore(config);
 
     const dataQueryReq = [
       {
@@ -124,11 +124,11 @@ describe("Build Query w/ ComputeQuery, DataQuery, Callback, and Options set (cor
   });
 
   test("should initialize without private key; build QueryV2 with dataQuery, computeQuery, and callback", async () => {
-    const config: AxiomConfig = {
+    const config: AxiomSdkCoreConfig = {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
     };
-    const axiom = new Axiom(config);
+    const axiom = new AxiomSdkCore(config);
 
     const dataQueryReq = [
       {

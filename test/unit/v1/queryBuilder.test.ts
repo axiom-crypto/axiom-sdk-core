@@ -1,11 +1,11 @@
 import { ethers, keccak256 } from "ethers";
-import { Axiom, AxiomConfig } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig } from "../../../src";
 
 describe('QueryBuilder', () => {
   if (process.env.PROVIDER_URI === undefined) {
     throw new Error("PROVIDER_URI environment variable is not set");
   }
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     apiKey: "demo",
     providerUri: process.env.PROVIDER_URI as string,
     version: "v1",
@@ -21,7 +21,7 @@ describe('QueryBuilder', () => {
       ApiBaseUrl: "https://axiom-api-staging.vercel.app/v1",
     },
   }
-  const ax = new Axiom(config, overrides);
+  const ax = new AxiomSdkCore(config, overrides);
 
   const abiCoder = new ethers.AbiCoder();
   const UNI_V2_ADDR = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
@@ -35,7 +35,7 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 1});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 3});
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
+    }, 10000);
 
     test('should successfully build a Query with 0x0-valued slots', async () => {
       const qb = ax.newQueryBuilder();
@@ -44,7 +44,7 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 5});
       await qb.append({blockNumber: 17090217, address: UNI_V2_ADDR, slot: 6});
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
+    }, 10000);
 
     test('should successfully build a Query with blockNumbers that contain a leading zero', async () => {
       // NOTE: Alchemy automatically formats the hex blockNumber to remove the leading zero, 
@@ -54,7 +54,7 @@ describe('QueryBuilder', () => {
       await qb.append({blockNumber: 4095});   // 0x0fff
       await qb.append({blockNumber: 100000}); // 0x0186a0
       const { keccakQueryResponse: _keccakQueryResponse } = await qb.build();
-    });
+    }, 10000);
 
     test('should throw when appending invalid QueryRow data', async () => {
       const failTest = async () => {

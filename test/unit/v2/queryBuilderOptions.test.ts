@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Axiom, AxiomConfig, HeaderField, QueryV2, buildHeaderSubquery } from "../../../src";
+import { AxiomSdkCore, AxiomSdkCoreConfig, HeaderField, QueryV2, buildHeaderSubquery } from "../../../src";
 import { ConstantsV2 } from "../../../src/v2/constants";
 
 // Test coverage areas:
@@ -8,13 +8,13 @@ import { ConstantsV2 } from "../../../src/v2/constants";
 // NOTE: dataQueryCalldataGasWarningThreshold is tested in `calculatorCalldataGas.test.ts`
 
 describe("QueryBuilderV2 Options", () => {
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     providerUri: process.env.PROVIDER_URI as string,
     privateKey: process.env.PRIVATE_KEY as string,
     chainId: 1,
     version: "v2",
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
   const wallet = new ethers.Wallet(
     process.env.PRIVATE_KEY as string,
@@ -30,8 +30,9 @@ describe("QueryBuilderV2 Options", () => {
       maxFeePerGas: "1000000000000",
     });
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual("1000000000000");
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual("1000000000000");
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
   });
 
@@ -43,8 +44,9 @@ describe("QueryBuilderV2 Options", () => {
       callbackGasLimit: 10000,
     });
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
-    expect(builtQuery.callbackGasLimit).toEqual(10000);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(10000);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual(await wallet.getAddress());
   });
 
@@ -56,8 +58,9 @@ describe("QueryBuilderV2 Options", () => {
       refundee: "0xe76a90E3069c9d86e666DcC687e76fcecf4429cF",
     });
     const builtQuery = await query.build();
-    expect(builtQuery.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
-    expect(builtQuery.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.maxFeePerGas).toEqual(ConstantsV2.DefaultMaxFeePerGasWei);
+    expect(builtQuery.feeData.callbackGasLimit).toEqual(ConstantsV2.DefaultCallbackGasLimit);
+    expect(builtQuery.feeData.overrideAxiomQueryFee).toEqual("0");
     expect(builtQuery.refundee).toEqual("0xe76a90E3069c9d86e666DcC687e76fcecf4429cF");
   });
 });

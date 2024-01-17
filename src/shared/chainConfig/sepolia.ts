@@ -1,9 +1,10 @@
+import { AxiomV2CircuitConstant } from "@axiom-crypto/tools";
 import { Endpoints, Path } from "../endpoints";
 
-export let versionDataMainnet: any = {
+export let versionDataSepolia: any = {
   v0: {
     Addresses: {
-      Axiom: "0x2251c204749e18a0f9A7a90Cff1b554F8d492b3c",
+      Axiom: "",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v0",
@@ -21,7 +22,7 @@ export let versionDataMainnet: any = {
   },
   v0_2: {
     Addresses: {
-      Axiom: "0xF990f9CB1A0aa6B51c0720a6f4cAe577d7AbD86A",
+      Axiom: "",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v0_2",
@@ -40,8 +41,8 @@ export let versionDataMainnet: any = {
   },
   v1: {
     Addresses: {
-      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
-      AxiomQuery: "0xd617ab7f787adf64c2b5b920c251ea10cd35a952",
+      Axiom: "",
+      AxiomQuery: "",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v1",
@@ -65,8 +66,8 @@ export let versionDataMainnet: any = {
   },
   v2: {
     Addresses: {
-      Axiom: "0x69963768F8407dE501029680dE46945F838Fc98B",
-      AxiomQuery: "",
+      Axiom: "0xbCBa296B560FA58c15eC220df1353B8Ab8c7A419",
+      AxiomQuery: "0xb3034090C3A2BE1194e271C7850E1137D1Ad007f",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v2",
@@ -84,17 +85,23 @@ export let versionDataMainnet: any = {
       GetQuery: Path.Query + Endpoints.GetQuery,
     },
     Values: {
-      MaxQuerySize: 64,
+      MaxQuerySize: AxiomV2CircuitConstant.UserMaxSubqueries,
       QueryEncodingVersion: 2,
     },
-  }
+  },
 };
 
-export let versionOverrideMainnetMock: any = {
+export let versionOverrideSepoliaMock: any = {
   v1: {
     Addresses: {
-      Axiom: "0x33ea514cc54b641ad8b84e4a31d311f3722d1bb5",
-      AxiomQuery: "0xd617ab7f787adf64c2b5b920c251ea10cd35a952",
+      Axiom: "",
+      AxiomQuery: "",
+    },
+  },
+  v2: {
+    Addresses: {
+      Axiom: "0x69963768F8407dE501029680dE46945F838Fc98B",
+      AxiomQuery: "0x10561E943a178af409FF840de9450E98916de93F",
     },
   },
 };

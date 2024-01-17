@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import {
-  Axiom,
-  AxiomConfig,
+  AxiomSdkCore,
+  AxiomSdkCoreConfig,
   QueryV2,
   getEventSchema,
   bytes32,
@@ -10,14 +10,14 @@ import {
 } from "../../src";
 
 describe("QueryID Test", () => {
-  const config: AxiomConfig = {
+  const config: AxiomSdkCoreConfig = {
     privateKey: process.env.PRIVATE_KEY_GOERLI as string,
     providerUri: process.env.PROVIDER_URI_GOERLI as string,
     version: "v2",
     chainId: 5,
     mock: true,
   };
-  const axiom = new Axiom(config);
+  const axiom = new AxiomSdkCore(config);
 
   test("check queryId matches emitted event", async () => {
     const query = (axiom.query as QueryV2).new();
