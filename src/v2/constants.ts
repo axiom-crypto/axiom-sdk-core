@@ -28,7 +28,7 @@ export const ConstantsV2 = Object.freeze({
   DefaultDataQueryCalldataGasWarningThreshold: 100000,
 
   // Fallback values if contract value cannot be read
-  FallbackProofVerificationGas: 550000n,
+  FallbackProofVerificationGas: 420000n,
   FallbackAxiomQueryFeeWei: 3000000000000000n,
 
   // Schema hashes
