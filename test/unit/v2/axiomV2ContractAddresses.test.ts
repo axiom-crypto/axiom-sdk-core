@@ -9,24 +9,12 @@ describe("AxiomV2 Contract Addresses", () => {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
       chainId: 1,
-    };
-    const ax = new AxiomSdkCore(config);
-    const axiomV2Query = ax.getAxiomQueryAddress();
-
-    expect(axiomV2Query).toEqual("");
-  });
-
-  test("should get AxiomV2 Mainnet contract addresses", () => {
-    const config: AxiomSdkCoreConfig = {
-      providerUri: process.env.PROVIDER_URI as string,
-      version: "v2",
-      chainId: 1,
       mock: true,
     };
     const ax = new AxiomSdkCore(config);
     const axiomV2Query = ax.getAxiomQueryAddress();
 
-    expect(axiomV2Query).toEqual("");
+    expect(axiomV2Query).toEqual("0x83c8c0B395850bA55c830451Cfaca4F2A667a983");
   });
 
   test("should get AxiomV2Query Goerli contract addresses", () => {
@@ -76,6 +64,6 @@ describe("AxiomV2 Contract Addresses", () => {
     const ax = new AxiomSdkCore(config);
     const axiomV2QueryMock = ax.getAxiomQueryAddress();
 
-    expect(axiomV2QueryMock).toEqual("0x10561E943a178af409FF840de9450E98916de93F");
+    expect(axiomV2QueryMock).toEqual("0x83c8c0B395850bA55c830451Cfaca4F2A667a983");
   });
 });

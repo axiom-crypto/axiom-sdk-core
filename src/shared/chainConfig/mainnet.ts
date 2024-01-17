@@ -66,7 +66,7 @@ export let versionDataMainnet: any = {
   v2: {
     Addresses: {
       Axiom: "0x69963768F8407dE501029680dE46945F838Fc98B",
-      AxiomQuery: "",
+      AxiomQuery: "0x83c8c0B395850bA55c830451Cfaca4F2A667a983",
     },
     Urls: {
       ApiBaseUrl: "https://api.axiom.xyz/v2",
