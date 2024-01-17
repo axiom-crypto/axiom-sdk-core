@@ -9,7 +9,6 @@ describe("AxiomV2 Contract Addresses", () => {
       providerUri: process.env.PROVIDER_URI as string,
       version: "v2",
       chainId: 1,
-      mock: true,
     };
     const ax = new AxiomSdkCore(config);
     const axiomV2Query = ax.getAxiomQueryAddress();
