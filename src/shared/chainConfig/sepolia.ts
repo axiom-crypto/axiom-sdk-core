@@ -101,7 +101,7 @@ export let versionOverrideSepoliaMock: any = {
   v2: {
     Addresses: {
       Axiom: "0x69963768F8407dE501029680dE46945F838Fc98B",
-      AxiomQuery: "0x10561E943a178af409FF840de9450E98916de93F",
+      AxiomQuery: "0x83c8c0B395850bA55c830451Cfaca4F2A667a983",
     },
   },
 };
