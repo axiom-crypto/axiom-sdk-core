@@ -122,5 +122,32 @@ describe("Query Validation Tests", () => {
     expect(test).toThrow();
   });
 
-  test("Validate pass: Callback", async () => {});
+  test("Validate pass: empty Callback combinations", async () => {
+    const query = aq.new();
+    const subquery = buildSolidityNestedMappingSubquery(17000000)
+      .address(UNI_V3_FACTORY_ADDR)
+      .mappingSlot(5)
+      .keys([WETH_ADDR, WSOL_ADDR, 10000]);
+    query.appendDataSubquery(subquery);
+    query.setCallback({
+      target: "",
+      extraData: "",
+    });
+    let isValid = await query.validate();
+    expect(isValid).toEqual(true);
+
+    query.setCallback({
+      target: ethers.ZeroAddress,
+      extraData: ethers.ZeroHash,
+    });
+    isValid = await query.validate();
+    expect(isValid).toEqual(true);
+
+    query.setCallback({
+      target: ethers.ZeroAddress,
+      extraData: "",
+    });
+    isValid = await query.validate();
+    expect(isValid).toEqual(true);
+  });
 });
