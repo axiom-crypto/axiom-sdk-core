@@ -651,6 +651,16 @@ export class QueryBuilderV2 {
     }
     let valid = true;
 
+    let target = this.callback.target;
+    if (
+      target === undefined || 
+      target === "" || 
+      target === ethers.ZeroAddress
+    ) {
+      console.warn("Callback target is empty");
+      valid = false;
+    }
+
     let extraData = this.callback.extraData;
     // Check if extra data is bytes32-aligned
     if (extraData.startsWith("0x")) {
