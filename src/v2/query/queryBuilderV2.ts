@@ -662,15 +662,20 @@ export class QueryBuilderV2 {
     }
 
     let extraData = this.callback.extraData;
-    // Check if extra data is bytes32-aligned
-    if (extraData.startsWith("0x")) {
-      extraData = extraData.slice(2);
-    }
-    if (extraData.length % 64 !== 0) {
-      console.warn(
-        "Callback extraData is not bytes32-aligned; EVM will automatically right-append zeros to data that is not a multiple of 32 bytes, which is probably not what you want.",
-      );
+    if (extraData === undefined) {
+      console.warn("Callback extraData is undefined");
       valid = false;
+    } else {
+      // Check if extra data is bytes32-aligned
+      if (extraData.startsWith("0x")) {
+        extraData = extraData.slice(2);
+      }
+      if (extraData.length % 64 !== 0) {
+        console.warn(
+          "Callback extraData is not bytes32-aligned; EVM will automatically right-append zeros to data that is not a multiple of 32 bytes, which is probably not what you want.",
+        );
+        valid = false;
+      }
     }
 
     return valid;
