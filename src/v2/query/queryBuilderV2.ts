@@ -651,23 +651,31 @@ export class QueryBuilderV2 {
     }
     let valid = true;
 
-    // Check if callback address is a valid contract address
-    const bytecode = await this.config.provider.getCode(this.callback.target);
-    if (bytecode.length <= 2) {
-      console.warn("Callback address is not a valid contract address");
+    let target = this.callback.target;
+    if (
+      target === undefined || 
+      target === "" || 
+      target === ethers.ZeroAddress
+    ) {
+      console.warn("Callback target is empty");
       valid = false;
     }
 
-    // Check if extra data is bytes32-aligned
     let extraData = this.callback.extraData;
-    if (extraData.startsWith("0x")) {
-      extraData = extraData.slice(2);
-    }
-    if (extraData.length % 64 !== 0) {
-      console.warn(
-        "Callback extraData is not bytes32-aligned; EVM will automatically right-append zeros to data that is not a multiple of 32 bytes, which is probably not what you want.",
-      );
+    if (extraData === undefined) {
+      console.warn("Callback extraData is undefined");
       valid = false;
+    } else {
+      // Check if extra data is bytes32-aligned
+      if (extraData.startsWith("0x")) {
+        extraData = extraData.slice(2);
+      }
+      if (extraData.length % 64 !== 0) {
+        console.warn(
+          "Callback extraData is not bytes32-aligned; EVM will automatically right-append zeros to data that is not a multiple of 32 bytes, which is probably not what you want.",
+        );
+        valid = false;
+      }
     }
 
     return valid;
