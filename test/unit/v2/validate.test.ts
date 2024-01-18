@@ -129,25 +129,50 @@ describe("Query Validation Tests", () => {
       .mappingSlot(5)
       .keys([WETH_ADDR, WSOL_ADDR, 10000]);
     query.appendDataSubquery(subquery);
+
     query.setCallback({
-      target: "",
-      extraData: "",
+      target: UNI_V3_FACTORY_ADDR,
+      extraData: ethers.ZeroHash,
     });
     let isValid = await query.validate();
     expect(isValid).toEqual(true);
 
     query.setCallback({
-      target: ethers.ZeroAddress,
-      extraData: ethers.ZeroHash,
+      target: UNI_V3_FACTORY_ADDR,
+      extraData: "",
     });
     isValid = await query.validate();
     expect(isValid).toEqual(true);
+
+    query.setCallback({
+      target: UNI_V3_FACTORY_ADDR,
+      extraData: "0x",
+    });
+    isValid = await query.validate();
+    expect(isValid).toEqual(true);
+  });
+
+  test("Validate fail: invalid Callback combinations", async () => {
+    const query = aq.new();
+
+    query.setCallback({
+      target: "",
+      extraData: "",
+    });
+    let isValid = await query.validate();
+    expect(isValid).toEqual(false);
 
     query.setCallback({
       target: ethers.ZeroAddress,
       extraData: "",
     });
     isValid = await query.validate();
-    expect(isValid).toEqual(true);
+
+    query.setCallback({
+      target: UNI_V3_FACTORY_ADDR,
+      extraData: "0x1234",
+    });
+    isValid = await query.validate();
+    expect(isValid).toEqual(false);
   });
 });
