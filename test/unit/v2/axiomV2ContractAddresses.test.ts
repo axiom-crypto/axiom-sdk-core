@@ -50,7 +50,7 @@ describe("AxiomV2 Contract Addresses", () => {
     const ax = new AxiomSdkCore(config);
     const axiomV2Query = ax.getAxiomQueryAddress();
 
-    expect(axiomV2Query).toEqual("0xb3034090C3A2BE1194e271C7850E1137D1Ad007f");
+    expect(axiomV2Query).toEqual("0x83c8c0B395850bA55c830451Cfaca4F2A667a983");
   });
 
   test("should get AxiomV2QueryMock Sepolia contract addresses", () => {
