@@ -23,7 +23,7 @@ export enum ReceiptSizeCategory {
 export const ConstantsV2 = Object.freeze({
   // Default values for options
   DefaultMaxFeePerGasWei: "25000000000",
-  DefaultCallbackGasLimit: 200000,
+  DefaultCallbackGasLimit: 100000,
   DefaultOverrideAxiomQueryFee: "0",
   DefaultDataQueryCalldataGasWarningThreshold: 100000,
 

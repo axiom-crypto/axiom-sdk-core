@@ -97,4 +97,10 @@ export let versionOverrideMainnetMock: any = {
       AxiomQuery: "0xd617ab7f787adf64c2b5b920c251ea10cd35a952",
     },
   },
+  v2: {
+    Addresses: {
+      Axiom: "0x69963768F8407dE501029680dE46945F838Fc98B",
+      AxiomQuery: "0x83c8c0B395850bA55c830451Cfaca4F2A667a983",
+    },
+  },
 };
