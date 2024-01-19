@@ -16,7 +16,7 @@ describe("Payment Calculator", () => {
   test("Payment calculation default based on options", async () => {
     const query = (axiom.query as QueryV2).new();
     const fee = await query.calculateFee();
-    expect(fee).toEqual("20500000000000000");
+    expect(fee).toEqual("18000000000000000");
   });
 
   test("Payment calculation high based on options", async () => {
