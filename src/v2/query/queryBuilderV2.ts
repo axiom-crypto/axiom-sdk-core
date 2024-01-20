@@ -323,7 +323,7 @@ export class QueryBuilderV2 {
       maxFeePerGas: this.options.maxFeePerGas!,
       callbackGasLimit: this.options.callbackGasLimit!,
       overrideAxiomQueryFee: this.options.overrideAxiomQueryFee!,
-    }
+    };
 
     // Get the refundee address
     const caller = await this.config.signer?.getAddress();
@@ -580,7 +580,7 @@ export class QueryBuilderV2 {
     const provider = this.config.provider;
     let validQuery = true;
     const configLimitManager = new ConfigLimitManager();
-    
+
     for (const subquery of this.dataQuery) {
       const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
       switch (type) {
@@ -594,10 +594,13 @@ export class QueryBuilderV2 {
           validQuery = validQuery && (await validateStorageSubquery(provider, subquery as UnbuiltStorageSubquery));
           break;
         case DataSubqueryType.Transaction:
-          validQuery = validQuery && (await validateTxSubquery(provider, subquery as UnbuiltTxSubquery, configLimitManager));
+          validQuery =
+            validQuery && (await validateTxSubquery(provider, subquery as UnbuiltTxSubquery, configLimitManager));
           break;
         case DataSubqueryType.Receipt:
-          validQuery = validQuery && (await validateReceiptSubquery(provider, subquery as UnbuiltReceiptSubquery, configLimitManager));
+          validQuery =
+            validQuery &&
+            (await validateReceiptSubquery(provider, subquery as UnbuiltReceiptSubquery, configLimitManager));
           break;
         case DataSubqueryType.SolidityNestedMapping:
           validQuery =
@@ -652,11 +655,7 @@ export class QueryBuilderV2 {
     let valid = true;
 
     let target = this.callback.target;
-    if (
-      target === undefined || 
-      target === "" || 
-      target === ethers.ZeroAddress
-    ) {
+    if (target === undefined || target === "" || target === ethers.ZeroAddress) {
       console.warn("Callback target is empty");
       valid = false;
     }
@@ -699,12 +698,7 @@ export class QueryBuilderV2 {
         break;
       case DataSubqueryType.Account:
         this.dataSubqueryCount.account++;
-        if (
-          this.dataSubqueryCount.account +
-            this.dataSubqueryCount.storage +
-            this.dataSubqueryCount.solidityNestedMapping >
-          ConstantsV2.MaxSameSubqueryType
-        ) {
+        if (this.dataSubqueryCount.account > ConstantsV2.MaxSameSubqueryType) {
           throw new Error(
             `Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account + Storage + Nested Mapping subqueries`,
           );
@@ -712,12 +706,7 @@ export class QueryBuilderV2 {
         break;
       case DataSubqueryType.Storage:
         this.dataSubqueryCount.storage++;
-        if (
-          this.dataSubqueryCount.account +
-            this.dataSubqueryCount.storage +
-            this.dataSubqueryCount.solidityNestedMapping >
-          ConstantsV2.MaxSameSubqueryType
-        ) {
+        if (this.dataSubqueryCount.storage > ConstantsV2.MaxSameSubqueryType) {
           throw new Error(
             `Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account + Storage + Nested Mapping subqueries`,
           );
@@ -737,12 +726,7 @@ export class QueryBuilderV2 {
         break;
       case DataSubqueryType.SolidityNestedMapping:
         this.dataSubqueryCount.solidityNestedMapping++;
-        if (
-          this.dataSubqueryCount.account +
-            this.dataSubqueryCount.storage +
-            this.dataSubqueryCount.solidityNestedMapping >
-          ConstantsV2.MaxSameSubqueryType
-        ) {
+        if (this.dataSubqueryCount.solidityNestedMapping > ConstantsV2.MaxSameSubqueryType) {
           throw new Error(
             `Cannot add more than ${ConstantsV2.MaxSameSubqueryType} Account + Storage + Nested Mapping subqueries`,
           );
@@ -765,10 +749,7 @@ export class QueryBuilderV2 {
         builtQuery.computeQuery.vkey,
         builtQuery.computeQuery.computeProof,
       ),
-      encodeCallback(
-        builtQuery.callback.target,
-        builtQuery.callback.extraData
-      ),
+      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
       encodeFeeData(
         builtQuery.feeData.maxFeePerGas,
         builtQuery.feeData.callbackGasLimit,
