@@ -28,6 +28,13 @@ describe("Query Validation Tests", () => {
   const axiom = new AxiomSdkCore(config);
   const aq = axiom.query as QueryV2;
 
+  const axiomSepolia = new AxiomSdkCore({
+    providerUri: process.env.PROVIDER_URI_SEPOLIA as string,
+    version: "v2",
+    chainId: "11155111",
+  });
+  const aqSep = axiomSepolia.query as QueryV2;
+
   test("Validate pass: Header subquery", async () => {
     const query = aq.new();
     const subquery = buildHeaderSubquery(17000000).field(HeaderField.GasUsed);
@@ -174,5 +181,24 @@ describe("Query Validation Tests", () => {
     });
     isValid = await query.validate();
     expect(isValid).toEqual(false);
+  });
+
+  test("Validate fail: type 3 tx subquery", async () => {
+    const sepoliaTransactions = [
+      // type 3
+      "0x8fd091f4b5b1b17431110afa99fbd9cabdabecb92a1315afa458fc3dcb91efde",
+      "0x95ea8f5b10f8ac9f48943ac32014705a10c76d54551391f1ed34c72c6c28fa83",
+      "0x48c6fcfd6cbc753938d486cb33711b63d4330b48371a7919648c9e1506d6b6e9",
+      "0xbdb6eb8982db0695f6685840d01667d9c7beb5140b96e6af38c346c6a0de2edf",
+      "0xaeac36b485d4c6672f6d7337ab8015b0d4483724151dfda88214c0e4fd675542",
+    ];
+
+    for (const txHash of sepoliaTransactions) {
+      const query = aqSep.new();
+      const subquery = buildTxSubquery(txHash).field(TxField.To);
+      query.appendDataSubquery(subquery);
+      const isValid = await query.validate();
+      expect(isValid).toEqual(false);
+    }
   });
 });
