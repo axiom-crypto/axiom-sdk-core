@@ -199,6 +199,7 @@ export async function validateReceiptSubquery(
       eventSchema: subquery.eventSchema,
     },
     console,
+    rc,
   );
   if (value === null) {
     console.error(`Receipt subquery ${JSON.stringify(subquery)} returned null`);
