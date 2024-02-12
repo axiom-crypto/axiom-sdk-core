@@ -1,8 +1,8 @@
 # Axiom SDK Core
 
-Axiom is the ZK coprocessor for Ethereum. Utilizing the properties of Zero Knowledge proofs, Axiom allows anyone to prove historical data on-chain and trustlessly use that data in a smart contract.
+[Axiom](https://axiom.xyz) allows smart contracts to compute over the entire history of Ethereum. Smart contracts can query Axiom on-chain, and Axiom results are verified on-chain in ZK and delivered to the target smart contract via callback.
 
-# Getting started with AxiomV2
+# Getting started with Axiom V2
 
 Please see the [Quickstart](https://docs.axiom.xyz/introduction/quickstart) for the fastest way to get started with Axiom. For more info, see the [Docs](https://docs.axiom.xyz).
 
