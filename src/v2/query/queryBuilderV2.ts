@@ -44,10 +44,8 @@ import {
   validateSolidityNestedMappingSubquery,
   validateBeaconSubquery,
 } from "./dataSubquery/validate";
-import { convertIpfsCidToBytes32, writeStringIpfs } from "../../shared/ipfs";
 import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
 import { buildDataQuery, buildDataSubqueries, encodeBuilderDataQuery } from "./dataSubquery/build";
-import { calculateCalldataGas } from "./gasCalc";
 import { deepCopyObject } from "../../shared/utils";
 import { ConfigLimitManager } from "./dataSubquery/configLimitManager";
 
@@ -347,128 +345,7 @@ export class QueryBuilderV2 {
       refundee,
     };
 
-    // NOTE: Disabled for testnet launch; will re-enable after IPFS added
-    // Calculate calldata gas cost
-    // const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
-    // const calldataGas = calculateCalldataGas(sendQueryInputs);
-    // const calldataGasThrshold =
-    //   this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
-    // if (calldataGas > calldataGasThrshold) {
-    //   console.warn(
-    //     `Data query calldata gas cost ${calldataGas} exceeds warning thrshold ${calldataGasThrshold}. Consider sending the Query via IPFS.`,
-    //   );
-    // }
-
     return this.builtQuery;
-  }
-
-  async sendOnchainQuery(
-    paymentAmountWei: string,
-    cb?: (receipt: ethers.ContractTransactionReceipt) => void,
-  ): Promise<string> {
-    if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomSdkCoreConfig required for sending transactions.");
-    }
-    if (this.builtQuery === undefined) {
-      throw new Error(
-        "Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.",
-      );
-    }
-
-    // Check dataQuery gas cost
-    const dataQueryGasCost = calculateCalldataGas(this.builtQuery.dataQuery);
-    const dataQueryGasLimit =
-      this?.options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
-    if (dataQueryGasCost > dataQueryGasLimit) {
-      throw new Error(
-        `Data query calldata gas cost ${dataQueryGasCost} exceeds limit ${dataQueryGasLimit}. Either increase this limit in options or use 'sendQueryWithIpfs()' instead.`,
-      );
-    }
-
-    const axiomV2Query = new ethers.Contract(
-      this.config.getConstants().Addresses.AxiomQuery,
-      getAxiomQueryAbiForVersion(this.config.version),
-      this.config.signer,
-    );
-
-    const queryId = await this.getQueryId();
-
-    const tx = await axiomV2Query.sendQuery(
-      this.builtQuery.sourceChainId,
-      this.builtQuery.dataQueryHash,
-      this.builtQuery.computeQuery,
-      this.builtQuery.callback,
-      this.builtQuery.feeData,
-      this.builtQuery.userSalt,
-      this.builtQuery.refundee,
-      this.builtQuery.dataQuery,
-      { value: paymentAmountWei },
-    );
-    const receipt: ethers.ContractTransactionReceipt = await tx.wait();
-
-    if (cb !== undefined) {
-      cb(receipt);
-    }
-
-    return queryId;
-  }
-
-  async sendQueryWithIpfs(
-    paymentAmountWei: string,
-    cb?: (receipt: ethers.ContractTransactionReceipt) => void,
-  ): Promise<string> {
-    if (this.config.signer === undefined) {
-      throw new Error("`privateKey` in AxiomSdkCoreConfig required for sending transactions.");
-    }
-    if (this.builtQuery === undefined) {
-      throw new Error(
-        "Query must be built with `.build()` before sending. If Query is modified after building, you must run `.build()` again.",
-      );
-    }
-
-    const caller = await this.config.signer?.getAddress();
-
-    // Handle encoding data and uploading to IPFS
-    const encodedQuery = encodeQueryV2(
-      this.builtQuery.sourceChainId,
-      caller,
-      this.builtQuery.dataQueryHash,
-      this.builtQuery.computeQuery,
-      this.builtQuery.callback,
-      this.builtQuery.feeData,
-      this.builtQuery.userSalt,
-      this.builtQuery.refundee,
-    );
-    const ipfsHash = await writeStringIpfs(encodedQuery);
-    if (ipfsHash === null) {
-      throw new Error("Failed to write Query to IPFS.");
-    }
-    const ipfsHashBytes32 = convertIpfsCidToBytes32(ipfsHash);
-
-    const axiomV2Query = new ethers.Contract(
-      this.config.getConstants().Addresses.AxiomQuery,
-      getAxiomQueryAbiForVersion(this.config.version),
-      this.config.signer,
-    );
-
-    const queryId = await this.getQueryId();
-
-    const tx = await axiomV2Query.sendQueryWithIpfsData(
-      this.builtQuery.queryHash,
-      ipfsHashBytes32,
-      this.builtQuery.callback,
-      this.builtQuery.feeData,
-      this.builtQuery.userSalt,
-      this.builtQuery.refundee,
-      { value: paymentAmountWei },
-    );
-    const receipt = await tx.wait();
-
-    if (cb !== undefined) {
-      cb(receipt);
-    }
-
-    return queryId;
   }
 
   /**
@@ -735,29 +612,5 @@ export class QueryBuilderV2 {
       default:
         throw new Error(`Unknown subquery type: ${type}`);
     }
-  }
-
-  private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
-    const refundee = builtQuery.refundee === "" ? ConstantsV2.Bytes32Max : builtQuery.refundee;
-    return ethers.concat([
-      "0xba1d7f19",
-      ethers.toBeHex(builtQuery.sourceChainId, 8),
-      builtQuery.queryHash,
-      encodeComputeQuery(
-        builtQuery.computeQuery.k,
-        builtQuery.computeQuery.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs,
-        builtQuery.computeQuery.vkey,
-        builtQuery.computeQuery.computeProof,
-      ),
-      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
-      encodeFeeData(
-        builtQuery.feeData.maxFeePerGas,
-        builtQuery.feeData.callbackGasLimit,
-        builtQuery.feeData.overrideAxiomQueryFee,
-      ),
-      builtQuery.userSalt,
-      refundee,
-      builtQuery.dataQuery,
-    ]);
   }
 }
