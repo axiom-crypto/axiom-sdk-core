@@ -29,11 +29,8 @@ jobs:
       - name: Run Unit Tests
         run: |
           export PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+          export PRIVATE_KEY_SEPOLIA=${{ secrets.PRIVATE_KEY_SEPOLIA }}
           export PROVIDER_URI=${{ secrets.PROVIDER_URI }}
           export PROVIDER_URI_GOERLI=${{ secrets.PROVIDER_URI_GOERLI }}
           export PROVIDER_URI_SEPOLIA=${{ secrets.PROVIDER_URI_SEPOLIA }}
-          ANVIL_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-          export PRIVATE_KEY=$ANVIL_PRIVATE_KEY # just needs to be in the correct format, no tx is sent in unit tests
-          export PRIVATE_KEY_GOERLI=$ANVIL_PRIVATE_KEY
-          export PRIVATE_KEY_SEPOLIA=$ANVIL_PRIVATE_KEY
           npm test test/unit
