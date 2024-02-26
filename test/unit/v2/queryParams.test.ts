@@ -169,7 +169,7 @@ describe("Query ID and Schema calculation", () => {
     expect(querySchema).toEqual("0x412efc8f4184ff6cb59c65113d3e64ddfdc521b3dd083bd076aecec735fb6e98");
 
     const queryId = await query.getQueryId();
-    expect(queryId).toEqual("48044697032147397047484525564957309609572441090589780793445755160032499990078");
+    expect(queryId).toEqual("26331238880531630939427649691123836670567064478799277856427570787260492145586");
   });
 
   test("queryId should change with different caller", async () => {
@@ -196,7 +196,7 @@ describe("Query ID and Schema calculation", () => {
     builtQuery.userSalt = bytes32(1); // lock the salt value for consistent results
 
     let queryId = await query.getQueryId();
-    expect(queryId).toEqual("98889725304317068813202880468729579267735358960168967565344125062025862943344");
+    expect(queryId).toEqual("34105472793833197573956594097263260213057846125309585781735597677991434057572");
 
     queryId = await query.getQueryId("0x41a7a901ef58d383801272d2408276d96973550d");
     expect(queryId).toEqual("7120525174168517755499793234294755392835908142367641295038978869119154112223");

@@ -46,7 +46,6 @@ import {
 } from "./dataSubquery/validate";
 import { getUnbuiltSubqueryTypeFromKeys } from "./dataSubquery/utils";
 import { buildDataQuery, buildDataSubqueries, encodeBuilderDataQuery } from "./dataSubquery/build";
-import { calculateCalldataGas } from "./gasCalc";
 import { deepCopyObject } from "../../shared/utils";
 import { ConfigLimitManager } from "./dataSubquery/configLimitManager";
 
@@ -346,18 +345,6 @@ export class QueryBuilderV2 {
       refundee,
     };
 
-    // NOTE: Disabled for testnet launch; will re-enable after IPFS added
-    // Calculate calldata gas cost
-    // const sendQueryInputs = this.concatSendQueryInputs(this.builtQuery);
-    // const calldataGas = calculateCalldataGas(sendQueryInputs);
-    // const calldataGasThrshold =
-    //   this.options.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold;
-    // if (calldataGas > calldataGasThrshold) {
-    //   console.warn(
-    //     `Data query calldata gas cost ${calldataGas} exceeds warning thrshold ${calldataGasThrshold}. Consider sending the Query via IPFS.`,
-    //   );
-    // }
-
     return this.builtQuery;
   }
 
@@ -625,29 +612,5 @@ export class QueryBuilderV2 {
       default:
         throw new Error(`Unknown subquery type: ${type}`);
     }
-  }
-
-  private concatSendQueryInputs(builtQuery: BuiltQueryV2): string {
-    const refundee = builtQuery.refundee === "" ? ConstantsV2.Bytes32Max : builtQuery.refundee;
-    return ethers.concat([
-      "0xba1d7f19",
-      ethers.toBeHex(builtQuery.sourceChainId, 8),
-      builtQuery.queryHash,
-      encodeComputeQuery(
-        builtQuery.computeQuery.k,
-        builtQuery.computeQuery.resultLen ?? AxiomV2CircuitConstant.UserMaxOutputs,
-        builtQuery.computeQuery.vkey,
-        builtQuery.computeQuery.computeProof,
-      ),
-      encodeCallback(builtQuery.callback.target, builtQuery.callback.extraData),
-      encodeFeeData(
-        builtQuery.feeData.maxFeePerGas,
-        builtQuery.feeData.callbackGasLimit,
-        builtQuery.feeData.overrideAxiomQueryFee,
-      ),
-      builtQuery.userSalt,
-      refundee,
-      builtQuery.dataQuery,
-    ]);
   }
 }
