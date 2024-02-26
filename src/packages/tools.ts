@@ -1,5 +1,6 @@
 export {
   decodeQuery,
+  decodeFullQueryV2,
   encodeQueryV2,
   encodeFullQueryV2,
   bytes32,
@@ -18,6 +19,11 @@ export {
   getAccountData,
   getTxHash,
   getBlockNumberAndTxIdx,
+  formatDataRlp,
+  objectToRlp,
+  rlpEncodeBlockHeader,
+  rlpEncodeTransaction,
+  ByteStringReader,
   ByteLengths,
   MaxSizes,
 } from "@axiom-crypto/tools";
