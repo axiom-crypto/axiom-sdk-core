@@ -28,6 +28,7 @@ jobs:
 
       - name: Run Unit Tests
         run: |
+          export PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
           export PROVIDER_URI=${{ secrets.PROVIDER_URI }}
           export PROVIDER_URI_GOERLI=${{ secrets.PROVIDER_URI_GOERLI }}
           export PROVIDER_URI_SEPOLIA=${{ secrets.PROVIDER_URI_SEPOLIA }}
