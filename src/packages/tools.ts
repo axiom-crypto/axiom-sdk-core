@@ -1,7 +1,7 @@
 export {
   decodeQuery,
-  encodeQueryV1,
   encodeQueryV2,
+  encodeFullQueryV2,
   bytes32,
   getEventSchema,
   getFunctionSelector,

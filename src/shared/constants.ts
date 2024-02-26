@@ -17,7 +17,7 @@ export const SharedConstants = Object.freeze({
   EIP1559_BLOCK: 12965000,
 });
 
-export const Versions = ["v0", "v0_2", "v1", "v2"];
+export const Versions = ["v2"];
 
 export type VersionsType = (typeof Versions)[number];
 
