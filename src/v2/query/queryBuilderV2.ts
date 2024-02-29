@@ -201,7 +201,7 @@ export class QueryBuilderV2 {
    * Append a `UnbuiltSubquery[]` object to the current dataQuery
    * @param dataQuery A `UnbuiltSubquery[]` object to append
    */
-  append(dataSubqueries: UnbuiltSubquery[]): void {
+  append(dataSubqueries: UnbuiltSubquery[], skipValidate?: boolean): void {
     this.unsetBuiltQuery();
 
     if (this.dataQuery === undefined) {
@@ -214,7 +214,7 @@ export class QueryBuilderV2 {
 
     for (const subquery of dataSubqueries) {
       const type = getUnbuiltSubqueryTypeFromKeys(Object.keys(subquery));
-      this.updateSubqueryCount(type);
+      this.updateSubqueryCount(type, skipValidate);
     }
 
     // Append new dataSubqueries to existing dataQuery
@@ -235,10 +235,10 @@ export class QueryBuilderV2 {
    * Appends a built DataQuery. This is used when receiving a DataQuery from a ComputeQuery.
    * Setting this will take precedence over setting any UnbuiltSubqueries via `append()`.
    */
-  setBuiltDataQuery(dataQuery: AxiomV2DataQuery): void {
+  setBuiltDataQuery(dataQuery: AxiomV2DataQuery, skipValidate?: boolean): void {
     this.resetSubqueryCount();
     for (const subquery of dataQuery.subqueries) {
-      this.updateSubqueryCount(subquery.type);
+      this.updateSubqueryCount(subquery.type, skipValidate);
     }
     this.builtDataQuery = dataQuery;
   }
@@ -561,8 +561,9 @@ export class QueryBuilderV2 {
     this.dataSubqueryCount = deepCopyObject(ConstantsV2.EmptyDataSubqueryCount);
   }
 
-  private updateSubqueryCount(type: DataSubqueryType) {
+  private updateSubqueryCount(type: DataSubqueryType, skipValidate?: boolean) {
     this.dataSubqueryCount.total++;
+    if (skipValidate) return;
     if (this.dataSubqueryCount.total > ConstantsV2.UserMaxTotalSubqueries) {
       throw new Error(`Cannot add more than ${ConstantsV2.UserMaxTotalSubqueries} subqueries`);
     }
