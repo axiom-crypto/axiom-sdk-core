@@ -24,6 +24,10 @@ export {
   rlpEncodeBlockHeader,
   rlpEncodeTransaction,
   ByteStringReader,
+  IpfsClient,
+  PinataIpfsClient,
+  QuicknodeIpfsClient,
+  IpfsResult,
   ByteLengths,
   MaxSizes,
 } from "@axiom-crypto/tools";
