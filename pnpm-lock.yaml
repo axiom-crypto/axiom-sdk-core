@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@axiom-crypto/tools':
-    specifier: 2.0.2
-    version: 2.0.2
+    specifier: 2.1.0-rc.0
+    version: 2.1.0-rc.0
   axios:
     specifier: ^1.6.1
     version: 1.6.1
@@ -73,12 +73,16 @@ packages:
       '@jridgewell/trace-mapping': 0.3.20
     dev: true
 
-  /@axiom-crypto/tools@2.0.2:
-    resolution: {integrity: sha512-9U72jZvY33NXXon93qTBy49s01VZZPi5OAuTnPB7Hqw/0x+HDEdP1h3PB5fcV7cPdO5ZmqOH70ukVe/zCMwYjg==}
+  /@axiom-crypto/tools@2.1.0-rc.0:
+    resolution: {integrity: sha512-ekfeP5P8lbwTAnMxKU8rMrbNkJKQYJ7CNPAjo1BW1VdqJQaH1IfbDQR6ylXbjvO6pTUzuKjRhV12U8Ol5qQc3g==}
     dependencies:
+      axios: 1.6.7
+      bs58: 5.0.0
       ethers: 6.8.1
+      form-data: 4.0.0
     transitivePeerDependencies:
       - bufferutil
+      - debug
       - utf-8-validate
     dev: false
 
@@ -1183,6 +1187,16 @@ packages:
 
   /axios@1.6.1:
     resolution: {integrity: sha512-vfBmhDpKafglh0EldBEbVuoe7DyAavGSLWhuSm5ZSEKQnHhBf0xAAwybbNH1IkrJNGnS/VG4I5yxig1pCEXE4g==}
+    dependencies:
+      follow-redirects: 1.15.4
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /axios@1.6.7:
+    resolution: {integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==}
     dependencies:
       follow-redirects: 1.15.4
       form-data: 4.0.0
