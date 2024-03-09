@@ -1,17 +1,3 @@
-import {
-  versionDataMainnet,
-  versionOverrideMainnetMock,
-} from "./chainConfig/mainnet";
-import {
-  versionDataGoerli,
-  versionOverrideGoerliMock,
-} from "./chainConfig/goerli";
-import {
-  versionDataSepolia,
-  versionOverrideSepoliaMock,
-} from "./chainConfig/sepolia";
-import { deepCopyObject } from "./utils";
-
 export const SharedConstants = Object.freeze({
   EIP2930_BLOCK: 12244000,
   EIP1559_BLOCK: 12965000,
@@ -20,51 +6,6 @@ export const SharedConstants = Object.freeze({
 export const Versions = ["v2"];
 
 export type VersionsType = (typeof Versions)[number];
-
-export function setVersionData(
-  chainId: BigInt,
-  version: string,
-  mock: boolean
-) {
-  let versionData;
-  switch (chainId) {
-    case 1n:
-    case 31337n:
-      versionData = deepCopyObject(versionDataMainnet);
-      if (mock) {
-        updateConstants(
-          versionData,
-          version,
-          versionOverrideMainnetMock[version]
-        );
-      }
-      break;
-    case 5n:
-    case 31341n:
-      versionData = deepCopyObject(versionDataGoerli);
-      if (mock) {
-        updateConstants(
-          versionData,
-          version,
-          versionOverrideGoerliMock[version]
-        );
-      }
-      break;
-    case 11155111n:
-      versionData = deepCopyObject(versionDataSepolia);
-      if (mock) {
-        updateConstants(
-          versionData,
-          version,
-          versionOverrideSepoliaMock[version]
-        );
-      }
-      break;
-    default:
-      throw new Error(`Unsupported chainId: ${chainId}`);
-  }
-  return versionData;
-}
 
 export const ContractEvents = Object.freeze({
   QueryInitiatedOnchain: "QueryInitiatedOnchain",
