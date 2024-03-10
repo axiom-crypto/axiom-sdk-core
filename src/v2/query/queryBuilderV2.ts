@@ -32,9 +32,7 @@ import {
   UnbuiltBeaconValidatorSubquery,
   DataSubqueryCount,
 } from "../types";
-import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
 import { ConstantsV2 } from "../constants";
-import { PaymentCalc } from "./paymentCalc";
 import {
   validateAccountSubquery,
   validateHeaderSubquery,
@@ -190,8 +188,6 @@ export class QueryBuilderV2 {
       maxFeePerGas: options?.maxFeePerGas ?? ConstantsV2.DefaultMaxFeePerGasWei,
       callbackGasLimit: options?.callbackGasLimit ?? ConstantsV2.DefaultCallbackGasLimit,
       overrideAxiomQueryFee: options?.overrideAxiomQueryFee ?? ConstantsV2.DefaultOverrideAxiomQueryFee,
-      dataQueryCalldataGasWarningThreshold:
-        options?.dataQueryCalldataGasWarningThreshold ?? ConstantsV2.DefaultDataQueryCalldataGasWarningThreshold,
       refundee: options?.refundee,
     };
     return this.options;
@@ -393,36 +389,6 @@ export class QueryBuilderV2 {
     // Calculate the queryId
     const queryId = getQueryId(targetChainId, caller, salt, queryHash, callbackHash, refundee);
     return BigInt(queryId).toString();
-  }
-
-  /**
-   * Calculates the fee (in wei) required to send the Query
-   * @returns The amount of wei required to send this query
-   */
-  async calculateFee(): Promise<string> {
-    const axiomV2Query = new ethers.Contract(
-      this.config.getConstants().Addresses.AxiomQuery,
-      getAxiomQueryAbiForVersion(this.config.version),
-      this.config.provider,
-    );
-    return PaymentCalc.calculatePayment(axiomV2Query, this.options);
-  }
-
-  async calculateRequiredPayment(): Promise<string> {
-    const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
-    const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
-    const userAddress = this.config.signer?.address;
-    if (userAddress === undefined) {
-      throw new Error(
-        "Unable to get current balance: need to have a signer defined (private key must be input into AxiomSdkCoreConfig)",
-      );
-    }
-    const currentBalance = BigInt(
-      await PaymentCalc.getBalance(this.config.providerUri, userAddress, axiomQueryAddr, axiomQueryAbi),
-    );
-    const totalFee = BigInt(await this.calculateFee());
-    const requiredPayment = totalFee - currentBalance;
-    return requiredPayment.toString();
   }
 
   private unsetBuiltQuery() {

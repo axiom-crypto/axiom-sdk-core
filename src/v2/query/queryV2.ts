@@ -9,8 +9,6 @@ import {
   UnbuiltSubquery,
 } from "../types";
 import { QueryBuilderV2 } from './queryBuilderV2';
-import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
-import { PaymentCalc } from "./paymentCalc";
 
 export class QueryV2 extends Query {
   /**

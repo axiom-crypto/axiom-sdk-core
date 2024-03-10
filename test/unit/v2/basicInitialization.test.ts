@@ -30,7 +30,6 @@ describe("Basic Initialization", () => {
     const ax = new AxiomSdkCore(config);
 
     expect(typeof ax).toEqual("object");
-    expect(typeof ax.block).toEqual("object");
     expect(typeof ax.query).toEqual("object");
   });
 
@@ -40,17 +39,6 @@ describe("Basic Initialization", () => {
       version: "v0.3",
     };
     expect(() => new AxiomSdkCore(config)).toThrowError("Invalid version number. Valid versions are: " + Versions.join(", "));
-  });
-
-  test("should get v2 abi", () => {
-    const config: AxiomSdkCoreConfig = {
-      providerUri: process.env.PROVIDER_URI as string,
-      version: "v2",
-    };
-    const ax = new AxiomSdkCore(config);
-    const abi = ax.getAxiomQueryAbi();
-
-    expect(abi[0].type).toEqual("constructor");
   });
 
   test("should set targetChainId to the same as (source) chainId", () => {

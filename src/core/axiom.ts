@@ -1,6 +1,5 @@
 import { InternalConfig } from './internalConfig';
 import { AxiomSdkCoreConfig } from '../shared/types';
-import { getAxiomQueryAbiForVersion } from './lib/abi';
 import { Query } from './query';
 import { QueryV2 } from '../v2/query/queryV2';
 
