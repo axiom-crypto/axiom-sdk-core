@@ -25,7 +25,6 @@ export const ConstantsV2 = Object.freeze({
   DefaultMaxFeePerGasWei: "25000000000",
   DefaultCallbackGasLimit: 100000,
   DefaultOverrideAxiomQueryFee: "0",
-  DefaultDataQueryCalldataGasWarningThreshold: 100000,
 
   // Fallback values if contract value cannot be read
   FallbackProofVerificationGas: 420000n,

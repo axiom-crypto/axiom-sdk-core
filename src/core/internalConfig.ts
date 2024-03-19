@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Versions, setVersionData, updateConstants } from "../shared/constants";
+import { Versions, updateConstants } from "../shared/constants";
 import { AxiomSdkCoreConfig } from "../shared/types";
 
 export class InternalConfig {
@@ -71,12 +71,6 @@ export class InternalConfig {
     this.version = this.parseVersion(config.version);
     this.timeoutMs = config.timeoutMs ?? 10000;
     this.mock = this.parseMock(config.mock, this.chainId);
-
-    let versionData = setVersionData(this.chainId, this.version, this.mock);
-    if (overrides !== undefined) {
-      updateConstants(versionData, this.version, overrides);
-    }
-    this.versionData = Object.freeze(versionData);
 
     this.provider = new ethers.JsonRpcProvider(this.providerUri);
 

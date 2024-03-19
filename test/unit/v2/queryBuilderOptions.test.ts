@@ -4,8 +4,6 @@ import { ConstantsV2 } from "../../../src/v2/constants";
 
 // Test coverage areas:
 // - QueryBuilderV2 options
-//
-// NOTE: dataQueryCalldataGasWarningThreshold is tested in `calculatorCalldataGas.test.ts`
 
 describe("QueryBuilderV2 Options", () => {
   const config: AxiomSdkCoreConfig = {

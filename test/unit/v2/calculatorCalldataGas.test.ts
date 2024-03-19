@@ -53,25 +53,4 @@ describe("Calldata Gas Calculator", () => {
     const newGas = calculateCalldataGas(newVkey);
     expect(oldGas).toBeLessThan(newGas);
   })
-
-  // NOTE: This test is disabled until we get IPFS feature online
-  // test("hit calldata gas limit", async () => {
-  //   // Retool console.warn to throw an error so that we can test for that error
-  //   console.warn = () => {
-  //     throw new Error("Hit calldata gas warning threshold");
-  //   };
-  //   const testFn = async () => {
-  //     const query = (axiom.query as QueryV2).new();
-  //     query.setOptions({
-  //       dataQueryCalldataGasWarningThreshold: 100,
-  //     });
-  //     const blockNumber = 18200000;
-  //     for (let i = 0; i < 20; i++) {
-  //       const subquery = buildHeaderSubquery(blockNumber + i).field(HeaderField.StateRoot);
-  //       query.appendDataSubquery(subquery);
-  //     }
-  //     await query.build();
-  //   };
-  //   expect(testFn).rejects.toThrow();
-  // });
 });

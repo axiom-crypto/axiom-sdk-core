@@ -9,8 +9,6 @@ import {
   UnbuiltSubquery,
 } from "../types";
 import { QueryBuilderV2 } from './queryBuilderV2';
-import { getAxiomQueryAbiForVersion } from "../../core/lib/abi";
-import { PaymentCalc } from "./paymentCalc";
 
 export class QueryV2 extends Query {
   /**
@@ -35,23 +33,5 @@ export class QueryV2 extends Query {
     options?: AxiomV2QueryOptions,
   ): QueryBuilderV2 {
     return new QueryBuilderV2(this.config, dataQuery, computeQuery, callback, options);
-  }
-
-  /**
-   *
-   */
-  async getBalance(): Promise<string> {
-    const axiomQueryAddr = this.config.getConstants().Addresses.AxiomQuery;
-    const axiomQueryAbi = getAxiomQueryAbiForVersion(this.config.version);
-    const userAddress = this.config.signer?.address;
-    if (userAddress === undefined) {
-      throw new Error("Unable to get current balance: need to have a signer defined (private key must be input into `AxiomSdkCoreConfig`)");
-    }
-    return await PaymentCalc.getBalance(
-      this.config.providerUri,
-      userAddress,
-      axiomQueryAddr,
-      axiomQueryAbi,
-    );
   }
 }
